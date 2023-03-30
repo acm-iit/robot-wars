@@ -1,4 +1,3 @@
-# Example file showing a circle moving on screen
 import pygame
 
 from arena import Arena
@@ -35,7 +34,6 @@ arena.add_entity(player_robot)
 arena.add_entity(npc_robot)
 
 wall = Wall(pygame.Vector2(700, 500), pygame.Vector2(50, 100))
-print(wall.hitbox)
 arena.add_entity(wall)
 
 #arena.show_hitboxes = True
