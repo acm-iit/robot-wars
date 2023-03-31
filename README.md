@@ -20,6 +20,7 @@ Run `init.py` in Python.
 * `bullet.py` - Contains the Bullet class (inherits Entity), represents a bullet that moves in the direction it faces, bounces off walls, and collides with robots.
 * `wall.py` - Contains the Wall class (inherits Entity), represents a static, unmovable barrier.
 * `geometry.py` - Contains helper functions for collision detection between two convex polygons.
+* `map.py` - Contains type definitions and guards for map JSON format
 
 ## To Do
 
