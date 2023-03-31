@@ -11,6 +11,8 @@ from map import is_map
 Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
+MAX_WINDOW_WIDTH = 1536
+MAX_WINDOW_HEIGHT = 768
 
 class Arena:
     def __init__(self, size: Vector2):
@@ -143,7 +145,15 @@ class Arena:
         """
         # pygame setup
         pygame.init()
-        screen = pygame.display.set_mode(self.__size)
+
+        # Clamp window size to be scaled down version of arena size
+        window_size = self.__size.copy()
+        if window_size.x > MAX_WINDOW_WIDTH:
+            window_size *= MAX_WINDOW_WIDTH / window_size.x
+        if window_size.y > MAX_WINDOW_HEIGHT:
+            window_size *= MAX_WINDOW_HEIGHT / window_size.y
+
+        screen = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
         running = True
         dt = 0
@@ -159,7 +169,7 @@ class Arena:
             self.update(dt)
 
             # Copy arena surface contents to screen
-            pygame.transform.scale(self.__surface, self.__size, screen)
+            pygame.transform.scale(self.__surface, window_size, screen)
             pygame.display.flip()
 
             # Limits FPS to 60
