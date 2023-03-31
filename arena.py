@@ -166,12 +166,18 @@ class Arena:
         # Font to render debug text
         font = pygame.font.SysFont("couriernew", 18)
 
+        total_frames = 0
+        total_time = 0
+
         while running:
             # Poll for events
             # pygame.QUIT event means the user clicked X to close the window
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+
+            total_frames += 1
+            total_time += dt
 
             # Simulate a time step
             # When dragging the window, the clock freezes and resumes once finished dragging.
@@ -203,3 +209,5 @@ class Arena:
             dt = clock.tick(FRAME_RATE) / 1000
 
         pygame.quit()
+
+        print(f"Overall FPS: {total_frames / total_time}")
