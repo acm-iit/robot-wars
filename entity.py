@@ -100,7 +100,17 @@ class Entity:
         """
         Handles potential collision between this entity and another entity.
         """
+        # If both entities are static then collisions don't matter
         if self.is_static and other.is_static:
+            return
+
+        # Determine maximum reach of each entity's hitbox
+        self_radius = max(offset.magnitude() for offset in self.hitbox)
+        other_radius = max(offset.magnitude() for offset in other.hitbox)
+
+        # If the distance between the entities is larger than the sum of their max reaches,
+        # they cannot be colliding
+        if (self.position - other.position).magnitude() > self_radius + other_radius:
             return
 
         is_colliding, translation = self.is_colliding_with(other)
