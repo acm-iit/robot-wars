@@ -169,7 +169,7 @@ class Arena:
             self.update(dt)
 
             # Copy arena surface contents to screen
-            pygame.transform.scale(self.__surface, window_size, screen)
+            pygame.transform.smoothscale(self.__surface, window_size, screen)
             pygame.display.flip()
 
             # Limits FPS to 60
