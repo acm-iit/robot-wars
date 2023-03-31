@@ -29,7 +29,7 @@ class Arena:
         return self.__entities.copy()
 
     @property
-    def size(self) -> pygame.Surface:
+    def surface(self) -> pygame.Surface:
         """
         Read-only property that provides reference to drawn arena surface
         """
