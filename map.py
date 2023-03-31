@@ -2,44 +2,44 @@ from typing import Any, List, TypedDict, TypeGuard
 
 Number = int | float
 
-class SizeJSON(TypedDict):
+class SizeJson(TypedDict):
     width: Number
     height: Number
 
-class PositionJSON(TypedDict):
+class PositionJson(TypedDict):
     x: Number
     y: Number
 
-class WallJSON(TypedDict):
-    position: PositionJSON
-    size: SizeJSON
+class WallJson(TypedDict):
+    position: PositionJson
+    size: SizeJson
     rotation: Number
 
-class MapJSON(TypedDict):
-    size: SizeJSON
-    walls: List[WallJSON]
-    spawns: List[PositionJSON]
+class MapJson(TypedDict):
+    size: SizeJson
+    walls: List[WallJson]
+    spawns: List[PositionJson]
 
 def is_number(n: Any) -> TypeGuard[Number]:
     return (type(n) is int) or (type(n) is float)
 
-def is_size(size: Any) -> TypeGuard[SizeJSON]:
+def is_size(size: Any) -> TypeGuard[SizeJson]:
     return type(size) is dict \
         and "width" in size and is_number(size["width"]) \
         and "height" in size and is_number(size["height"])
 
-def is_position(position: Any) -> TypeGuard[PositionJSON]:
+def is_position(position: Any) -> TypeGuard[PositionJson]:
     return type(position) is dict \
         and "x" in position and is_number(position["x"]) \
         and "y" in position and is_number(position["y"])
 
-def is_wall(wall: Any) -> TypeGuard[WallJSON]:
+def is_wall(wall: Any) -> TypeGuard[WallJson]:
     return type(wall) is dict \
         and "size" in wall and is_size(wall["size"]) \
         and "position" in wall and is_position(wall["position"]) \
         and "rotation" in wall and is_number(wall["rotation"])
 
-def is_map(map: Any) -> TypeGuard[MapJSON]:
+def is_map(map: Any) -> TypeGuard[MapJson]:
     """
     Determines if a value is a Map JSON formatted dictionary.
     """
