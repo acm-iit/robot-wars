@@ -136,7 +136,10 @@ class Arena:
         # Draw updated entities onto the surface
         for entity in self.__entities:
             entity.render(self.__surface)
-            if self.show_hitboxes:
+
+        # Draw hitboxes
+        if self.show_hitboxes:
+            for entity in self.__entities:
                 pygame.draw.lines(self.__surface, "#FF0000", True, entity.absolute_hitbox)
 
     def run(self):
