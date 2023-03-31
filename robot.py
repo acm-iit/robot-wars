@@ -28,7 +28,7 @@ TREADS_LINES_COLOR = "#555555"                      # Color of lines on robot's 
 ARROW_COLOR = "#AAAAAA"                             # Color of robot front arrow
 
 # Callback type for `onUpdate`
-Callback = Callable[[], None]
+Callback = Callable[["Robot"], None]
 
 class Robot(Entity):
     """
@@ -181,7 +181,7 @@ class Robot(Entity):
         Updates the robot's state after a time delta `dt`, in seconds.
         """
         if self.on_update is not None:
-            self.on_update()
+            self.on_update(self)
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
