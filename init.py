@@ -2,12 +2,12 @@ import pygame
 
 from arena import Arena
 from robot import Robot
-from wall import Wall
 
-arena = Arena(pygame.Vector2(1000, 750))
+arena = Arena.from_map_json("basic.json")
+if arena is None:
+    quit()
 
 player_robot = Robot()
-player_robot.position = pygame.Vector2(200, 500)
 
 def player_on_update():
     keys = pygame.key.get_pressed()
@@ -27,14 +27,9 @@ def npc_on_update():
     npc_robot.turn_power = 1
     npc_robot.turret_turn_power = -1
 
-npc_robot.position = pygame.Vector2(500, 500)
 npc_robot.on_update = npc_on_update
 
-arena.add_entity(player_robot)
-arena.add_entity(npc_robot)
+arena.spawn_entities([player_robot, npc_robot])
 
-wall = Wall(pygame.Vector2(700, 500), pygame.Vector2(50, 100))
-arena.add_entity(wall)
-
-#arena.show_hitboxes = True
+arena.show_hitboxes = True
 arena.run()

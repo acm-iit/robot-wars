@@ -1,8 +1,11 @@
+import json
 import pygame
-from typing import List
+from random import sample
+from typing import List, Optional
 
 from entity import Entity
 from wall import Wall
+from map import is_map
 
 Vector2 = pygame.Vector2
 
@@ -11,9 +14,11 @@ WALL_THICKNESS = 100
 class Arena:
     def __init__(self, size: Vector2):
         self.__entities: List[Entity] = []
-        self.show_hitboxes = False
         self.__size = size
         self.__surface = pygame.Surface(size)
+
+        self.spawns: List[Vector2] = []
+        self.show_hitboxes = False
 
         # Add surrounding walls
         self.add_entity(Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1), Vector2(size.x, WALL_THICKNESS)))
@@ -35,6 +40,27 @@ class Arena:
         """
         return self.__surface
 
+    @staticmethod
+    def from_map_json(filename: str) -> Optional["Arena"]:
+        """
+        Constructs an Arena from a map config JSON file.
+        """
+        with open(filename, "r") as file:
+            arena_data = json.load(file)
+            assert is_map(arena_data), "Map JSON is malformed"
+
+            arena_size = Vector2(arena_data["size"]["width"], arena_data["size"]["height"])
+            arena = Arena(arena_size)
+
+            for wall_data in arena_data["walls"]:
+                wall_position = Vector2(wall_data["position"]["x"], wall_data["position"]["y"])
+                wall_size = Vector2(wall_data["size"]["width"], wall_data["size"]["height"])
+                arena.add_entity(Wall(wall_position, wall_size))
+
+            arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"]) for spawn_data in arena_data["spawns"]]
+
+            return arena
+
     def add_entity(self, entity: Entity):
         """
         Adds an entity to this Arena. Entity must not already be in the Arena.
@@ -52,6 +78,19 @@ class Arena:
         
         self.__entities.remove(entity)
         entity.arena = None
+
+    def spawn_entities(self, entities: List[Entity]):
+        """
+        Spawns a list of entities into unique spawn locations.
+        The number of entities must be lower than the number of arena spawns.
+        """
+        assert len(entities) <= len(self.spawns), "Not enough spawns for amount of entities"
+
+        positions: List[Vector2] = sample(self.spawns, k=len(entities))
+
+        for entity in entities:
+            self.add_entity(entity)
+            entity.position = positions.pop()
 
     def get_entities_of_type(self, typeVal: type) -> List[Entity]:
         """
