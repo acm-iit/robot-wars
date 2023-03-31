@@ -1,14 +1,14 @@
 from typing import Any, List, TypedDict, TypeGuard
 
-number = int | float
+Number = int | float
 
 class SizeJSON(TypedDict):
-    width: number
-    height: number
+    width: Number
+    height: Number
 
 class PositionJSON(TypedDict):
-    x: number
-    y: number
+    x: Number
+    y: Number
 
 class WallJSON(TypedDict):
     position: PositionJSON
@@ -19,7 +19,7 @@ class MapJSON(TypedDict):
     walls: List[WallJSON]
     spawns: List[PositionJSON]
 
-def is_number(n: Any) -> TypeGuard[number]:
+def is_number(n: Any) -> TypeGuard[Number]:
     return (type(n) is int) or (type(n) is float)
 
 def is_size(size: Any) -> TypeGuard[SizeJSON]:
