@@ -39,7 +39,7 @@ class Arena:
         """
         Adds an entity to this Arena. Entity must not already be in the Arena.
         """
-        assert(entity not in self.__entities)
+        assert entity not in self.__entities, "Entity already in Arena"
 
         entity.arena = self
         self.__entities.append(entity)
@@ -48,7 +48,7 @@ class Arena:
         """
         Removes an entity from this Arena. Entity must be in the Arena.
         """
-        assert(entity in self.__entities)
+        assert entity in self.__entities, "Entity not in Arena"
         
         self.__entities.remove(entity)
         entity.arena = None

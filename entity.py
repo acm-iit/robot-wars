@@ -77,7 +77,7 @@ class Entity:
         """
         Removes the entity from its parent arena.
         """
-        assert(self.arena is not None)
+        assert self.arena is not None, "Entity has already been destroyed"
         self.arena = None
         
     def is_colliding_with(self, other: "Entity") -> Tuple[bool, Vector2]:

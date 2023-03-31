@@ -165,7 +165,7 @@ class Robot(Entity):
         """
         Makes the robot shoot a bullet in the direction of its turret.
         """
-        assert(self.arena is not None)
+        assert self.arena is not None, "Robot does not have a corresponding Arena"
 
         if self.__time_until_next_shot > 0:
             return

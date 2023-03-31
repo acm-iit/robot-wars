@@ -37,7 +37,7 @@ class Bullet(Entity):
         """
         Updates the lifetime of the bullet after a time delta `dt`, in seconds.
         """
-        assert(self.arena is not None)
+        assert self.arena is not None, "Bullet does not have a corresponding Arena"
 
         self.position += Vector2(self.__speed * dt, 0).rotate_rad(self.rotation)
         self.__lifetime -= dt
