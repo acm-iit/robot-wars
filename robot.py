@@ -147,8 +147,8 @@ class Robot(Entity):
         # Calculate tread segments/sec speed
         tread_speed = (self.__turn_speed * ROBOT_WIDTH / 2) / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
         # Move treads
-        self.__left_tread_alpha -= tread_speed * self.turn_power * dt
-        self.__right_tread_alpha += tread_speed * self.turn_power * dt
+        self.__left_tread_alpha += tread_speed * self.turn_power * dt
+        self.__right_tread_alpha -= tread_speed * self.turn_power * dt
         self.__left_tread_alpha %= 1
         self.__right_tread_alpha %= 1
 
@@ -203,11 +203,11 @@ class Robot(Entity):
 
         # Vertices (in absolute coordinates) of the left and right treads
         left_tread_vertices = [
-            self.position + (Vector2(0, ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
+            self.position + (Vector2(0, -ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
         right_tread_vertices = [
-            self.position + (Vector2(0, -ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
+            self.position + (Vector2(0, ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
 
@@ -233,15 +233,15 @@ class Robot(Entity):
             # Draw line on left treads
             pygame.draw.line(
                 screen, TREADS_LINES_COLOR,
-                left_line_position + Vector2(0, ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
-                left_line_position + Vector2(0, ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                left_line_position + Vector2(0, -ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                left_line_position + Vector2(0, -ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
                 width=2
             )
             # Draw line on right treads
             pygame.draw.line(
                 screen, TREADS_LINES_COLOR,
-                right_line_position + Vector2(0, -ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
-                right_line_position + Vector2(0, -ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                right_line_position + Vector2(0, ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                right_line_position + Vector2(0, ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
                 width=2
             )
 
