@@ -100,9 +100,12 @@ class Entity:
         """
         Handles potential collision between this entity and another entity.
         """
+        if self.is_static and other.is_static:
+            return
+
         is_colliding, translation = self.is_colliding_with(other)
 
-        if not is_colliding or (self.is_static and other.is_static):
+        if not is_colliding:
             return
 
         if not self.is_static and not other.is_static:
