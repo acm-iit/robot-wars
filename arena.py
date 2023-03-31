@@ -169,7 +169,15 @@ class Arena:
                     running = False
 
             # Simulate a time step
-            self.update(dt)
+            # When dragging the window, the clock freezes and resumes once finished dragging.
+            # This can cause large values of `dt`, which can cause entities to move too far
+            # and avoid collisions, so we handle that case here by splitting it into smaller
+            # time steps.
+            remaining_dt = dt
+            while remaining_dt > 10 / FRAME_RATE:
+                self.update(10 / FRAME_RATE)
+                remaining_dt -= 10 / FRAME_RATE
+            self.update(remaining_dt)
 
             # Copy arena surface contents to screen
             pygame.transform.smoothscale(self.__surface, window_size, screen)
