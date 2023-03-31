@@ -60,7 +60,7 @@ class Bullet(Entity):
             is_colliding, normal = self.is_colliding_with(wall)
             
             if is_colliding:
-                direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(normal)
+                direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(normal.normalize())
                 self.rotation = math.atan2(direction.y, direction.x)
 
     def render(self, screen: pygame.Surface):
