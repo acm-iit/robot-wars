@@ -9,9 +9,10 @@ class Wall(Entity):
     """
     Entity resembling an unmovable wall.
     """
-    def __init__(self, position: Vector2, size: Vector2):
+    def __init__(self, position: Vector2, size: Vector2, rotation: float = 0):
         super().__init__()
         self.position = position
+        self.rotation = rotation
         self.__size = size
 
     @property
