@@ -11,6 +11,7 @@ from map import is_map
 Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
+FRAME_RATE = 60
 MAX_WINDOW_WIDTH = 1536
 MAX_WINDOW_HEIGHT = 768
 
@@ -22,6 +23,7 @@ class Arena:
 
         self.spawns: List[Vector2] = []
         self.show_hitboxes = False
+        self.show_fps = False
 
         # Add surrounding walls
         self.add_entity(Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1), Vector2(size.x, WALL_THICKNESS)))
@@ -161,6 +163,9 @@ class Arena:
         running = True
         dt = 0
 
+        # Font to render debug text
+        font = pygame.font.SysFont("couriernew", 18)
+
         while running:
             # Poll for events
             # pygame.QUIT event means the user clicked X to close the window
@@ -181,11 +186,20 @@ class Arena:
 
             # Copy arena surface contents to screen
             pygame.transform.smoothscale(self.__surface, window_size, screen)
+
+            # Draw framerate onto the screen
+            if self.show_fps and dt > 0:
+                screen.blit(
+                    font.render(f"FPS: {int(1 / dt)}", False, "#FF0000", "#000000"),
+                    Vector2(),
+                )
+
+            # Display results on window
             pygame.display.flip()
 
             # Limits FPS to 60
             # `dt`` is delta time in seconds since last frame, used for framerate-
             # independent physics.
-            dt = clock.tick(60) / 1000
+            dt = clock.tick(FRAME_RATE) / 1000
 
         pygame.quit()

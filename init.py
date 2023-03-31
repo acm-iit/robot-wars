@@ -35,5 +35,6 @@ for i in range(3):
 
 arena.spawn_entities(robots)
 
-arena.show_hitboxes = True
+#arena.show_hitboxes = True
+arena.show_fps = True
 arena.run()
