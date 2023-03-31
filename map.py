@@ -13,6 +13,7 @@ class PositionJSON(TypedDict):
 class WallJSON(TypedDict):
     position: PositionJSON
     size: SizeJSON
+    rotation: Number
 
 class MapJSON(TypedDict):
     size: SizeJSON
@@ -35,7 +36,8 @@ def is_position(position: Any) -> TypeGuard[PositionJSON]:
 def is_wall(wall: Any) -> TypeGuard[WallJSON]:
     return type(wall) is dict \
         and "size" in wall and is_size(wall["size"]) \
-        and "position" in wall and is_position(wall["position"])
+        and "position" in wall and is_position(wall["position"]) \
+        and "rotation" in wall and is_number(wall["rotation"])
 
 def is_map(map: Any) -> TypeGuard[MapJSON]:
     """

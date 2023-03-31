@@ -1,4 +1,5 @@
 import json
+import math
 import pygame
 from random import sample
 from typing import List, Optional
@@ -55,7 +56,7 @@ class Arena:
             for wall_data in arena_data["walls"]:
                 wall_position = Vector2(wall_data["position"]["x"], wall_data["position"]["y"])
                 wall_size = Vector2(wall_data["size"]["width"], wall_data["size"]["height"])
-                arena.add_entity(Wall(wall_position, wall_size))
+                arena.add_entity(Wall(wall_position, wall_size, math.radians(wall_data["rotation"])))
 
             arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"]) for spawn_data in arena_data["spawns"]]
 

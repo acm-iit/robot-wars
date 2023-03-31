@@ -12,7 +12,8 @@
             "size": {
                 "width": 128,
                 "height": 128
-            }
+            },
+            "rotation": 45
         },
         {
             "position": {
@@ -22,7 +23,8 @@
             "size": {
                 "width": 128,
                 "height": 32
-            }
+            },
+            "rotation": 0
         },
         {
             "position": {
@@ -32,7 +34,8 @@
             "size": {
                 "width": 128,
                 "height": 32
-            }
+            },
+            "rotation": 0
         },
         {
             "position": {
@@ -42,7 +45,8 @@
             "size": {
                 "width": 32,
                 "height": 64
-            }
+            },
+            "rotation": 0
         },
         {
             "position": {
@@ -52,7 +56,8 @@
             "size": {
                 "width": 32,
                 "height": 64
-            }
+            },
+            "rotation": 0
         }
     ],
     "spawns": [
