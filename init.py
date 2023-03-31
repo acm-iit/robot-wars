@@ -3,7 +3,7 @@ import pygame
 from arena import Arena
 from robot import Robot
 
-arena = Arena.from_map_json("basic.json")
+arena = Arena.from_map_json("circles.json")
 if arena is None:
     quit()
 
