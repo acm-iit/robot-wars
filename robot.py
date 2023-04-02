@@ -176,9 +176,6 @@ class Robot(Entity):
         self.__time_until_next_shot = self.__shot_cooldown
 
     def update(self, dt: float):
-        """
-        Updates the robot's state after a time delta `dt`, in seconds.
-        """
         if self.on_update is not None:
             self.on_update(self)
         self.__move(dt)
@@ -189,9 +186,6 @@ class Robot(Entity):
         self.__time_until_next_shot = max(self.__time_until_next_shot - dt, 0)
 
     def render(self, screen: pygame.Surface):
-        """
-        Renders the robot onto the screen.
-        """
         # Pixel offsets of treads vertices relative to the center of the treads
         tread_vertex_offsets = [
             Vector2(TREAD_LENGTH / 2, TREAD_WIDTH / 2),

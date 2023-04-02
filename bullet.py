@@ -94,9 +94,6 @@ class Bullet(Entity):
         return vertices
 
     def update(self, dt: float):
-        """
-        Updates the lifetime of the bullet after a time delta `dt`, in seconds.
-        """
         assert self.arena is not None, "Bullet does not have a corresponding Arena"
 
         self.position += Vector2(self.__speed * dt, 0).rotate_rad(self.rotation)
@@ -107,9 +104,6 @@ class Bullet(Entity):
             return
 
     def render(self, screen: pygame.Surface):
-        """
-        Renders the bullet onto the screen.
-        """
         # Draw trail
         draw_gradient_path(
             screen, TRAIL_HEAD_COLOR, TRAIL_TAIL_COLOR, self.__compute_trail_vertices(),

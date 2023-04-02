@@ -30,7 +30,4 @@ class Wall(Entity):
         return True
 
     def render(self, screen: pygame.Surface):
-        """
-        Renders the wall onto the screen.
-        """
         pygame.draw.polygon(screen, "#AAAAAA", self.absolute_hitbox)
