@@ -1,8 +1,7 @@
 import pygame
 from random import random
 
-from arena import Arena
-from robot import Robot
+from engine import Arena, Robot
 
 def keyboard_control(robot: Robot):
     keys = pygame.key.get_pressed()

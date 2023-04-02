@@ -2,7 +2,7 @@ import json
 import math
 from typing import Callable
 
-from map import MapJson, WallJson
+from engine import MapJson, WallJson
 
 NUM_CIRCLE_SEGMENTS = 32
 WALL_THICKNESS = 32

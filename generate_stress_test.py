@@ -1,6 +1,6 @@
 import json
 
-from map import MapJson, PositionJson
+from engine import MapJson, PositionJson
 
 WIDTH = 2048
 HEIGHT = 2048

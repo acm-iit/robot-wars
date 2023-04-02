@@ -1,10 +1,10 @@
 import math
 import pygame
 
-from draw_util import draw_gradient_path
-from entity import Entity
-import robot
-from wall import Wall
+from engine.draw_util import draw_gradient_path
+from engine.entity import Entity
+import engine.robot
+from engine.wall import Wall
 
 Vector2 = pygame.Vector2
 
@@ -18,7 +18,7 @@ TRAIL_TAIL_COLOR = "#AAAAAA00"
 NUM_HITBOX_VERTICES = 3
 
 class Bullet(Entity):
-    def __init__(self, position: Vector2, rotation: float, origin: "robot.Robot"):
+    def __init__(self, position: Vector2, rotation: float, origin: "engine.robot.Robot"):
         super().__init__()
         self.__lifetime = 2                     # Lifetime of the bullet, in seconds
         self.__speed = 500                      # Speed of the bullet, in pixels/sec
@@ -49,7 +49,7 @@ class Bullet(Entity):
         if other is self.origin:
             return
 
-        if type(other) is robot.Robot:
+        if type(other) is engine.robot.Robot:
             other.destroy()
             self.destroy()
         elif type(other) is Wall:

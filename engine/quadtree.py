@@ -1,7 +1,7 @@
 import pygame
 from typing import Final, Optional
 
-from entity import Entity
+from engine.entity import Entity
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2

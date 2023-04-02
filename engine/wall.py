@@ -1,6 +1,6 @@
 import pygame
 
-from entity import Entity
+from engine.entity import Entity
 
 Vector2 = pygame.Vector2
 

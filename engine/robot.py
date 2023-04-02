@@ -2,8 +2,8 @@ import math
 import pygame
 from typing import Callable, Optional
 
-from bullet import Bullet
-from entity import Entity
+import engine.bullet
+from engine.entity import Entity
 
 Vector2 = pygame.Vector2
 
@@ -170,7 +170,7 @@ class Robot(Entity):
             return
         
         bullet_position = self.position + Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
-        bullet = Bullet(bullet_position, self.__turret_rotation, self)
+        bullet = engine.bullet.Bullet(bullet_position, self.__turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown

@@ -4,10 +4,10 @@ import pygame
 from random import sample
 from typing import Optional
 
-from entity import Entity
-from map import is_map
-from quadtree import Quadtree
-from wall import Wall
+from engine.entity import Entity
+from engine.map import is_map
+from engine.quadtree import Quadtree
+from engine.wall import Wall
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
