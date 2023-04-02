@@ -33,6 +33,28 @@ class Bullet(Entity):
     def is_static(self) -> bool:
         return False
 
+    @property
+    def reacts_to_collisions(self) -> bool:
+        return False
+
+    def on_collide(self, other: Entity, translation: Vector2):
+        if other is self.origin:
+            return
+
+        if type(other) is robot.Robot:
+            other.destroy()
+            self.destroy()
+        elif type(other) is Wall:
+            # Fix collision
+            self.position += translation
+
+            # If the dot product is positive, then the normal is in the same direction as movement, so we don't reflect
+            if Vector2(1, 0).rotate_rad(self.rotation).dot(translation) > 0:
+                return
+
+            direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(translation.normalize())
+            self.rotation = math.atan2(direction.y, direction.x)
+
     def update(self, dt: float):
         """
         Updates the lifetime of the bullet after a time delta `dt`, in seconds.
