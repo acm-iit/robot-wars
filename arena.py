@@ -113,6 +113,18 @@ class Arena:
         for entity1, entity2 in quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
 
+    def __filter_entities(self):
+        """
+        Filter out any entities that were destroyed during updating.
+
+        An entity can be destroyed in various ways:
+
+        * It destroyed itself (i.e. bullet reaches max distance)
+        * It was destroyed by another entity (i.e. robot destroyed by bullet)
+
+        An entity is destroyed if its `arena` field is set to `None`.
+        """
+        self.__entities[:] = [entity for entity in self.__entities if entity.arena is self]
 
     def __construct_quadtree(self) -> Quadtree:
         """
@@ -145,12 +157,8 @@ class Arena:
         for entity in self.__entities:
             entity.update(dt)
         
-        # Filter out any entities that were destroyed during updating
-        # An entity can be destroyed in various ways:
-        #   1) It destroyed itself (i.e. bullet reaches max distance)
-        #   2) It was destroyed by another entity (i.e. robot destroyed by bullet)
-        # An entity is destroyed if its `arena` field is set to `None`.
-        self.__entities[:] = [entity for entity in self.__entities if entity.arena is self]
+        # Filter destroyed entities
+        self.__filter_entities()
 
         # Construct quadtree
         quadtree = self.__construct_quadtree()
