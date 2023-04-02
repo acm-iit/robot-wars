@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from engine.draw_util import draw_gradient_path
+from engine.util import draw_gradient_path
 from engine.entity import Entity
 import engine.robot
 from engine.wall import Wall
