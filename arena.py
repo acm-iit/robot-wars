@@ -5,9 +5,11 @@ from random import sample
 from typing import List, Optional
 
 from entity import Entity
-from wall import Wall
 from map import is_map
+from quadtree import Quadtree
+from wall import Wall
 
+Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
@@ -103,16 +105,33 @@ class Arena:
         """
         return [entity for entity in self.__entities if type(entity) is typeVal]
 
-    def solve_collisions(self):
+    def solve_collisions(self, quadtree: Quadtree):
         """
         Solves collisions between entities.
         """
-        for i in range(len(self.__entities)-1):
-            for j in range(i+1, len(self.__entities)):
-                entity1 = self.__entities[i]
-                entity2 = self.__entities[j]
+        for entity1, entity2 in quadtree.find_all_intersections():
+            entity1.handle_collision(entity2)
 
-                entity1.handle_collision(entity2)
+
+    def __construct_quadtree(self) -> Quadtree:
+        """
+        Constructs a Quadtree with the entities in the arena.
+        """
+        # Calculate Quadtree bounds
+        min_x = min(point.x for entity in self.__entities for point in entity.absolute_hitbox) - 10
+        min_y = min(point.y for entity in self.__entities for point in entity.absolute_hitbox) - 10
+        max_x = max(point.x for entity in self.__entities for point in entity.absolute_hitbox) + 10
+        max_y = max(point.y for entity in self.__entities for point in entity.absolute_hitbox) + 10
+
+        quadtree_top_left = Vector2(min_x, min_y)
+        quadtree_size = Vector2(max_x, max_y) - quadtree_top_left
+
+        # Construct Quadtree
+        quadtree = Quadtree(Rect(quadtree_top_left, quadtree_size))
+        for entity in self.__entities:
+            quadtree.add(entity)
+
+        return quadtree
 
     def update(self, dt: float):
         """
@@ -132,8 +151,11 @@ class Arena:
         # An entity is destroyed if its `arena` field is set to `None`.
         self.__entities[:] = [entity for entity in self.__entities if entity.arena is self]
 
+        # Construct quadtree
+        quadtree = self.__construct_quadtree()
+
         # Solve collisions
-        self.solve_collisions()
+        self.solve_collisions(quadtree)
 
         # Draw updated entities onto the surface
         for entity in self.__entities:
