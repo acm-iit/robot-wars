@@ -24,6 +24,8 @@ if arena is None:
 robots = []
 
 player_robot = Robot()
+player_robot.color = "#0000EE"
+player_robot.head_color = "#0000CC"
 player_robot.on_update = keyboard_control
 
 robots.append(player_robot)
