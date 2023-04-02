@@ -26,6 +26,7 @@ class Arena:
         self.spawns: List[Vector2] = []
         self.show_hitboxes = False
         self.show_fps = False
+        self.show_quadtree = False
 
         # Add surrounding walls
         self.add_entity(Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1), Vector2(size.x, WALL_THICKNESS)))
@@ -165,6 +166,10 @@ class Arena:
         if self.show_hitboxes:
             for entity in self.__entities:
                 pygame.draw.lines(self.__surface, "#FF0000", True, entity.absolute_hitbox)
+
+        # Draw quadtree
+        if self.show_quadtree:
+            quadtree.render(self.__surface)
 
     def run(self):
         """
