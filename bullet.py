@@ -14,10 +14,11 @@ BULLET_COLOR = "#222222"
 NUM_HITBOX_VERTICES = 3
 
 class Bullet(Entity):
-    def __init__(self, rotation: float, origin: "robot.Robot"):
+    def __init__(self, position: Vector2, rotation: float, origin: "robot.Robot"):
         super().__init__()
         self.__lifetime = 1.2
         self.__speed = 450
+        self.position = position
         self.rotation = rotation
         self.origin = origin
         self.collision_filter.add(origin)

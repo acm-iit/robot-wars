@@ -173,8 +173,8 @@ class Robot(Entity):
         if self.__time_until_next_shot > 0:
             return
         
-        bullet = Bullet(self.__turret_rotation, self)
-        bullet.position = self.position + Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
+        bullet_position = self.position + Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
+        bullet = Bullet(bullet_position, self.__turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown
