@@ -2,7 +2,7 @@ import json
 import math
 import pygame
 from random import sample
-from typing import List, Optional
+from typing import Optional
 
 from entity import Entity
 from map import is_map
@@ -24,11 +24,11 @@ class Arena:
     Contains and simulates Entities and provides rendering support.
     """
     def __init__(self, size: Vector2):
-        self.__entities: List[Entity] = []
+        self.__entities: list[Entity] = []
         self.__size = size
         self.__surface = pygame.Surface(size)
 
-        self.spawns: List[Vector2] = []
+        self.spawns: list[Vector2] = []
         self.show_hitboxes = False
         self.show_fps = False
         self.show_quadtree = False
@@ -40,7 +40,7 @@ class Arena:
         self.add_entity(Wall(Vector2(size.x + WALL_THICKNESS / 2 + 1, size.y / 2), Vector2(WALL_THICKNESS, size.y)))
 
     @property
-    def entities(self) -> List[Entity]:
+    def entities(self) -> list[Entity]:
         """
         Read-only property that provides list of arena entities.
         """
@@ -92,20 +92,20 @@ class Arena:
         self.__entities.remove(entity)
         entity.arena = None
 
-    def spawn_entities(self, entities: List[Entity]):
+    def spawn_entities(self, entities: list[Entity]):
         """
         Spawns a list of entities into unique spawn locations.
         The number of entities must be lower than the number of arena spawns.
         """
         assert len(entities) <= len(self.spawns), "Not enough spawns for amount of entities"
 
-        positions: List[Vector2] = sample(self.spawns, k=len(entities))
+        positions: list[Vector2] = sample(self.spawns, k=len(entities))
 
         for entity in entities:
             self.add_entity(entity)
             entity.position = positions.pop()
 
-    def get_entities_of_type(self, typeVal: type) -> List[Entity]:
+    def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """
         Returns a filtered list of entities of a certain class.
         """

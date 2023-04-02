@@ -1,4 +1,4 @@
-from typing import Any, List, TypedDict, TypeGuard
+from typing import Any, TypedDict, TypeGuard
 
 Number = int | float
 
@@ -17,8 +17,8 @@ class WallJson(TypedDict):
 
 class MapJson(TypedDict):
     size: SizeJson
-    walls: List[WallJson]
-    spawns: List[PositionJson]
+    walls: list[WallJson]
+    spawns: list[PositionJson]
 
 def is_number(n: Any) -> TypeGuard[Number]:
     return (type(n) is int) or (type(n) is float)

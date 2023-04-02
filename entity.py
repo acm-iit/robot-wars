@@ -1,6 +1,6 @@
 import math
 import pygame
-from typing import List, Optional, Set, Tuple
+from typing import Optional, Set, Tuple
 
 import arena
 from geometry_util import check_polygon_collision, get_minimum_translation_vector
@@ -42,14 +42,14 @@ class Entity:
         self.__rotation = rotation % (2 * math.pi)
 
     @property
-    def hitbox(self) -> List[Vector2]:
+    def hitbox(self) -> list[Vector2]:
         """
         Hitbox of this entity, as a list of vertices in order (without position and rotation offset).
         """
         return [Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1)]
 
     @property
-    def absolute_hitbox(self) -> List[Vector2]:
+    def absolute_hitbox(self) -> list[Vector2]:
         """
         Absolute positions of entity hitbox vertices, in order.
         """

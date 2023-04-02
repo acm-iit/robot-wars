@@ -1,6 +1,6 @@
 import json
 import math
-from typing import Callable, List
+from typing import Callable
 
 from map import MapJson, WallJson
 
@@ -13,14 +13,14 @@ HEIGHT = 1536
 INNER_RADIUS = WIDTH // 16 * 3
 OUTER_RADIUS = WIDTH // 8 * 3
 
-walls: List[WallJson] = []
+walls: list[WallJson] = []
 
-def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True) -> List[WallJson]:
+def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True) -> list[WallJson]:
     dangle = 2 * math.pi / NUM_CIRCLE_SEGMENTS
     outer_radius = radius + WALL_THICKNESS / 2
     segment_length = math.tan(dangle / 2) * outer_radius * 2
 
-    circle_walls: List[WallJson] = []
+    circle_walls: list[WallJson] = []
 
     for i in range(NUM_CIRCLE_SEGMENTS):
         if not predicate(i):

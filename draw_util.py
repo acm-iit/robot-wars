@@ -1,6 +1,6 @@
 import math
 import pygame
-from typing import List, Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union
 
 Surface = pygame.Surface
 Vector2 = pygame.Vector2
@@ -27,7 +27,7 @@ def draw_gradient_line(surface: Surface, color1: ColorValue, color2: ColorValue,
     surface_size = Vector2(gradient_surface.get_size())
     surface.blit(gradient_surface, (point1 + point2) / 2 - surface_size / 2)
 
-def draw_gradient_path(surface: Surface, color1: ColorValue, color2: ColorValue, points: List[Vector2], width: int):
+def draw_gradient_path(surface: Surface, color1: ColorValue, color2: ColorValue, points: list[Vector2], width: int):
     """
     Draws gradient lines along a path of points.
     """

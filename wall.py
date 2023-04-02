@@ -1,5 +1,4 @@
 import pygame
-from typing import List
 
 from entity import Entity
 
@@ -16,7 +15,7 @@ class Wall(Entity):
         self.__size = size
 
     @property
-    def hitbox(self) -> List[Vector2]:
+    def hitbox(self) -> list[Vector2]:
         half_size = self.__size / 2
         return [
             half_size,

@@ -1,17 +1,17 @@
 import math
 import pygame
-from typing import List, Optional
+from typing import Optional
 
 Vector2 = pygame.Vector2
 
-def project_polygon_onto_axis(polygon: List[Vector2], axis: Vector2):
+def project_polygon_onto_axis(polygon: list[Vector2], axis: Vector2):
     """
     Projects a polygon onto a given axis.
     """
     dots = [vertex.dot(axis) for vertex in polygon]
     return min(dots), max(dots)
 
-def check_polygon_overlap(polygon1: List[Vector2], polygon2: List[Vector2], axis: Vector2):
+def check_polygon_overlap(polygon1: list[Vector2], polygon2: list[Vector2], axis: Vector2):
     """
     Checks if two polygons overlap on a given axis.
     """
@@ -19,7 +19,7 @@ def check_polygon_overlap(polygon1: List[Vector2], polygon2: List[Vector2], axis
     min2, max2 = project_polygon_onto_axis(polygon2, axis)
     return max1 >= min2 and max2 >= min1
 
-def get_polygon_axes(polygon: List[Vector2]) -> List[Vector2]:
+def get_polygon_axes(polygon: list[Vector2]) -> list[Vector2]:
     """
     Gets the axes to check for overlap for a polygon.
     """
@@ -32,7 +32,7 @@ def get_polygon_axes(polygon: List[Vector2]) -> List[Vector2]:
         axes.append(axis.normalize())
     return axes
 
-def check_polygon_collision(polygon1: List[Vector2], polygon2: List[Vector2]):
+def check_polygon_collision(polygon1: list[Vector2], polygon2: list[Vector2]):
     """
     Checks if two polygons intersect.
     """
@@ -55,7 +55,7 @@ def interval_mtv(min1: float, max1: float, min2: float, max2: float) -> Optional
     else:
         return -left
 
-def get_minimum_translation_vector(polygon1: List[Vector2], polygon2: List[Vector2]):
+def get_minimum_translation_vector(polygon1: list[Vector2], polygon2: list[Vector2]):
     """
     Gets the minimum translation vector to separate two polygons.
     """

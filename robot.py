@@ -1,6 +1,6 @@
 import math
 import pygame
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 from bullet import Bullet
 from entity import Entity
@@ -59,7 +59,7 @@ class Robot(Entity):
         self.__time_until_next_shot = 0             # Current shot cooldown progress (0 = ready)
 
     @property
-    def hitbox(self) -> List[Vector2]:
+    def hitbox(self) -> list[Vector2]:
         length = max(ROBOT_LENGTH, TREAD_LENGTH)
         width = ROBOT_WIDTH + TREAD_WIDTH
         return [

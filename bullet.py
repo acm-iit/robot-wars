@@ -1,6 +1,5 @@
 import math
 import pygame
-from typing import List
 
 from draw_util import draw_gradient_path
 from entity import Entity
@@ -33,10 +32,10 @@ class Bullet(Entity):
         self.rotation = rotation
 
         # Vertices of bullet path
-        self.__path: List[Vector2] = [self.position]
+        self.__path: list[Vector2] = [self.position]
 
     @property
-    def hitbox(self) -> List[Vector2]:
+    def hitbox(self) -> list[Vector2]:
         return [
             Vector2(BULLET_RADIUS, 0).rotate_rad(i * 2 * math.pi / NUM_HITBOX_VERTICES)
             for i in range(NUM_HITBOX_VERTICES)
@@ -67,7 +66,7 @@ class Bullet(Entity):
             direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(translation.normalize())
             self.rotation = math.atan2(direction.y, direction.x)
 
-    def __compute_trail_vertices(self) -> List[Vector2]:
+    def __compute_trail_vertices(self) -> list[Vector2]:
         """
         Computes vertices of the drawn trail and prunes old vertices from Bullet.__path
         """
