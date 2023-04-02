@@ -69,10 +69,6 @@ class Robot(Entity):
             Vector2(-length / 2, width / 2)
         ]
 
-    @property
-    def is_static(self) -> bool:
-        return False
-
     # We separate the `X_power` members into properties with specialized setters so that we can
     # clamp the values between [-1, 1].
     @property

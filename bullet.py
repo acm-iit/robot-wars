@@ -43,10 +43,6 @@ class Bullet(Entity):
         ]
 
     @property
-    def is_static(self) -> bool:
-        return False
-
-    @property
     def reacts_to_collisions(self) -> bool:
         return False
 
