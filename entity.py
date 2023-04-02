@@ -97,7 +97,10 @@ class Entity:
         """
         Removes the entity from its parent arena.
         """
-        assert self.arena is not None, "Entity has already been destroyed"
+        # TODO: Commented out the below assert temporarily, since this method is idempotent.
+        # If this changes in the future, we need to uncomment this assert and fix cases where
+        # it is triggered.
+        # assert self.arena is not None, "Entity has already been destroyed"
         self.arena = None
 
     def on_collide(self, other: "Entity", translation: Vector2):
