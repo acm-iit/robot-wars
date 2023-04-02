@@ -5,6 +5,7 @@ from typing import List, Optional, Set, Tuple
 import arena
 from geometry import check_polygon_collision, get_minimum_translation_vector
 
+Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 class Entity:
@@ -53,6 +54,17 @@ class Entity:
         Absolute positions of entity hitbox vertices, in order.
         """
         return [vertex.rotate_rad(self.rotation) + self.position for vertex in self.hitbox]
+
+    @property
+    def rect(self) -> Rect:
+        """
+        Axis-aligned bounding rectangle of the entity.
+        """
+        #print("finding rect")
+        absolute_hitbox = self.absolute_hitbox
+        top_left = Vector2(min(point.x for point in absolute_hitbox), min(point.y for point in absolute_hitbox))
+        bottom_right = Vector2(max(point.x for point in absolute_hitbox), max(point.y for point in absolute_hitbox))
+        return Rect(top_left, bottom_right - top_left)
 
     @property
     def is_static(self) -> bool:
