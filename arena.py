@@ -166,6 +166,9 @@ class Arena:
         # Solve collisions
         self.solve_collisions(quadtree)
 
+        # Filter destroyed entities (yes, again)
+        self.__filter_entities()
+
         # Draw updated entities onto the surface
         for entity in self.__entities:
             entity.render(self.__surface)
