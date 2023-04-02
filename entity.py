@@ -132,7 +132,7 @@ class Entity:
 
         is_colliding, translation = self.is_colliding_with(other)
 
-        if not is_colliding:
+        if not is_colliding or translation.magnitude() == 0:
             return
 
         # Call both entity's `on_collide` method
