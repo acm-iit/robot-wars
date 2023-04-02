@@ -1,5 +1,5 @@
 import pygame
-from typing import Final, Optional, Tuple
+from typing import Final, Optional
 
 from entity import Entity
 
@@ -231,7 +231,7 @@ class Quadtree:
         self.__query(self.__root_node, self.__root_rect, query_rect, entities)
         return entities
 
-    def __find_intersections_in_descendants(self, node: Node, entity: Entity, intersections: list[Tuple[Entity, Entity]]):
+    def __find_intersections_in_descendants(self, node: Node, entity: Entity, intersections: list[tuple[Entity, Entity]]):
         """
         Finds all intersections between an entity and all entities in the provided node and its descendants.
         """
@@ -247,7 +247,7 @@ class Quadtree:
         for child in node.children:
             self.__find_intersections_in_descendants(child, entity, intersections)
 
-    def __find_all_intersections(self, node: Node, intersections: list[Tuple[Entity, Entity]]):
+    def __find_all_intersections(self, node: Node, intersections: list[tuple[Entity, Entity]]):
         """
         Recursive helper function for Quadtree.find_all_intersections.
         """
@@ -268,7 +268,7 @@ class Quadtree:
         for child in node.children:
             self.__find_all_intersections(child, intersections)
 
-    def find_all_intersections(self) -> list[Tuple[Entity, Entity]]:
+    def find_all_intersections(self) -> list[tuple[Entity, Entity]]:
         """
         Finds all pairs of rectangle intersections between two entities.
         """

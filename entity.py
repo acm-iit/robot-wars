@@ -1,6 +1,6 @@
 import math
 import pygame
-from typing import Optional, Tuple
+from typing import Optional
 
 import arena
 from geometry_util import check_polygon_collision, get_minimum_translation_vector
@@ -109,7 +109,7 @@ class Entity:
         """
         pass
         
-    def is_colliding_with(self, other: "Entity") -> Tuple[bool, Vector2]:
+    def is_colliding_with(self, other: "Entity") -> tuple[bool, Vector2]:
         """
         Determines if this entity is colliding with another entity.
         """

@@ -1,11 +1,11 @@
 import math
 import pygame
-from typing import Sequence, Tuple, Union
+from typing import Sequence, Union
 
 Surface = pygame.Surface
 Vector2 = pygame.Vector2
 Color = pygame.Color
-ColorValue = Union[Color, int, str, Tuple[int, int, int], Tuple[int, int, int, int], Sequence[int]]
+ColorValue = Union[Color, int, str, tuple[int, int, int], tuple[int, int, int, int], Sequence[int]]
 
 def draw_gradient(color1: ColorValue, color2: ColorValue, size: Vector2) -> Surface:
     """
