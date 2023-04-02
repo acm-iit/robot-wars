@@ -43,6 +43,9 @@ class Robot(Entity):
         self.turn_power = 0                         # Turning power in [-1, 1]
         self.turret_turn_power = 0                  # Turret turning power in [-1, 1]
 
+        self.color = ROBOT_COLOR
+        self.head_color = ROBOT_HEAD_COLOR
+
         self.__turret_rotation = 0                  # Turret rotation (in radians)
 
         self.__move_speed = 300                     # Maximum movement speed (in pixels/sec)
@@ -255,7 +258,7 @@ class Robot(Entity):
 
         # Draw robot body
         pygame.draw.polygon(
-            screen, ROBOT_COLOR,
+            screen, self.color,
             [self.position + offset.rotate_rad(self.rotation) for offset in robot_vertex_offsets]
         )
 
@@ -287,4 +290,4 @@ class Robot(Entity):
         )
 
         # Draw robot head
-        pygame.draw.circle(screen, ROBOT_HEAD_COLOR, self.position, ROBOT_HEAD_RADIUS)
+        pygame.draw.circle(screen, self.head_color, self.position, ROBOT_HEAD_RADIUS)
