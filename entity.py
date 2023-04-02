@@ -73,6 +73,14 @@ class Entity:
         """
         return False
 
+    @property
+    def reacts_to_collisions(self) -> bool:
+        """
+        If `False`, then the physics reaction to collision will be omitted.
+        The `on_collide` method will still be called.
+        """
+        return True
+
     def update(self, dt: float):
         """
         Update the entity's state after a time delta `dt`, in seconds.
@@ -128,6 +136,10 @@ class Entity:
         is_colliding, translation = self.is_colliding_with(other)
 
         if not is_colliding:
+            return
+
+        # If one or more of the entities has react_to_collisions = False, then skip
+        if not self.reacts_to_collisions or not other.reacts_to_collisions:
             return
 
         if not self.is_static and not other.is_static:
