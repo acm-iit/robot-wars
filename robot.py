@@ -27,7 +27,7 @@ TREADS_COLOR = "#888888"                            # Color of robot's treads
 TREADS_LINES_COLOR = "#555555"                      # Color of lines on robot's treads
 ARROW_COLOR = "#AAAAAA"                             # Color of robot front arrow
 
-# Callback type for `onUpdate`
+# Callback type for `on_update`
 Callback = Callable[["Robot"], None]
 
 class Robot(Entity):
