@@ -2,6 +2,7 @@ import math
 import pygame
 from typing import List
 
+from draw_util import draw_gradient_path
 from entity import Entity
 import robot
 from wall import Wall
@@ -10,6 +11,10 @@ Vector2 = pygame.Vector2
 
 BULLET_RADIUS = 8
 BULLET_COLOR = "#222222"
+
+TRAIL_LENGTH = 128
+TRAIL_HEAD_COLOR = "#AAAAAA60"
+TRAIL_TAIL_COLOR = "#AAAAAA00"
 
 NUM_HITBOX_VERTICES = 3
 
@@ -26,6 +31,9 @@ class Bullet(Entity):
         # Set starting position and rotation
         self.position = position
         self.rotation = rotation
+
+        # Vertices of bullet path
+        self.__path: List[Vector2] = [self.position]
 
     @property
     def hitbox(self) -> List[Vector2]:
@@ -57,8 +65,37 @@ class Bullet(Entity):
             if Vector2(1, 0).rotate_rad(self.rotation).dot(translation) > 0:
                 return
 
+            # Add collision point to path
+            self.__path.append(self.position)
+
             direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(translation.normalize())
             self.rotation = math.atan2(direction.y, direction.x)
+
+    def __compute_trail_vertices(self) -> List[Vector2]:
+        """
+        Computes vertices of the drawn trail and prunes old vertices from Bullet.__path
+        """
+        vertices = [self.position]
+        total_distance = 0
+
+        for i in range(len(self.__path)):
+            vertex1 = vertices[i]
+            vertex2 = self.__path[-i - 1]
+
+            distance = (vertex1 - vertex2).magnitude()
+
+            if total_distance + distance >= TRAIL_LENGTH:
+                # Insert a vertex between vertex1 and vertex2 that caps length at TRAIL_LENGTH
+                vertices.append(vertex1.lerp(vertex2, (TRAIL_LENGTH - total_distance) / distance))
+
+                # Remove old vertices from self.__path that are too far away
+                self.__path = self.__path[-i - 1:]
+                break
+
+            total_distance += distance
+            vertices.append(vertex2)
+
+        return vertices
 
     def update(self, dt: float):
         """
@@ -73,25 +110,15 @@ class Bullet(Entity):
             self.destroy()
             return
 
-        # Check for collisions
-        for enemy in self.arena.get_entities_of_type(robot.Robot):
-            if enemy is self.origin:
-                continue
-
-            is_colliding, _ = self.is_colliding_with(enemy)
-            if is_colliding:
-                self.destroy()
-                return
-
-        for wall in self.arena.get_entities_of_type(Wall):
-            is_colliding, normal = self.is_colliding_with(wall)
-            
-            if is_colliding:
-                direction = Vector2(1, 0).rotate_rad(self.rotation).reflect(normal.normalize())
-                self.rotation = math.atan2(direction.y, direction.x)
-
     def render(self, screen: pygame.Surface):
         """
         Renders the bullet onto the screen.
         """
+        # Draw trail
+        draw_gradient_path(
+            screen, TRAIL_HEAD_COLOR, TRAIL_TAIL_COLOR, self.__compute_trail_vertices(),
+            BULLET_RADIUS * 2
+        )
+
+        # Draw bullet circle
         pygame.draw.circle(screen, BULLET_COLOR, self.position, BULLET_RADIUS)
