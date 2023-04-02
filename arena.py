@@ -18,6 +18,11 @@ MAX_WINDOW_WIDTH = 1536
 MAX_WINDOW_HEIGHT = 768
 
 class Arena:
+    """
+    Class representing a round of Robot Wars.
+
+    Contains and simulates Entities and provides rendering support.
+    """
     def __init__(self, size: Vector2):
         self.__entities: List[Entity] = []
         self.__size = size
