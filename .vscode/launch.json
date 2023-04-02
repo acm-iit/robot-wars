@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Debug launch config for init.py
+            "name": "Run init.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/init.py",
+            "console": "internalConsole",
+            "justMyCode": true
+        }
+    ]
+}
