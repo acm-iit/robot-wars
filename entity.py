@@ -99,6 +99,12 @@ class Entity:
         """
         assert self.arena is not None, "Entity has already been destroyed"
         self.arena = None
+
+    def on_collide(self, other: "Entity", translation: Vector2):
+        """
+        Called when this entity collides with another entity.
+        """
+        pass
         
     def is_colliding_with(self, other: "Entity") -> Tuple[bool, Vector2]:
         """
@@ -128,6 +134,10 @@ class Entity:
 
         if not is_colliding:
             return
+
+        # Call both entity's `on_collide` method
+        self.on_collide(other, translation)
+        other.on_collide(self, -translation)
 
         # If one or more of the entities has react_to_collisions = False, then skip
         if not self.reacts_to_collisions or not other.reacts_to_collisions:
