@@ -1,4 +1,5 @@
 import pygame
+from random import random
 
 from arena import Arena
 from robot import Robot
@@ -11,11 +12,17 @@ def keyboard_control(robot: Robot):
     if keys[pygame.K_SPACE]:
         robot.shoot()
 
-def spin_control(robot: Robot):
-    robot.shoot()
-    robot.move_power = 1
-    robot.turn_power = 1
-    robot.turret_turn_power = -1
+def create_spin_control():
+    move_power = random() * 2 - 1
+    turn_power = random() * 2 - 1
+    turret_turn_power = random() * 2 - 1
+    def spin_control(robot: Robot):
+        robot.shoot()
+        robot.move_power = move_power
+        robot.turn_power = turn_power
+        robot.turret_turn_power = turret_turn_power
+
+    return spin_control
 
 arena = Arena.from_map_json("circles.json")
 if arena is None:
@@ -32,7 +39,7 @@ robots.append(player_robot)
 
 for i in range(3):
     npc_robot = Robot()
-    npc_robot.on_update = spin_control
+    npc_robot.on_update = create_spin_control()
     robots.append(npc_robot)
 
 arena.spawn_entities(robots)
