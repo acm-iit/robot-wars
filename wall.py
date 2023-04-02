@@ -26,10 +26,6 @@ class Wall(Entity):
         ]
 
     @property
-    def mass(self) -> float:
-        return 10
-
-    @property
     def is_static(self) -> bool:
         return True
 
