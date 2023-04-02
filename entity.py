@@ -3,7 +3,7 @@ import pygame
 from typing import List, Optional, Set, Tuple
 
 import arena
-from geometry import check_polygon_collision, get_minimum_translation_vector
+from geometry_util import check_polygon_collision, get_minimum_translation_vector
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
