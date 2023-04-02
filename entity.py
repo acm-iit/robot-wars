@@ -1,6 +1,6 @@
 import math
 import pygame
-from typing import Optional, Set, Tuple
+from typing import Optional, Tuple
 
 import arena
 from geometry_util import check_polygon_collision, get_minimum_translation_vector
@@ -19,7 +19,7 @@ class Entity:
         self.position = Vector2()
         self.rotation = 0
         self.arena: Optional[arena.Arena] = None        # Arena containing this entity
-        self.collision_filter: Set[Entity] = set()      # Don't collide with entities in this set
+        self.collision_filter: set[Entity] = set()      # Don't collide with entities in this set
 
     # Separate vector attributes into getter/setter to force copy on assign. Otherwise,
     # one could assign a position to an entity and then update that entity's position
