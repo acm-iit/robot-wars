@@ -21,8 +21,8 @@ NUM_HITBOX_VERTICES = 3
 class Bullet(Entity):
     def __init__(self, position: Vector2, rotation: float, origin: "robot.Robot"):
         super().__init__()
-        self.__lifetime = 1.2                   # Lifetime of the bullet, in seconds
-        self.__speed = 450                      # Speed of the bullet, in pixels/sec
+        self.__lifetime = 2                     # Lifetime of the bullet, in seconds
+        self.__speed = 500                      # Speed of the bullet, in pixels/sec
         self.origin = origin                    # Robot from which this bullet was created
 
         # Add origin to collision filter
