@@ -2,7 +2,7 @@ import math
 import pygame
 from typing import Optional
 
-import engine.arena
+import engine.arena as arena
 from engine.util import check_polygon_collision, get_minimum_translation_vector
 
 Rect = pygame.Rect
@@ -18,7 +18,7 @@ class Entity:
     def __init__(self):
         self.position = Vector2()
         self.rotation = 0
-        self.arena: Optional[engine.arena.Arena] = None        # Arena containing this entity
+        self.arena: Optional[arena.Arena] = None        # Arena containing this entity
         self.collision_filter: set[Entity] = set()      # Don't collide with entities in this set
 
     # Separate vector attributes into getter/setter to force copy on assign. Otherwise,

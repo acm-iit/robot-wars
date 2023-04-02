@@ -1,10 +1,10 @@
 import pygame
 
-from engine.entity import Entity
+import engine.entity as entity
 
 Vector2 = pygame.Vector2
 
-class Wall(Entity):
+class Wall(entity.Entity):
     """
     Entity resembling an unmovable wall.
     """

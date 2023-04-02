@@ -2,8 +2,7 @@ import math
 import pygame
 from typing import Callable, Optional
 
-import engine.bullet
-from engine.entity import Entity
+import engine.entity as entity
 
 Vector2 = pygame.Vector2
 
@@ -28,9 +27,9 @@ TREADS_LINES_COLOR = "#555555"                      # Color of lines on robot's 
 ARROW_COLOR = "#AAAAAA"                             # Color of robot front arrow
 
 # Callback type for `on_update`
-Callback = Callable[["Robot"], None]
+Callback = Callable[["entity.Robot"], None]
 
-class Robot(Entity):
+class Robot(entity.Entity):
     """
     Robot entity that can move, turn, and shoot.
     """
@@ -170,7 +169,7 @@ class Robot(Entity):
             return
         
         bullet_position = self.position + Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
-        bullet = engine.bullet.Bullet(bullet_position, self.__turret_rotation, self)
+        bullet = entity.Bullet(bullet_position, self.__turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown

@@ -1,9 +1,9 @@
 from engine.arena import Arena as Arena
-from engine.bullet import Bullet as Bullet
+from engine.entity import Bullet as Bullet
 from engine.entity import Entity as Entity
+from engine.entity import Robot as Robot
+from engine.entity import Wall as Wall
 from engine.map import MapJson as MapJson
 from engine.map import PositionJson as PositionJson
 from engine.map import SizeJson as SizeJson
 from engine.map import WallJson as WallJson
-from engine.robot import Robot as Robot
-from engine.wall import Wall as Wall
