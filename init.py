@@ -14,8 +14,8 @@ def keyboard_control(robot: Robot):
     keys = pygame.key.get_pressed()
     robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 0
     robot.turn_power = -1 if keys[pygame.K_a] else 1 if keys[pygame.K_d] else 0
-    robot.turret_turn_power = -1 if keys[pygame.K_q] else 1 \
-        if keys[pygame.K_e] else 0
+    robot.turret_turn_power = (-1 if keys[pygame.K_q] else 1 if
+                               keys[pygame.K_e] else 0)
     if keys[pygame.K_SPACE]:
         robot.shoot()
 
