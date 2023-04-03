@@ -11,7 +11,7 @@ from typing import Callable
 
 sys.path.append(".")
 
-from engine.map import MapJson, WallJson
+from engine.map import MapJson, WallJson    # noqa: E402
 
 FILENAME = "engine/maps/circles.json"
 
@@ -24,14 +24,16 @@ HEIGHT = 1536
 INNER_RADIUS = WIDTH // 16 * 3
 OUTER_RADIUS = WIDTH // 8 * 3
 
-def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True) -> list[WallJson]:
-    """
-    Creates a circle of a specified radius, and uses a predicate to
-    determine which circle segments to exclude, given the index of
-    the segment.
+Predicate = Callable[[int], bool]
 
-    Index 0 corresponds to the first segment starting from the positive
-    X axis, moving towards the positive Y axis.
+
+def create_circle(radius: int, predicate: Predicate) -> list[WallJson]:
+    """
+    Creates a circle of a specified radius, and uses a predicate to determine
+    which circle segments to exclude, given the index of the segment.
+
+    Index 0 corresponds to the first segment starting from the positive X axis,
+    moving towards the positive Y axis.
     """
     dangle = 2 * math.pi / NUM_CIRCLE_SEGMENTS
     outer_radius = radius + WALL_THICKNESS / 2
@@ -57,18 +59,21 @@ def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True
 
     return circle_walls
 
+
 def left_right_up_down_predicate(i: int):
     """
-    Predicate which returns `True` for the left, right, up, and down
-    eighths of the circle.
+    Predicate which returns `True` for the left, right, up, and down eighths of
+    the circle.
     """
     eighth = NUM_CIRCLE_SEGMENTS // 8
     # Add eighth // 2 to i to shift period down one half of an eighth;
     # otherwise it would be up-left, up-right, down-left, down-right
     return ((i + eighth // 2) // eighth) % 2 == 0
 
+
 if __name__ == "__main__":
-    walls = create_circle(INNER_RADIUS, lambda i: not left_right_up_down_predicate(i))
+    walls = create_circle(INNER_RADIUS,
+                          lambda i: not left_right_up_down_predicate(i))
     walls += create_circle(OUTER_RADIUS, left_right_up_down_predicate)
 
     map: MapJson = {
