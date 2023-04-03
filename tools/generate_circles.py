@@ -1,8 +1,19 @@
+"""
+Generates the maps/circles.json map.
+
+This map is a square map with two concentric circles with 4 entrances each.
+There are four spawns, one at each corner of the map.
+"""
 import json
 import math
+import sys
 from typing import Callable
 
+sys.path.append(".")
+
 from engine.map import MapJson, WallJson
+
+FILENAME = "engine/maps/circles.json"
 
 NUM_CIRCLE_SEGMENTS = 32
 WALL_THICKNESS = 32
@@ -16,6 +27,14 @@ OUTER_RADIUS = WIDTH // 8 * 3
 walls: list[WallJson] = []
 
 def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True) -> list[WallJson]:
+    """
+    Creates a circle of a specified radius, and uses a predicate to
+    determine which circle segments to exclude, given the index of
+    the segment.
+
+    Index 0 corresponds to the first segment starting from the positive
+    X axis, moving towards the positive Y axis.
+    """
     dangle = 2 * math.pi / NUM_CIRCLE_SEGMENTS
     outer_radius = radius + WALL_THICKNESS / 2
     segment_length = math.tan(dangle / 2) * outer_radius * 2
@@ -42,8 +61,18 @@ def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True
 
 quarter_segments = NUM_CIRCLE_SEGMENTS // 4
 
-walls += create_circle(INNER_RADIUS, lambda x: x % quarter_segments >= quarter_segments // 4 and x % quarter_segments < 3 * quarter_segments // 4)
-walls += create_circle(OUTER_RADIUS, lambda x: x % quarter_segments < quarter_segments // 4 or x % quarter_segments >= 3 * quarter_segments // 4)
+def left_right_up_down_predicate(i: int):
+    """
+    Predicate which returns `True` for the left, right, up, and down
+    eighths of the circle.
+    """
+    eighth = NUM_CIRCLE_SEGMENTS // 8
+    # Add eighth // 2 to i to shift period down one half of an eighth;
+    # otherwise it would be up-left, up-right, down-left, down-right
+    return ((i + eighth // 2) // eighth) % 2 == 0
+
+walls += create_circle(INNER_RADIUS, lambda i: not left_right_up_down_predicate(i)) #lambda x: x % quarter_segments >= quarter_segments // 4 and x % quarter_segments < 3 * quarter_segments // 4)
+walls += create_circle(OUTER_RADIUS, left_right_up_down_predicate)#lambda x: x % quarter_segments < quarter_segments // 4 or x % quarter_segments >= 3 * quarter_segments // 4)
 
 map: MapJson = {
     "size": {
@@ -71,5 +100,5 @@ map: MapJson = {
     ]
 }
 
-with open("circles.json", "w") as file:
+with open(FILENAME, "w") as file:
     json.dump(map, file, indent=4)

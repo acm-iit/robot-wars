@@ -1,6 +1,17 @@
+"""
+Generates the maps/stress_test.json map.
+
+This map is a large square map with no walls and 64 spawns, meant for stress
+testing the engine.
+"""
 import json
+import sys
+
+sys.path.append(".")
 
 from engine.map import MapJson, PositionJson
+
+FILENAME = "engine/maps/stress_test.json"
 
 WIDTH = 2048
 HEIGHT = 2048
@@ -21,5 +32,5 @@ map: MapJson = {
     "spawns": spawns
 }
 
-with open("stress_test.json", "w") as file:
+with open(FILENAME, "w") as file:
     json.dump(map, file, indent=4)
