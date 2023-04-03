@@ -23,7 +23,7 @@ def create_spin_control():
 
     return spin_control
 
-arena = Arena.from_map_json("circles.json")
+arena = Arena.from_map_json("engine/maps/circles.json")
 if arena is None:
     quit()
 
