@@ -23,27 +23,28 @@ def create_spin_control():
 
     return spin_control
 
-arena = Arena.from_map_json("engine/maps/circles.json")
-if arena is None:
-    quit()
+if __name__ == "__main__":
+    arena = Arena.from_map_json("engine/maps/stress_test.json")
+    if arena is None:
+        quit()
 
-robots = []
+    robots = []
 
-player_robot = Robot()
-player_robot.color = "#0000EE"
-player_robot.head_color = "#0000CC"
-player_robot.on_update = keyboard_control
+    player_robot = Robot()
+    player_robot.color = "#0000EE"
+    player_robot.head_color = "#0000CC"
+    player_robot.on_update = keyboard_control
 
-robots.append(player_robot)
+    robots.append(player_robot)
 
-for i in range(3):
-    npc_robot = Robot()
-    npc_robot.on_update = create_spin_control()
-    robots.append(npc_robot)
+    for i in range(63):
+        npc_robot = Robot()
+        npc_robot.on_update = create_spin_control()
+        robots.append(npc_robot)
 
-arena.spawn_entities(robots)
+    arena.spawn_entities(robots)
 
-#arena.show_hitboxes = True
-#arena.show_fps = True
-#arena.show_quadtree = True
-arena.run()
+    #arena.show_hitboxes = True
+    #arena.show_fps = True
+    #arena.show_quadtree = True
+    arena.run()
