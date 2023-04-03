@@ -61,7 +61,6 @@ class Entity:
         """
         Axis-aligned bounding rectangle of the entity.
         """
-        #print("finding rect")
         absolute_hitbox = self.absolute_hitbox
         top_left = Vector2(min(point.x for point in absolute_hitbox), min(point.y for point in absolute_hitbox))
         bottom_right = Vector2(max(point.x for point in absolute_hitbox), max(point.y for point in absolute_hitbox))
