@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import pygame
 from typing import Callable, Optional
@@ -25,9 +26,6 @@ TURRET_COLOR = "#AAAAAA"                            # Color of robot's turret ba
 TREADS_COLOR = "#888888"                            # Color of robot's treads
 TREADS_LINES_COLOR = "#555555"                      # Color of lines on robot's treads
 ARROW_COLOR = "#AAAAAA"                             # Color of robot front arrow
-
-# Callback type for `on_update`
-Callback = Callable[["entity.Robot"], None]
 
 class Robot(entity.Entity):
     """
@@ -280,3 +278,6 @@ class Robot(entity.Entity):
 
         # Draw robot head
         pygame.draw.circle(screen, self.head_color, self.position, ROBOT_HEAD_RADIUS)
+
+# Callback type for `on_update`
+Callback = Callable[[Robot], None]

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import pygame
 
@@ -16,7 +17,7 @@ TRAIL_TAIL_COLOR = "#AAAAAA00"
 NUM_HITBOX_VERTICES = 3
 
 class Bullet(entity.Entity):
-    def __init__(self, position: Vector2, rotation: float, origin: "entity.Robot"):
+    def __init__(self, position: Vector2, rotation: float, origin: entity.Robot):
         super().__init__()
         self.__lifetime = 2                     # Lifetime of the bullet, in seconds
         self.__speed = 500                      # Speed of the bullet, in pixels/sec

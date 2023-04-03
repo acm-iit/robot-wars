@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import math
 import pygame
@@ -53,7 +54,7 @@ class Arena:
         return self.__surface
 
     @staticmethod
-    def from_map_json(filename: str) -> Optional["Arena"]:
+    def from_map_json(filename: str) -> Optional[Arena]:
         """
         Constructs an Arena from a map config JSON file.
         """

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import pygame
 from typing import Optional
@@ -103,13 +104,13 @@ class Entity:
         # assert self.arena is not None, "Entity has already been destroyed"
         self.arena = None
 
-    def on_collide(self, other: "Entity", translation: Vector2):
+    def on_collide(self, other: Entity, translation: Vector2):
         """
         Called when this entity collides with another entity.
         """
         pass
         
-    def is_colliding_with(self, other: "Entity") -> tuple[bool, Vector2]:
+    def is_colliding_with(self, other: Entity) -> tuple[bool, Vector2]:
         """
         Determines if this entity is colliding with another entity.
         """
@@ -125,7 +126,7 @@ class Entity:
         else:
             return False, Vector2()
 
-    def handle_collision(self, other: "Entity"):
+    def handle_collision(self, other: Entity):
         """
         Handles potential collision between this entity and another entity.
         """

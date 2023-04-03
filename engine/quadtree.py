@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Final, Optional
 
@@ -62,7 +63,7 @@ class Node:
     """
     def __init__(self):
         self.entities: list[Entity] = []        # list of entities under this node
-        self.children: list["Node"] = []        # list of 0 or 4 children nodes
+        self.children: list[Node] = []        # list of 0 or 4 children nodes
         self.threshold: Final[int] = 8          # Maximum amount of entities this node can contain (unless it's at max depth)
 
     @property
