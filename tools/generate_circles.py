@@ -24,8 +24,6 @@ HEIGHT = 1536
 INNER_RADIUS = WIDTH // 16 * 3
 OUTER_RADIUS = WIDTH // 8 * 3
 
-walls: list[WallJson] = []
-
 def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True) -> list[WallJson]:
     """
     Creates a circle of a specified radius, and uses a predicate to
@@ -59,8 +57,6 @@ def create_circle(radius: int, predicate: Callable[[int], bool] = lambda x: True
 
     return circle_walls
 
-quarter_segments = NUM_CIRCLE_SEGMENTS // 4
-
 def left_right_up_down_predicate(i: int):
     """
     Predicate which returns `True` for the left, right, up, and down
@@ -71,34 +67,35 @@ def left_right_up_down_predicate(i: int):
     # otherwise it would be up-left, up-right, down-left, down-right
     return ((i + eighth // 2) // eighth) % 2 == 0
 
-walls += create_circle(INNER_RADIUS, lambda i: not left_right_up_down_predicate(i)) #lambda x: x % quarter_segments >= quarter_segments // 4 and x % quarter_segments < 3 * quarter_segments // 4)
-walls += create_circle(OUTER_RADIUS, left_right_up_down_predicate)#lambda x: x % quarter_segments < quarter_segments // 4 or x % quarter_segments >= 3 * quarter_segments // 4)
+if __name__ == "__main__":
+    walls = create_circle(INNER_RADIUS, lambda i: not left_right_up_down_predicate(i))
+    walls += create_circle(OUTER_RADIUS, left_right_up_down_predicate)
 
-map: MapJson = {
-    "size": {
-        "width": WIDTH,
-        "height": HEIGHT
-    },
-    "walls": walls,
-    "spawns": [
-        {
-            "x": 128,
-            "y": 128
+    map: MapJson = {
+        "size": {
+            "width": WIDTH,
+            "height": HEIGHT
         },
-        {
-            "x": 128,
-            "y": HEIGHT - 128
-        },
-        {
-            "x": WIDTH - 128,
-            "y": HEIGHT - 128
-        },
-        {
-            "x": WIDTH - 128,
-            "y": 128
-        }
-    ]
-}
+        "walls": walls,
+        "spawns": [
+            {
+                "x": 128,
+                "y": 128
+            },
+            {
+                "x": 128,
+                "y": HEIGHT - 128
+            },
+            {
+                "x": WIDTH - 128,
+                "y": HEIGHT - 128
+            },
+            {
+                "x": WIDTH - 128,
+                "y": 128
+            }
+        ]
+    }
 
-with open(FILENAME, "w") as file:
-    json.dump(map, file, indent=4)
+    with open(FILENAME, "w") as file:
+        json.dump(map, file, indent=4)
