@@ -4,10 +4,9 @@ import engine.entity as entity
 
 Vector2 = pygame.Vector2
 
+
 class Wall(entity.Entity):
-    """
-    Entity resembling an unmovable wall.
-    """
+    """Entity resembling an unmovable wall."""
     def __init__(self, position: Vector2, size: Vector2, rotation: float = 0):
         super().__init__()
         self.position = position
