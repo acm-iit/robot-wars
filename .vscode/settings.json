@@ -1,6 +1,11 @@
 {
     "python.analysis.typeCheckingMode": "basic",
-    "editor.rulers": [
-        79
-    ]
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": ["--max-line-length", "79"],
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.linting.flake8Enabled": true,
+    "[python]": {
+        "editor.rulers": [79]
+    }
 }
