@@ -36,6 +36,8 @@ class Robot(entity.Entity):
 
         self.on_update: Optional[Callback] = None   # Callback on each `update`
 
+        self.health = 100                           # Default max health
+
         self.move_power = 0                         # Range: [-1, 1]
         self.turn_power = 0                         # Range: [-1, 1]
         self.turret_turn_power = 0                  # Range: [-1, 1]
@@ -65,6 +67,15 @@ class Robot(entity.Entity):
             Vector2(-length / 2, -width / 2),
             Vector2(-length / 2, width / 2)
         ]
+
+    @property
+    def health(self) -> float:
+        """Remaining health points of the Robot."""
+        return self.__health
+
+    @health.setter
+    def health(self, health: float):
+        self.__health = max(health, 0)
 
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
