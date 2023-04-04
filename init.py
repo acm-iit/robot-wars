@@ -12,7 +12,7 @@ from engine import Arena, Robot
 def keyboard_control(robot: Robot):
     """Keyboard control scheme for the user-controlled Robot."""
     keys = pygame.key.get_pressed()
-    robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 000
+    robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 0
     robot.turn_power = -1 if keys[pygame.K_a] else 1 if keys[pygame.K_d] else 0
     robot.turret_turn_power = (-1 if keys[pygame.K_q] else 1 if
                                keys[pygame.K_e] else 0)
