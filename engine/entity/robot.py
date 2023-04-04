@@ -1,59 +1,59 @@
 from __future__ import annotations
 import math
-import pygame
 from typing import Callable, Optional
+
+import pygame
 
 import engine.entity as entity
 
 Vector2 = pygame.Vector2
 
-# Dimensional constants
-ROBOT_LENGTH = 120                                  # Length of robot, in pixels
-ROBOT_WIDTH = 100                                   # Width of robot, in pixels
-ROBOT_HEAD_RADIUS = 40                              # Radius of robot's head, in pixels
-TURRET_LENGTH = 70                                  # Length of turret barrel, in pixels
-TURRET_WIDTH = 16                                   # Width of turret barrel, in pixels
-TREAD_LENGTH = 136                                  # Length of treads on sides of robot, in pixels
-TREAD_WIDTH = 30                                    # Width of treads on sides of robot, in pixels
-ARROW_SIZE = 10                                     # Size of arrow to denote front of robot, in pixels
+# Dimensional constants (in pixels)
+ROBOT_LENGTH = 120                  # Length of robot
+ROBOT_WIDTH = 100                   # Width of robot
+ROBOT_HEAD_RADIUS = 40              # Radius of robot's head
+TURRET_LENGTH = 70                  # Length of turret barrel
+TURRET_WIDTH = 16                   # Width of turret barrel
+TREAD_LENGTH = 136                  # Length of treads on sides of robot
+TREAD_WIDTH = 30                    # Width of treads on sides of robot
+ARROW_SIZE = 10                     # Size of arrow to denote front of robot
 
-NUM_TREAD_SEGMENTS = 6                              # Number of tread lines used to show movement
+NUM_TREAD_SEGMENTS = 6              # Number of lines on treads
 
 # Color constants
-ROBOT_COLOR = "#EE0000"                             # Color of robot's body (rectangle)
-ROBOT_HEAD_COLOR = "#CC0000"                        # Color of robot's head (circle)
-TURRET_COLOR = "#AAAAAA"                            # Color of robot's turret barrel
-TREADS_COLOR = "#888888"                            # Color of robot's treads
-TREADS_LINES_COLOR = "#555555"                      # Color of lines on robot's treads
-ARROW_COLOR = "#AAAAAA"                             # Color of robot front arrow
+ROBOT_COLOR = "#EE0000"             # Color of robot's body (rectangle)
+ROBOT_HEAD_COLOR = "#CC0000"        # Color of robot's head (circle)
+TURRET_COLOR = "#AAAAAA"            # Color of robot's turret barrel
+TREADS_COLOR = "#888888"            # Color of robot's treads
+TREADS_LINES_COLOR = "#555555"      # Color of lines on robot's treads
+ARROW_COLOR = "#AAAAAA"             # Color of robot front arrow
+
 
 class Robot(entity.Entity):
-    """
-    Robot entity that can move, turn, and shoot.
-    """
+    """Robot entity that can move, turn, and shoot."""
     def __init__(self):
         super().__init__()
 
-        self.on_update: Optional[Callback] = None   # Callback to be called on each `update`
+        self.on_update: Optional[Callback] = None   # Callback on each `update`
 
-        self.move_power = 0                         # Movement power in [-1, 1]
-        self.turn_power = 0                         # Turning power in [-1, 1]
-        self.turret_turn_power = 0                  # Turret turning power in [-1, 1]
+        self.move_power = 0                         # Range: [-1, 1]
+        self.turn_power = 0                         # Range: [-1, 1]
+        self.turret_turn_power = 0                  # Range: [-1, 1]
 
-        self.color = ROBOT_COLOR
-        self.head_color = ROBOT_HEAD_COLOR
+        self.color = ROBOT_COLOR                    # Color of robot body
+        self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
 
-        self.__turret_rotation = 0                  # Turret rotation (in radians)
+        self.__turret_rotation = 0                  # Turret rotation (radians)
 
-        self.__move_speed = 300                     # Maximum movement speed (in pixels/sec)
-        self.__turn_speed = math.pi                 # Maximum turning speed (in radians/sec)
-        self.__turret_turn_speed = 1.5 * math.pi    # Maximum turret turning speed (in radians/sec)
+        self.__move_speed = 300                     # Maximum move speed
+        self.__turn_speed = math.pi                 # Maximum turn speed
+        self.__turret_turn_speed = 1.5 * math.pi    # Maximum turret turn speed
 
-        self.__left_tread_alpha = 0                 # Value in [0, 1) to show left tread movement
-        self.__right_tread_alpha = 0                # Value in [0, 1) to show right tread movement
+        self.__left_tread_alpha = 0                 # Range: [0, 1)
+        self.__right_tread_alpha = 0                # Range: [0, 1)
 
-        self.__shot_cooldown = 0.5                  # Time cooldown between each shot, in seconds
-        self.__time_until_next_shot = 0             # Current shot cooldown progress (0 = ready)
+        self.__shot_cooldown = 0.5                  # Shoot cooldown (seconds)
+        self.__time_until_next_shot = 0             # Remaining cooldown
 
     @property
     def hitbox(self) -> list[Vector2]:
@@ -66,8 +66,8 @@ class Robot(entity.Entity):
             Vector2(-length / 2, width / 2)
         ]
 
-    # We separate the `X_power` members into properties with specialized setters so that we can
-    # clamp the values between [-1, 1].
+    # We separate the `X_power` members into properties with specialized
+    # setters so that we can clamp the values between [-1, 1].
     @property
     def move_power(self) -> float:
         """
@@ -75,8 +75,8 @@ class Robot(entity.Entity):
         represented as a fraction of maximum movement speed.
 
         It is clamped between [-1, 1], where positive values of `move_power`
-        correspond to moving forwards, while negative values correspond
-        to moving backwards.
+        correspond to moving forwards, while negative values correspond to
+        moving backwards.
         """
         return self.__move_power
 
@@ -89,10 +89,10 @@ class Robot(entity.Entity):
         """
         `turn_power` is the current rotational velocity of the robot,
         represented as a fraction of maximum turning speed.
-        
+
         It is clamped between [-1, 1], where positive values of `turn_power`
-        correspond to turning clockwise, while negative values correspond
-        to turning counter-clockwise.
+        correspond to turning clockwise, while negative values correspond to
+        turning counter-clockwise.
         """
         return self.__turn_power
 
@@ -105,7 +105,7 @@ class Robot(entity.Entity):
         """
         `turret_turn_power` is the current rotational velocity of the robot's
         turret, represented as a fraction of maximum turret turning speed.
-        
+
         It is clamped between [-1, 1], where positive values of
         `turret_turn_power` correspond to turning clockwise, while negative
         values correspond to turning counter-clockwise.
@@ -115,14 +115,15 @@ class Robot(entity.Entity):
     @turret_turn_power.setter
     def turret_turn_power(self, turret_turn_power: float):
         self.__turret_turn_power = min(max(turret_turn_power, -1), 1)
-    
+
     def __move(self, dt: float):
         """
         Moves the robot according to current `move_power`.
 
         `dt` represents the time delta in seconds.
         """
-        self.position += Vector2(self.__move_speed * self.move_power * dt, 0).rotate_rad(self.rotation)
+        dposition = self.__move_speed * self.move_power * dt
+        self.position += Vector2(dposition, 0).rotate_rad(self.rotation)
 
         # Calculate tread segments/sec speed
         tread_speed = self.__move_speed / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
@@ -138,10 +139,12 @@ class Robot(entity.Entity):
 
         `dt` represents the time delta in seconds.
         """
-        self.rotation += self.__turn_speed * self.turn_power * dt
+        drotation = self.__turn_speed * self.turn_power * dt
+        self.rotation += drotation
 
         # Calculate tread segments/sec speed
-        tread_speed = (self.__turn_speed * ROBOT_WIDTH / 2) / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
+        side_speed = (self.__turn_speed * ROBOT_WIDTH / 2)
+        tread_speed = side_speed / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
         # Move treads
         self.__left_tread_alpha += tread_speed * self.turn_power * dt
         self.__right_tread_alpha -= tread_speed * self.turn_power * dt
@@ -154,20 +157,20 @@ class Robot(entity.Entity):
 
         `dt` represents the time delta in seconds.
         """
-        self.__turret_rotation += self.__turret_turn_speed * self.turret_turn_power * dt
+        dturret = self.__turret_turn_speed * self.turret_turn_power * dt
+        self.__turret_rotation += dturret
         self.__turret_rotation %= 2 * math.pi
 
     def shoot(self):
-        """
-        Makes the robot shoot a bullet in the direction of its turret.
-        """
-        assert self.arena is not None, "Robot does not have a corresponding Arena"
+        """Makes the robot shoot a bullet in the direction of its turret."""
+        assert self.arena is not None, "Robot doesn't have corresponding Arena"
 
         if self.__time_until_next_shot > 0:
             return
-        
-        bullet_position = self.position + Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
-        bullet = entity.Bullet(bullet_position, self.__turret_rotation, self)
+
+        offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
+        position = self.position + offset
+        bullet = entity.Bullet(position, self.__turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown
@@ -193,11 +196,13 @@ class Robot(entity.Entity):
 
         # Vertices (in absolute coordinates) of the left and right treads
         left_tread_vertices = [
-            self.position + (Vector2(0, -ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
+            self.position + (Vector2(0, -ROBOT_WIDTH / 2)
+                             + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
         right_tread_vertices = [
-            self.position + (Vector2(0, ROBOT_WIDTH / 2) + tread_offset).rotate_rad(self.rotation)
+            self.position + (Vector2(0, ROBOT_WIDTH / 2)
+                             + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
 
@@ -205,33 +210,41 @@ class Robot(entity.Entity):
         pygame.draw.polygon(screen, TREADS_COLOR, left_tread_vertices)
         pygame.draw.polygon(screen, TREADS_COLOR, right_tread_vertices)
 
-        # Length of each tread segment, in pixels
-        tread_segment_length = TREAD_LENGTH / NUM_TREAD_SEGMENTS
+        # Length of each tread segment
+        segment_length = TREAD_LENGTH / NUM_TREAD_SEGMENTS
 
         # Draw treads lines
         for i in range(NUM_TREAD_SEGMENTS):
-            # Offset of left line from the robot center along treads length, in pixels
-            left_line_offset = -TREAD_LENGTH / 2 + (i + self.__left_tread_alpha) * tread_segment_length
-            # Absolute position of left line along length of treads
-            left_line_position = self.position + Vector2(left_line_offset, 0).rotate_rad(self.rotation)
+            # Offset of left line from the robot center along treads length
+            left_offset = (i + self.__left_tread_alpha) * segment_length
+            left_offset -= TREAD_LENGTH / 2
+            left_offset *= Vector2(1, 0).rotate_rad(self.rotation)
+            # Absolute center position of left line
+            left_position = self.position + left_offset
 
-            # Offset of right line from the robot center along treads length, in pixels
-            right_line_offset = -TREAD_LENGTH / 2 + (i + self.__right_tread_alpha) * tread_segment_length
+            # Offset of right line from the robot center along treads length
+            right_offset = (i + self.__right_tread_alpha) * segment_length
+            right_offset -= TREAD_LENGTH / 2
+            right_offset *= Vector2(1, 0).rotate_rad(self.rotation)
             # Absolute position of right line along length of treads
-            right_line_position = self.position + Vector2(right_line_offset, 0).rotate_rad(self.rotation)
+            right_position = self.position + right_offset
+
+            # Distance to inner and outer endpoints of tread lines
+            inner = ROBOT_WIDTH / 2 - TREAD_WIDTH / 2
+            outer = ROBOT_WIDTH / 2 + TREAD_WIDTH / 2
 
             # Draw line on left treads
             pygame.draw.line(
                 screen, TREADS_LINES_COLOR,
-                left_line_position + Vector2(0, -ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
-                left_line_position + Vector2(0, -ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                left_position + Vector2(0, -inner).rotate_rad(self.rotation),
+                left_position + Vector2(0, -outer).rotate_rad(self.rotation),
                 width=2
             )
             # Draw line on right treads
             pygame.draw.line(
                 screen, TREADS_LINES_COLOR,
-                right_line_position + Vector2(0, ROBOT_WIDTH / 2 + TREAD_WIDTH / 2).rotate_rad(self.rotation),
-                right_line_position + Vector2(0, ROBOT_WIDTH / 2 - TREAD_WIDTH / 2).rotate_rad(self.rotation),
+                right_position + Vector2(0, inner).rotate_rad(self.rotation),
+                right_position + Vector2(0, outer).rotate_rad(self.rotation),
                 width=2
             )
 
@@ -244,23 +257,23 @@ class Robot(entity.Entity):
         ]
 
         # Draw robot body
-        pygame.draw.polygon(
-            screen, self.color,
-            [self.position + offset.rotate_rad(self.rotation) for offset in robot_vertex_offsets]
-        )
+        pygame.draw.polygon(screen, self.color,
+                            [self.position + offset.rotate_rad(self.rotation)
+                             for offset in robot_vertex_offsets])
+
+        root3div2 = math.sqrt(3) / 2
 
         # Offsets of robot arrow vertices (without rotation)
         arrow_vertex_offsets = [
             Vector2(ROBOT_LENGTH / 2, 0),
-            Vector2(ROBOT_LENGTH / 2 - ARROW_SIZE * math.sqrt(3) / 2, ARROW_SIZE / 2),
-            Vector2(ROBOT_LENGTH / 2 - ARROW_SIZE * math.sqrt(3) / 2, -ARROW_SIZE / 2)
+            Vector2(ROBOT_LENGTH / 2 - ARROW_SIZE * root3div2, ARROW_SIZE / 2),
+            Vector2(ROBOT_LENGTH / 2 - ARROW_SIZE * root3div2, -ARROW_SIZE / 2)
         ]
 
         # Draw arrow to denote front of robot
-        pygame.draw.polygon(
-            screen, ARROW_COLOR,
-            [self.position + offset.rotate_rad(self.rotation) for offset in arrow_vertex_offsets]
-        )
+        pygame.draw.polygon(screen, ARROW_COLOR,
+                            [self.position + offset.rotate_rad(self.rotation)
+                             for offset in arrow_vertex_offsets])
 
         # Offsets of robot turret vertices (without rotation)
         turret_vertex_offsets = [
@@ -273,11 +286,14 @@ class Robot(entity.Entity):
         # Draw turret
         pygame.draw.polygon(
             screen, TURRET_COLOR,
-            [self.position + offset.rotate_rad(self.__turret_rotation) for offset in turret_vertex_offsets]
+            [self.position + offset.rotate_rad(self.__turret_rotation)
+             for offset in turret_vertex_offsets]
         )
 
         # Draw robot head
-        pygame.draw.circle(screen, self.head_color, self.position, ROBOT_HEAD_RADIUS)
+        pygame.draw.circle(screen, self.head_color, self.position,
+                           ROBOT_HEAD_RADIUS)
+
 
 # Callback type for `on_update`
 Callback = Callable[[Robot], None]
