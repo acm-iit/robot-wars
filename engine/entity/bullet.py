@@ -17,6 +17,8 @@ TRAIL_TAIL_COLOR = "#AAAAAA00"
 
 NUM_HITBOX_VERTICES = 3
 
+DAMAGE = 10
+
 
 class Bullet(entity.Entity):
     def __init__(self, position: Vector2, rotation: float,
@@ -53,7 +55,7 @@ class Bullet(entity.Entity):
             return
 
         if type(other) is entity.Robot:
-            other.destroy()
+            other.health -= DAMAGE
             self.destroy()
         elif type(other) is entity.Wall:
             # React to collision
