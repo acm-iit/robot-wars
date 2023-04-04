@@ -1,9 +1,10 @@
 from __future__ import annotations
 import json
 import math
-import pygame
 from random import sample
 from typing import Optional
+
+import pygame
 
 from engine.entity import Entity, Wall
 from engine.map import is_map
@@ -16,6 +17,7 @@ WALL_THICKNESS = 100
 FRAME_RATE = 60
 MAX_WINDOW_WIDTH = 1536
 MAX_WINDOW_HEIGHT = 768
+
 
 class Arena:
     """
@@ -34,43 +36,54 @@ class Arena:
         self.show_quadtree = False
 
         # Add surrounding walls
-        self.add_entity(Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1), Vector2(size.x, WALL_THICKNESS)))
-        self.add_entity(Wall(Vector2(size.x / 2, size.y + WALL_THICKNESS / 2 + 1), Vector2(size.x, WALL_THICKNESS)))
-        self.add_entity(Wall(Vector2(-WALL_THICKNESS / 2 - 1, size.y / 2), Vector2(WALL_THICKNESS, size.y)))
-        self.add_entity(Wall(Vector2(size.x + WALL_THICKNESS / 2 + 1, size.y / 2), Vector2(WALL_THICKNESS, size.y)))
+        north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
+                          Vector2(size.x, WALL_THICKNESS))
+        south_wall = Wall(Vector2(size.x / 2, size.y + WALL_THICKNESS / 2 + 1),
+                          Vector2(size.x, WALL_THICKNESS))
+        west_wall = Wall(Vector2(-WALL_THICKNESS / 2 - 1, size.y / 2),
+                         Vector2(WALL_THICKNESS, size.y))
+        east_wall = Wall(Vector2(size.x + WALL_THICKNESS / 2 + 1, size.y / 2),
+                         Vector2(WALL_THICKNESS, size.y))
+
+        self.add_entity(north_wall)
+        self.add_entity(south_wall)
+        self.add_entity(west_wall)
+        self.add_entity(east_wall)
 
     @property
     def entities(self) -> list[Entity]:
-        """
-        Read-only property that provides list of arena entities.
-        """
+        """Read-only property that provides list of arena entities."""
         return self.__entities.copy()
 
     @property
     def surface(self) -> pygame.Surface:
         """
-        Read-only property that provides reference to drawn arena surface
+        Read-only property that provides reference to drawn arena surface.
         """
         return self.__surface
 
     @staticmethod
     def from_map_json(filename: str) -> Optional[Arena]:
-        """
-        Constructs an Arena from a map config JSON file.
-        """
+        """Constructs an Arena from a map config JSON file."""
         with open(filename, "r") as file:
             arena_data = json.load(file)
             assert is_map(arena_data), "Map JSON is malformed"
 
-            arena_size = Vector2(arena_data["size"]["width"], arena_data["size"]["height"])
+            arena_size = Vector2(arena_data["size"]["width"],
+                                 arena_data["size"]["height"])
             arena = Arena(arena_size)
 
             for wall_data in arena_data["walls"]:
-                wall_position = Vector2(wall_data["position"]["x"], wall_data["position"]["y"])
-                wall_size = Vector2(wall_data["size"]["width"], wall_data["size"]["height"])
-                arena.add_entity(Wall(wall_position, wall_size, math.radians(wall_data["rotation"])))
+                wall_position = Vector2(wall_data["position"]["x"],
+                                        wall_data["position"]["y"])
+                wall_size = Vector2(wall_data["size"]["width"],
+                                    wall_data["size"]["height"])
+                wall = Wall(wall_position, wall_size,
+                            math.radians(wall_data["rotation"]))
+                arena.add_entity(wall)
 
-            arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"]) for spawn_data in arena_data["spawns"]]
+            arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"])
+                            for spawn_data in arena_data["spawns"]]
 
             return arena
 
@@ -84,20 +97,18 @@ class Arena:
         self.__entities.append(entity)
 
     def remove_entity(self, entity: Entity):
-        """
-        Removes an entity from this Arena. Entity must be in the Arena.
-        """
+        """Removes an entity from this Arena. Entity must be in the Arena."""
         assert entity in self.__entities, "Entity not in Arena"
-        
+
         self.__entities.remove(entity)
         entity.arena = None
 
     def spawn_entities(self, entities: list[Entity]):
         """
-        Spawns a list of entities into unique spawn locations.
-        The number of entities must be lower than the number of arena spawns.
+        Spawns a list of entities into unique spawn locations. The number of
+        entities must be lower than the number of arena spawns.
         """
-        assert len(entities) <= len(self.spawns), "Not enough spawns for amount of entities"
+        assert len(entities) <= len(self.spawns), "# of entities > # of spawns"
 
         positions: list[Vector2] = sample(self.spawns, k=len(entities))
 
@@ -106,15 +117,13 @@ class Arena:
             entity.position = positions.pop()
 
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
-        """
-        Returns a filtered list of entities of a certain class.
-        """
-        return [entity for entity in self.__entities if type(entity) is typeVal]
+        """Returns a filtered list of entities of a certain class."""
+        return [entity
+                for entity in self.__entities
+                if type(entity) is typeVal]
 
     def solve_collisions(self, quadtree: Quadtree):
-        """
-        Solves collisions between entities.
-        """
+        """Solves collisions between entities."""
         for entity1, entity2 in quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
 
@@ -129,17 +138,17 @@ class Arena:
 
         An entity is destroyed if its `arena` field is set to `None`.
         """
-        self.__entities[:] = [entity for entity in self.__entities if entity.arena is self]
+        self.__entities[:] = [entity
+                              for entity in self.__entities
+                              if entity.arena is self]
 
     def __construct_quadtree(self) -> Quadtree:
-        """
-        Constructs a Quadtree with the entities in the arena.
-        """
+        """Constructs a Quadtree with the entities in the arena."""
         # Calculate Quadtree bounds
-        min_x = min(point.x for entity in self.__entities for point in entity.absolute_hitbox) - 10
-        min_y = min(point.y for entity in self.__entities for point in entity.absolute_hitbox) - 10
-        max_x = max(point.x for entity in self.__entities for point in entity.absolute_hitbox) + 10
-        max_y = max(point.y for entity in self.__entities for point in entity.absolute_hitbox) + 10
+        min_x = min(entity.rect.left for entity in self.__entities)
+        min_y = min(entity.rect.top for entity in self.__entities)
+        max_x = max(entity.rect.right for entity in self.__entities)
+        max_y = max(entity.rect.bottom for entity in self.__entities)
 
         quadtree_top_left = Vector2(min_x, min_y)
         quadtree_size = Vector2(max_x, max_y) - quadtree_top_left
@@ -152,16 +161,14 @@ class Arena:
         return quadtree
 
     def update(self, dt: float):
-        """
-        Updates the state of the arena after time delta `dt`, in seconds.
-        """
+        """Updates the state of the arena after time delta `dt`, in seconds."""
         # Fill the screen with a color to wipe away anything from last frame
         self.__surface.fill("#006600")
 
         # Update each entity's state
         for entity in self.__entities:
             entity.update(dt)
-        
+
         # Filter destroyed entities
         self.__filter_entities()
 
@@ -181,16 +188,15 @@ class Arena:
         # Draw hitboxes
         if self.show_hitboxes:
             for entity in self.__entities:
-                pygame.draw.lines(self.__surface, "#FF0000", True, entity.absolute_hitbox)
+                pygame.draw.lines(self.__surface, "#FF0000", True,
+                                  entity.absolute_hitbox)
 
         # Draw quadtree
         if self.show_quadtree:
             quadtree.render(self.__surface)
 
     def run(self):
-        """
-        Runs simulation of the Arena.
-        """
+        """Runs simulation of the Arena."""
         # pygame setup
         pygame.init()
 
@@ -223,10 +229,10 @@ class Arena:
             total_time += dt
 
             # Simulate a time step
-            # When dragging the window, the clock freezes and resumes once finished dragging.
-            # This can cause large values of `dt`, which can cause entities to move too far
-            # and avoid collisions, so we handle that case here by splitting it into smaller
-            # time steps.
+            # When dragging the window, the clock freezes and resumes once
+            # finished dragging. This can cause large values of `dt`, which can
+            # cause entities to move too far and avoid collisions, so we handle
+            # that case here by splitting it into smaller time steps.
             remaining_dt = dt
             while remaining_dt > 10 / FRAME_RATE:
                 self.update(10 / FRAME_RATE)
@@ -239,7 +245,8 @@ class Arena:
             # Draw framerate onto the screen
             if self.show_fps and dt > 0:
                 screen.blit(
-                    font.render(f"FPS: {int(1 / dt)}", False, "#FF0000", "#000000"),
+                    font.render(f"FPS: {int(1 / dt)}", False, "#FF0000",
+                                "#000000"),
                     Vector2(),
                 )
 
@@ -247,8 +254,8 @@ class Arena:
             pygame.display.flip()
 
             # Limits FPS to 60
-            # `dt`` is delta time in seconds since last frame, used for framerate-
-            # independent physics.
+            # `dt`` is delta time in seconds since last frame, used for
+            # framerate-independent physics.
             dt = clock.tick(FRAME_RATE) / 1000
 
         pygame.quit()
