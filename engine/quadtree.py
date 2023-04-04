@@ -1,16 +1,20 @@
 from __future__ import annotations
-import pygame
 from typing import Final, Optional
+
+import pygame
 
 from engine.entity import Entity
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
+Intersection = tuple[Entity, Entity]
+
+
 def get_child_rect(rect: Rect, i: int) -> Rect:
     """
-    Given the rect of a node and the index of the child node quadrant,
-    returns the rect of the quadrant.
+    Given the rect of a node and the index of the child node quadrant, returns
+    the rect of the quadrant.
 
     `i` must be one of `0`, `1`, `2`, or `3`.
     """
@@ -32,10 +36,11 @@ def get_child_rect(rect: Rect, i: int) -> Rect:
     else:
         assert False, "i must be 0, 1, 2, or 3"
 
+
 def get_quadrant(node_rect: Rect, entity_rect: Rect) -> Optional[int]:
     """
-    Given the rect of a node and the rect of an entity, returns the index
-    of the child node quadrant that the entity is fully contained in. If the
+    Given the rect of a node and the rect of an entity, returns the index of
+    the child node quadrant that the entity is fully contained in. If the
     entity cannot be fully contained in any quadrant rect, then it returns
     `None`, indicating that the entity belongs in this node.
     """
@@ -57,42 +62,42 @@ def get_quadrant(node_rect: Rect, entity_rect: Rect) -> Optional[int]:
     # Not entirely contained in a quadrant
     return None
 
+
 class Node:
-    """
-    Node of a Quadtree.
-    """
+    """Node of a Quadtree."""
     def __init__(self):
-        self.entities: list[Entity] = []        # list of entities under this node
-        self.children: list[Node] = []        # list of 0 or 4 children nodes
-        self.threshold: Final[int] = 8          # Maximum amount of entities this node can contain (unless it's at max depth)
+        self.entities: list[Entity] = []    # List of entities under this node
+        self.children: list[Node] = []      # List of 0 or 4 children nodes
+        self.threshold: Final[int] = 8      # Max size of self.entities
 
     @property
     def is_leaf(self):
-        """
-        A Node is a leaf node if it has no children nodes.
-        """
+        """A Node is a leaf node if it has no children nodes."""
         return len(self.children) == 0
 
     @property
     def is_branch(self):
-        """
-        A Node is a branch node if it has 4 children nodes.
-        """
+        """A Node is a branch node if it has 4 children nodes."""
         return len(self.children) == 4
 
     def remove_entity(self, entity: Entity):
         """
-        Removes an entity from this node. Specialized as a method to incorporate a swap-and-pop optimization.
+        Removes an entity from this node. Specialized as a method to
+        incorporate a swap-and-pop optimization.
         """
-        # The below will throw if the entity is not present, so an assert would be extraneous.
-        index = self.entities.index(entity)
-        self.entities[index], self.entities[-1] = self.entities[-1], self.entities[index]
-        self.entities.pop()
+        entities = self.entities
+
+        # The below will throw if the entity is not present, so an assert
+        # would be extraneous.
+        index = entities.index(entity)
+        entities[index], entities[-1] = entities[-1], entities[index]
+        entities.pop()
 
     def split(self, rect: Rect):
         """
-        Splits this leaf node into a branch node.
-        Creates 4 child leaf nodes and splits this node's entities among them and itself depending on quadrant.
+        Splits this leaf node into a branch node. Creates 4 child leaf nodes
+        and splits this node's entities among them and itself depending on
+        quadrant.
         """
         assert self.is_leaf, "Only leaf nodes can split"
 
@@ -110,110 +115,138 @@ class Node:
 
     def try_merge(self) -> bool:
         """
-        Attempts to merge this branch node into a leaf node.
-        Fails if the total number of entities in this node and its children is larger than the threshold.
-        
+        Attempts to merge this branch node into a leaf node. Fails if the total
+        number of entities in this node and its children is larger than the
+        threshold.
+
         Returns `True` if succeeded, `False` otherwise.
         """
         assert self.is_branch, "Only branch nodes can merge"
-        assert all(child.is_leaf for child in self.children), "Children of this node much be leaf nodes"
 
-        num_entities = len(self.entities) + sum(len(child.entities) for child in self.children)
+        are_children_leaves = all(child.is_leaf for child in self.children)
+        assert are_children_leaves, "Children of this node much be leaf nodes"
+
+        num_children_entities = sum(len(child.entities)
+                                    for child in self.children)
+        num_entities = len(self.entities) + num_children_entities
 
         if num_entities > self.threshold:
             return False
 
-        self.entities += (entity for child in self.children for entity in child.entities)
+        self.entities += (entity
+                          for child in self.children
+                          for entity in child.entities)
         self.children = []
 
         return True
 
+
 class Quadtree:
     """
-    Quadtree class which assists with 2D spacial organization.
-    It's like a binary tree for two dimensions!
+    Quadtree class which assists with 2D spacial organization. It's like a
+    binary tree for two dimensions!
     """
     def __init__(self, rect: Rect):
         self.__root_node: Node = Node()
         self.__root_rect = rect
         self.__max_depth = 8
 
+    def __add_leaf(self, node: Node, rect: Rect, entity: Entity, depth: int):
+        """Adds entity to a leaf node."""
+        if depth >= self.__max_depth or len(node.entities) < node.threshold:
+            # Insert entity into this leaf node if it has space or is at max
+            # depth
+            node.entities.append(entity)
+        else:
+            # Otherwise, split the node and try again
+            node.split(rect)
+            self.__add(node, rect, entity, depth)
+
+    def __add_branch(self, node: Node, rect: Rect, entity: Entity, depth: int):
+        """Adds entity to a branch node."""
+        i = get_quadrant(rect, entity.rect)
+        if i is not None:
+            # Add the entity in child node if entity is entirely contained in a
+            # quadrant
+            child_node = node.children[i]
+            child_rect = get_child_rect(rect, i)
+            self.__add(child_node, child_rect, entity, depth + 1)
+        else:
+            # Add to current node otherwise
+            node.entities.append(entity)
+
     def __add(self, node: Node, rect: Rect, entity: Entity, depth: int):
-        """
-        Recursive helper function for Quadtree.add.
-        """
-        entity_rect = entity.rect
-        # TODO: Fix the rectangle calculation so that we can un-comment the assert below.
-        # The Rect seems to have some rounding that causes it to be a pixel or two short.
-        # assert rect.contains(entity_rect), f"Entity must be within rect; {rect}; {entity_rect}"
+        """Recursive helper function for Quadtree.add."""
+        # TODO: Fix the rectangle calculation so that we can un-comment the
+        # assert below. The Rect seems to have some rounding that causes it to
+        # be a pixel or two short.
+        # assert rect.contains(entity.rect), "Entity must be within rect"
 
         if node.is_leaf:
-            if depth >= self.__max_depth or len(node.entities) < node.threshold:
-                # Insert entity into this leaf node if it has space or is at max depth
-                node.entities.append(entity)
-            else:
-                # Otherwise, split the node and try again
-                node.split(rect)
-                self.__add(node, rect, entity, depth)
+            self.__add_leaf(node, rect, entity, depth)
         elif node.is_branch:
-            i = get_quadrant(rect, entity_rect)
-            if i is not None:
-                # Add the entity in child node if entity is entirely contained in a quadrant
-                self.__add(node.children[i], get_child_rect(rect, i), entity, depth + 1)
-            else:
-                # Add to current node otherwise
-                node.entities.append(entity)
+            self.__add_branch(node, rect, entity, depth)
         else:
             assert False, "Node is neither a leaf nor a branch"
 
     def add(self, entity: Entity):
-        """
-        Adds an entity to this Quadtree.
-        """
+        """Adds an entity to this Quadtree."""
         self.__add(self.__root_node, self.__root_rect, entity, 0)
+
+    def __remove_leaf(self, node: Node, rect: Rect, entity: Entity) -> bool:
+        """Removes an entity from a leaf node."""
+        # Remove entity from leaf node
+        node.remove_entity(entity)
+        # Inform parent node to try to merge by returning True
+        return True
+
+    def __remove_branch(self, node: Node, rect: Rect, entity: Entity) -> bool:
+        """Removes an entity from a branch node."""
+        i = get_quadrant(rect, entity.rect)
+        if i is not None:
+            # Remove entity from child node if it's entirely contained in it
+            child_node = node.children[i]
+            child_rect = get_child_rect(rect, i)
+            if self.__remove(child_node, child_rect, entity):
+                # Try to merge if the child is a leaf node
+                return node.try_merge()
+        else:
+            # Otherwise, remove the entity from the current node
+            node.remove_entity(entity)
+        return False
 
     def __remove(self, node: Node, rect: Rect, entity: Entity) -> bool:
         """
         Recursive helper function for Quadtree.remove.
 
-        Returns `True` if `entity` was removed from a leaf node, `False` otherwise.
+        Returns `True` if `entity` was removed from a leaf node, `False`
+        otherwise.
         """
-        entity_rect = entity.rect
-        assert rect.contains(entity_rect), "Entity must be within rect"
+        # TODO: Fix the rectangle calculation so that we can un-comment the
+        # assert below. The Rect seems to have some rounding that causes it to
+        # be a pixel or two short.
+        # assert rect.contains(entity.rect), "Entity must be within rect"
 
         if node.is_leaf:
-            # Remove entity from leaf node
-            node.remove_entity(entity)
-            # Inform parent node to try to merge by returning True
-            return True
+            return self.__remove_leaf(node, rect, entity)
         elif node.is_branch:
-            i = get_quadrant(rect, entity_rect)
-            if i is not None:
-                # Remove entity from child node if it's entirely contained in it
-                if self.__remove(node.children[i], get_child_rect(rect, i), entity):
-                    # Try to merge if the child is a leaf node
-                    return node.try_merge()
-            else:
-                # Otherwise, remove the entity from the current node
-                node.remove_entity(entity)
-            return False
+            return self.__remove_branch(node, rect, entity)
         else:
             assert False, "Node is neither a leaf nor a branch"
 
     def remove(self, entity: Entity):
-        """
-        Removes an entity from this Quadtree.
-        """
+        """Removes an entity from this Quadtree."""
         self.__remove(self.__root_node, self.__root_rect, entity)
 
-    def __query(self, node: Node, rect: Rect, query_rect: Rect, entities: list[Entity]):
-        """
-        Helper recursive function for Quadtree.query.
-        """
+    def __query(self, node: Node, rect: Rect, query_rect: Rect,
+                entities: list[Entity]):
+        """Helper recursive function for Quadtree.query."""
         assert query_rect.colliderect(rect)
 
         # Add entities from this node that collide with the query_rect
-        entities += (entity for entity in node.entities if query_rect.colliderect(entity.rect))
+        entities += (entity
+                     for entity in node.entities
+                     if query_rect.colliderect(entity.rect))
 
         if node.is_leaf:
             return
@@ -225,33 +258,35 @@ class Quadtree:
                 self.__query(child, child_rect, query_rect, entities)
 
     def query(self, query_rect: Rect) -> list[Entity]:
-        """
-        Queries for all entity rectangles intersecting a query rectangle.
-        """
+        """Queries for all entity rectangles intersecting a query rectangle."""
         entities = []
         self.__query(self.__root_node, self.__root_rect, query_rect, entities)
         return entities
 
-    def __find_intersections_in_descendants(self, node: Node, entity: Entity, intersections: list[tuple[Entity, Entity]]):
+    def __find_intersections_in_descendants(self, node: Node, entity: Entity,
+                                            intersections: list[Intersection]):
         """
-        Finds all intersections between an entity and all entities in the provided node and its descendants.
+        Finds all intersections between an entity and all entities in the
+        provided node and its descendants.
         """
         entity_rect = entity.rect
 
         # Add the intersections between the entity and this node's entities
-        intersections += ((entity, other) for other in node.entities if entity_rect.colliderect(other.rect))
+        intersections += ((entity, other)
+                          for other in node.entities
+                          if entity_rect.colliderect(other.rect))
 
         if node.is_leaf:
             return
 
-        # Recurse 
+        # Recurse
         for child in node.children:
-            self.__find_intersections_in_descendants(child, entity, intersections)
+            self.__find_intersections_in_descendants(child, entity,
+                                                     intersections)
 
-    def __find_all_intersections(self, node: Node, intersections: list[tuple[Entity, Entity]]):
-        """
-        Recursive helper function for Quadtree.find_all_intersections.
-        """
+    def __find_all_intersections(self, node: Node,
+                                 intersections: list[Intersection]):
+        """Recursive helper function for Quadtree.find_all_intersections."""
         intersections += (
             (node.entities[i], node.entities[j])
             for i in range(len(node.entities) - 1)
@@ -264,27 +299,25 @@ class Quadtree:
 
         for child in node.children:
             for entity in node.entities:
-                self.__find_intersections_in_descendants(child, entity, intersections)
+                self.__find_intersections_in_descendants(child, entity,
+                                                         intersections)
 
         for child in node.children:
             self.__find_all_intersections(child, intersections)
 
-    def find_all_intersections(self) -> list[tuple[Entity, Entity]]:
-        """
-        Finds all pairs of rectangle intersections between two entities.
-        """
+    def find_all_intersections(self) -> list[Intersection]:
+        """Finds all pairs of rectangle intersections between two entities."""
         intersections = []
         self.__find_all_intersections(self.__root_node, intersections)
         return intersections
 
     def __render(self, screen: pygame.Surface, node: Node, rect: Rect):
-        """
-        Recursive helper function for Quadtree.render.
-        """
+        """Recursive helper function for Quadtree.render."""
         pygame.draw.circle(screen, "#0000FF", Vector2(rect.center), 8)
 
         for entity in node.entities:
-            pygame.draw.line(screen, "#0000FF", Vector2(rect.center), Vector2(entity.position))
+            pygame.draw.line(screen, "#0000FF", Vector2(rect.center),
+                             Vector2(entity.position))
 
             entity_rect = entity.rect
             pygame.draw.lines(
@@ -301,10 +334,9 @@ class Quadtree:
             child_rect = get_child_rect(rect, i)
             self.__render(screen, child, child_rect)
 
-            pygame.draw.line(screen, "#0000FF", Vector2(rect.center), Vector2(child_rect.center))
+            pygame.draw.line(screen, "#0000FF", Vector2(rect.center),
+                             Vector2(child_rect.center))
 
     def render(self, screen: pygame.Surface):
-        """
-        Render the quadtree onto a surface.
-        """
+        """Render the quadtree onto a surface."""
         self.__render(screen, self.__root_node, self.__root_rect)
