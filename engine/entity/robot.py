@@ -122,8 +122,8 @@ class Robot(entity.Entity):
 
         `dt` represents the time delta in seconds.
         """
-        dposition = self.__move_speed * self.move_power * dt
-        self.position += Vector2(dposition, 0).rotate_rad(self.rotation)
+        displacement = self.__move_speed * self.move_power * dt
+        self.position += Vector2(displacement, 0).rotate_rad(self.rotation)
 
         # Calculate tread segments/sec speed
         tread_speed = self.__move_speed / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
