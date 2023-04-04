@@ -1,3 +1,5 @@
+# flake8: noqa
+
 # Import Entity base class first as it's a common dependency between all entities
 from engine.entity.entity import Entity as Entity
 
