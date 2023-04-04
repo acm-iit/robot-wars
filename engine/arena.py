@@ -165,6 +165,24 @@ class Arena:
 
         return quadtree
 
+    def __render_scene(self, quadtree: Quadtree):
+        """Renders the Arena onto self.__surface."""
+        # Draw updated entities onto the surface
+        for entity in self.__entities:
+            entity.render(self.__surface)
+        for entity in self.__entities:
+            entity.post_render(self.__surface)
+
+        # Draw hitboxes
+        if self.show_hitboxes:
+            for entity in self.__entities:
+                pygame.draw.lines(self.__surface, "#FF0000", True,
+                                  entity.absolute_hitbox)
+
+        # Draw quadtree
+        if self.show_quadtree:
+            quadtree.render(self.__surface)
+
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         # Fill the screen with a color to wipe away anything from last frame
@@ -186,19 +204,8 @@ class Arena:
         # Filter destroyed entities (yes, again)
         self.__filter_entities()
 
-        # Draw updated entities onto the surface
-        for entity in self.__entities:
-            entity.render(self.__surface)
-
-        # Draw hitboxes
-        if self.show_hitboxes:
-            for entity in self.__entities:
-                pygame.draw.lines(self.__surface, "#FF0000", True,
-                                  entity.absolute_hitbox)
-
-        # Draw quadtree
-        if self.show_quadtree:
-            quadtree.render(self.__surface)
+        # Render the scene
+        self.__render_scene(quadtree)
 
     def run(self):
         """Runs simulation of the Arena."""
