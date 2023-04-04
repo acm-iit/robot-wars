@@ -77,6 +77,10 @@ class Robot(entity.Entity):
     def health(self, health: float):
         self.__health = max(health, 0)
 
+        # Destroy the robot if it runs out of health
+        if self.__health == 0:
+            self.destroy()
+
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
     @property
