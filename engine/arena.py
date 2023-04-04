@@ -145,13 +145,18 @@ class Arena:
     def __construct_quadtree(self) -> Quadtree:
         """Constructs a Quadtree with the entities in the arena."""
         # Calculate Quadtree bounds
-        min_x = min(entity.rect.left for entity in self.__entities)
-        min_y = min(entity.rect.top for entity in self.__entities)
-        max_x = max(entity.rect.right for entity in self.__entities)
-        max_y = max(entity.rect.bottom for entity in self.__entities)
+        min_x, min_y = math.inf, math.inf
+        max_x, max_y = -math.inf, -math.inf
+
+        for entity in self.__entities:
+            rect = entity.rect
+            min_x = min(min_x, rect.left)
+            min_y = min(min_y, rect.top)
+            max_x = max(max_x, rect.right)
+            max_y = max(max_y, rect.bottom)
 
         quadtree_top_left = Vector2(min_x, min_y)
-        quadtree_size = Vector2(max_x, max_y) - quadtree_top_left
+        quadtree_size = Vector2(max_x - min_x, max_y - min_y)
 
         # Construct Quadtree
         quadtree = Quadtree(Rect(quadtree_top_left, quadtree_size))
