@@ -6,6 +6,7 @@ import pygame
 
 import engine.entity as entity
 
+Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 # Dimensional constants (in pixels)
@@ -28,6 +29,12 @@ TREADS_COLOR = "#888888"            # Color of robot's treads
 TREADS_LINES_COLOR = "#555555"      # Color of lines on robot's treads
 ARROW_COLOR = "#AAAAAA"             # Color of robot front arrow
 
+MAX_HEALTH = 100                    # Default max robot health
+HEALTH_COLOR = "#00BB00"            # Color of available health bar
+HEALTH_DEFICIT_COLOR = "#CC0000"    # Color of deficit in health bar
+HEALTH_BAR_LENGTH = 80              # Length of health bar
+HEALTH_BAR_WIDTH = 8                # Width of health bar
+
 
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
@@ -35,6 +42,8 @@ class Robot(entity.Entity):
         super().__init__()
 
         self.on_update: Optional[Callback] = None   # Callback on each `update`
+
+        self.health = MAX_HEALTH                    # Robot health
 
         self.move_power = 0                         # Range: [-1, 1]
         self.turn_power = 0                         # Range: [-1, 1]
@@ -65,6 +74,19 @@ class Robot(entity.Entity):
             Vector2(-length / 2, -width / 2),
             Vector2(-length / 2, width / 2)
         ]
+
+    @property
+    def health(self) -> float:
+        """Remaining health points of the Robot."""
+        return self.__health
+
+    @health.setter
+    def health(self, health: float):
+        self.__health = max(health, 0)
+
+        # Destroy the robot if it runs out of health
+        if self.__health == 0:
+            self.destroy()
 
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
@@ -293,6 +315,29 @@ class Robot(entity.Entity):
         # Draw robot head
         pygame.draw.circle(screen, self.head_color, self.position,
                            ROBOT_HEAD_RADIUS)
+
+    def post_render(self, screen: pygame.Surface):
+        # Draw health bar
+        if self.health >= MAX_HEALTH:
+            return
+
+        # Get "radius" of Robot
+        radius = self.hitbox[0].magnitude()
+
+        # Top left position of bars
+        top_left = self.position + Vector2(-HEALTH_BAR_LENGTH / 2, radius)
+
+        # Draw deficit bar
+        pygame.draw.rect(screen, HEALTH_DEFICIT_COLOR,
+                         Rect(top_left, Vector2(HEALTH_BAR_LENGTH,
+                                                HEALTH_BAR_WIDTH)))
+
+        available_length = (self.health / MAX_HEALTH) * HEALTH_BAR_LENGTH
+
+        # Draw available bar
+        pygame.draw.rect(screen, HEALTH_COLOR,
+                         Rect(top_left, Vector2(available_length,
+                                                HEALTH_BAR_WIDTH)))
 
 
 # Callback type for `on_update`

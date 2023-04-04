@@ -93,6 +93,10 @@ class Entity:
         """Renders the entity onto a screen."""
         pass
 
+    def post_render(self, screen: pygame.Surface):
+        """Second stage of rendering, once all entities have rendered."""
+        pass
+
     def destroy(self):
         """Removes the entity from its parent arena."""
         # TODO: Commented out the below assert temporarily, since this method
