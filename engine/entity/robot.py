@@ -30,10 +30,10 @@ TREADS_LINES_COLOR = "#555555"      # Color of lines on robot's treads
 ARROW_COLOR = "#AAAAAA"             # Color of robot front arrow
 
 MAX_HEALTH = 100                    # Default max robot health
-HEALTH_COLOR = "#00FF00"            # Color of available health bar
-HEALTH_DEFICIT_COLOR = "#FF0000"    # Color of deficit in health bar
-HEALTH_BAR_LENGTH = 160             # Length of health bar
-HEALTH_BAR_WIDTH = 20               # Width of health bar
+HEALTH_COLOR = "#00BB00"            # Color of available health bar
+HEALTH_DEFICIT_COLOR = "#CC0000"    # Color of deficit in health bar
+HEALTH_BAR_LENGTH = 80              # Length of health bar
+HEALTH_BAR_WIDTH = 8                # Width of health bar
 
 
 class Robot(entity.Entity):
