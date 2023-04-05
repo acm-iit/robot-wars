@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Final, Optional
+from typing import Callable, Final, Optional
 
 import pygame
 
@@ -9,6 +9,9 @@ Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 Intersection = tuple[Entity, Entity]
+
+# Predicate for nearest neighbor
+Predicate = Callable[[Entity], bool]
 
 
 def get_child_rect(rect: Rect, i: int) -> Rect:
@@ -374,6 +377,48 @@ class Quadtree:
         intersections = []
         self.__find_all_intersections(self.__root_node, intersections)
         return intersections
+
+    def __nearest_neighbor(self, node: Node, rect: Rect, point: Vector2,
+                           predicate: Predicate) -> Optional[Entity]:
+        """Recursive helper function for Quadtree.nearest_neighbor"""
+        closest: Optional[Entity] = None
+
+        if node.is_branch:
+            # Get children rects
+            children = [(i, get_child_rect(rect, i)) for i in range(4)]
+
+            # Sort by distance to point
+            children = sorted(children,
+                              key=lambda t: distance_to_rect(point, t[1]))
+
+            # Check entities in children
+            for i, child_rect in children:
+                if closest is not None:
+                    # Prune child rects that are farther away than closest
+                    point_to_rect = distance_to_rect(point, child_rect)
+                    point_to_closest = (closest.position - point).magnitude()
+                    if point_to_rect >= point_to_closest:
+                        # We break here since remaining child rects are farther
+                        break
+                child_node = node.children[i]
+                sub_closest = self.__nearest_neighbor(child_node,
+                                                      child_rect, point,
+                                                      predicate)
+                closest = closer(closest, sub_closest, point)
+
+        # Check entities in node
+        for entity in node.entities:
+            if not predicate(entity):
+                continue
+            closest = closer(closest, entity, point)
+
+        return closest
+
+    def nearest_neighbor(self, point: Vector2, predicate: Predicate
+                         ) -> Optional[Entity]:
+        """Finds the nearest entity to a point that satisfies a predicate."""
+        return self.__nearest_neighbor(self.__root_node, self.__root_rect,
+                                       point, predicate)
 
     def __render(self, screen: pygame.Surface, node: Node, rect: Rect):
         """Recursive helper function for Quadtree.render."""
