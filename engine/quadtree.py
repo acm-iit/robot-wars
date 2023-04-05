@@ -84,6 +84,25 @@ def get_quadrant_from_point(node_rect: Rect, point: Vector2) -> int:
             return 3
 
 
+def closer(entity1: Optional[Entity], entity2: Optional[Entity], point: Vector2
+           ) -> Optional[Entity]:
+    """
+    Given two entities and a point, returns the entity closer to the point.
+    """
+    if entity2 is None:
+        return entity1
+    if entity1 is None:
+        return entity2
+
+    point_to_entity = (entity1.position - point).magnitude()
+    point_to_closest = (entity2.position - point).magnitude()
+
+    if point_to_entity < point_to_closest:
+        return entity1
+    else:
+        return entity2
+
+
 def distance_to_rect(point: Vector2, rect: Rect) -> float:
     """Finds the shortest distance between a point and a Rect."""
     # Coordinates of Rect border point closest to the provided point
