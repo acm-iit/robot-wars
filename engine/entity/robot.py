@@ -52,7 +52,7 @@ class Robot(entity.Entity):
         self.color = ROBOT_COLOR                    # Color of robot body
         self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
 
-        self.__turret_rotation = 0                  # Turret rotation (radians)
+        self.turret_rotation = 0                    # Turret rotation (radians)
 
         self.__move_speed = 300                     # Maximum move speed
         self.__turn_speed = math.pi                 # Maximum turn speed
@@ -74,6 +74,15 @@ class Robot(entity.Entity):
             Vector2(-length / 2, -width / 2),
             Vector2(-length / 2, width / 2)
         ]
+
+    @property
+    def turret_rotation(self) -> float:
+        """Rotation of the Robot's turret."""
+        return self.__turret_rotation
+
+    @turret_rotation.setter
+    def turret_rotation(self, turret_rotation: float):
+        self.__turret_rotation = turret_rotation % (2 * math.pi)
 
     @property
     def health(self) -> float:
@@ -186,8 +195,7 @@ class Robot(entity.Entity):
         `dt` represents the time delta in seconds.
         """
         dturret = self.__turret_turn_speed * self.turret_turn_power * dt
-        self.__turret_rotation += dturret
-        self.__turret_rotation %= 2 * math.pi
+        self.turret_rotation += dturret
 
     def shoot(self):
         """Makes the robot shoot a bullet in the direction of its turret."""
@@ -196,9 +204,9 @@ class Robot(entity.Entity):
         if self.__time_until_next_shot > 0:
             return
 
-        offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
+        offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.turret_rotation)
         position = self.position + offset
-        bullet = entity.Bullet(position, self.__turret_rotation, self)
+        bullet = entity.Bullet(position, self.turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown
@@ -314,7 +322,7 @@ class Robot(entity.Entity):
         # Draw turret
         pygame.draw.polygon(
             screen, TURRET_COLOR,
-            [self.position + offset.rotate_rad(self.__turret_rotation)
+            [self.position + offset.rotate_rad(self.turret_rotation)
              for offset in turret_vertex_offsets]
         )
 
