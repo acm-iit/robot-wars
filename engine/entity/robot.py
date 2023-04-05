@@ -211,6 +211,23 @@ class Robot(entity.Entity):
 
         self.__time_until_next_shot = self.__shot_cooldown
 
+    def aim_towards(self, point: Vector2, dt: float):
+        """
+        Sets the turret_turn_power such that the turret will aim towards a
+        specified point.
+        """
+        direction = point - self.position
+
+        current_angle = self.turret_rotation
+        desired_angle = math.atan2(direction.y, direction.x)
+
+        diff = (desired_angle - current_angle) % (2 * math.pi)
+        if diff < math.pi:
+            self.turret_turn_power = diff / (self.__turret_turn_speed * dt)
+        else:
+            diff = 2 * math.pi - diff
+            self.turret_turn_power = -diff / (self.__turret_turn_speed * dt)
+
     def update(self, dt: float):
         if self.on_update is not None:
             self.on_update(self, dt)
