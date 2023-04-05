@@ -6,7 +6,7 @@ from typing import Optional
 
 import pygame
 
-from engine.entity import Entity, Wall
+from engine.entity import Entity, Robot, Wall
 from engine.map import is_map
 from engine.quadtree import Quadtree
 
@@ -126,6 +126,15 @@ class Arena:
         """Solves collisions between entities."""
         for entity1, entity2 in quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
+
+    def nearest_robot(self, robot: Robot, quadtree: Quadtree
+                      ) -> Optional[Robot]:
+        """Returns the Robot closest to another Robot."""
+        neighbor = quadtree.nearest_neighbor(robot.position,
+                                             lambda e: (type(e) is Robot
+                                                        and e is not robot))
+        assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
+        return neighbor
 
     def __filter_entities(self):
         """
