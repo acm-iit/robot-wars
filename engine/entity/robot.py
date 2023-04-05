@@ -74,7 +74,7 @@ class Robot(entity.Entity):
         self.__left_tread_alpha = 0                 # Range: [0, 1)
         self.__right_tread_alpha = 0                # Range: [0, 1)
 
-        self.__shot_cooldown = 0.5                  # Shoot cooldown (seconds)
+        self.__shot_cooldown = 1                    # Shoot cooldown (seconds)
         self.__time_until_next_shot = 0             # Remaining cooldown
 
     @property
