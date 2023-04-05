@@ -63,6 +63,30 @@ def get_quadrant(node_rect: Rect, entity_rect: Rect) -> Optional[int]:
     return None
 
 
+def distance_to_rect(point: Vector2, rect: Rect) -> float:
+    """Finds the shortest distance between a point and a Rect."""
+    # Coordinates of Rect border point closest to the provided point
+    border_x, border_y = 0, 0
+
+    if point.x < rect.left:
+        border_x = rect.left
+    elif point.x < rect.right:
+        border_x = point.x
+    else:  # point.x >= rect.right
+        border_x = rect.right
+
+    if point.y < rect.top:
+        border_y = rect.top
+    elif point.y < rect.bottom:
+        border_y = point.y
+    else:  # point.y >= rect.bottom
+        border_y = rect.bottom
+
+    dx = point.x - border_x
+    dy = point.y - border_y
+    return (dx * dx + dy * dy) ** 0.5
+
+
 class Node:
     """Node of a Quadtree."""
     def __init__(self):
