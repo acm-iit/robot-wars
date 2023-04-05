@@ -29,6 +29,7 @@ class Arena:
         self.__entities: list[Entity] = []
         self.__size = size
         self.__surface = pygame.Surface(size)
+        self.__quadtree: Optional[Quadtree] = None
 
         self.spawns: list[Vector2] = []
         self.show_hitboxes = False
@@ -123,18 +124,22 @@ class Arena:
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def solve_collisions(self, quadtree: Quadtree):
+    def solve_collisions(self):
         """Solves collisions between entities."""
-        for entity1, entity2 in quadtree.find_all_intersections():
+        assert self.__quadtree is not None, "Quadtree should exist"
+        for entity1, entity2 in self.__quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
 
-    def nearest_robot(self, robot: Robot, quadtree: Quadtree
-                      ) -> Optional[Robot]:
+    def nearest_robot(self, robot: Robot) -> Optional[Robot]:
         """Returns the Robot closest to another Robot."""
-        neighbor = quadtree.nearest_neighbor(robot.position,
-                                             lambda e: (type(e) is Robot
-                                                        and e is not robot))
+        assert self.__quadtree is not None, "Quadtree should exist"
+
+        neighbor = self.__quadtree.nearest_neighbor(
+            robot.position,
+            lambda e: type(e) is Robot and e is not robot
+        )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
+
         return neighbor
 
     def __filter_entities(self):
@@ -152,7 +157,7 @@ class Arena:
                               for entity in self.__entities
                               if entity.arena is self]
 
-    def __construct_quadtree(self) -> Quadtree:
+    def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
         # Calculate Quadtree bounds
         min_x, min_y = math.inf, math.inf
@@ -169,13 +174,11 @@ class Arena:
         quadtree_size = Vector2(max_x - min_x, max_y - min_y)
 
         # Construct Quadtree
-        quadtree = Quadtree(Rect(quadtree_top_left, quadtree_size))
+        self.__quadtree = Quadtree(Rect(quadtree_top_left, quadtree_size))
         for entity in self.__entities:
-            quadtree.add(entity)
+            self.__quadtree.add(entity)
 
-        return quadtree
-
-    def __render_scene(self, quadtree: Quadtree):
+    def __render_scene(self):
         """Renders the Arena onto self.__surface."""
         # Draw updated entities onto the surface
         for entity in self.__entities:
@@ -191,14 +194,15 @@ class Arena:
 
         # Draw quadtree
         if self.show_quadtree:
-            quadtree.render(self.__surface)
+            assert self.__quadtree, "Quadtree should exist"
+            self.__quadtree.render(self.__surface)
 
         # Draw closest robot lines
         if self.show_nearest_robot:
             for robot in self.get_entities_of_type(Robot):
                 assert type(robot) is Robot, "Shouldn't happen"
 
-                closest = self.nearest_robot(robot, quadtree)
+                closest = self.nearest_robot(robot)
                 if closest is None:
                     continue
 
@@ -230,16 +234,16 @@ class Arena:
         self.__filter_entities()
 
         # Construct quadtree
-        quadtree = self.__construct_quadtree()
+        self.__construct_quadtree()
 
         # Solve collisions
-        self.solve_collisions(quadtree)
+        self.solve_collisions()
 
         # Filter destroyed entities (yes, again)
         self.__filter_entities()
 
         # Render the scene
-        self.__render_scene(quadtree)
+        self.__render_scene()
 
     def run(self):
         """Runs simulation of the Arena."""
