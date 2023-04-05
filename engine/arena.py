@@ -34,6 +34,7 @@ class Arena:
         self.show_hitboxes = False
         self.show_fps = False
         self.show_quadtree = False
+        self.show_nearest_robot = False
 
         # Add surrounding walls
         north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
@@ -191,6 +192,30 @@ class Arena:
         # Draw quadtree
         if self.show_quadtree:
             quadtree.render(self.__surface)
+
+        # Draw closest robot lines
+        if self.show_nearest_robot:
+            for robot in self.get_entities_of_type(Robot):
+                assert type(robot) is Robot, "Shouldn't happen"
+
+                closest = self.nearest_robot(robot, quadtree)
+                if closest is None:
+                    continue
+
+                point1 = robot.position
+                point2 = closest.position
+
+                middle = (point1 + point2) / 2
+                direction = (point2 - point1).normalize()
+                normal = direction.rotate_rad(math.pi / 2)
+
+                tip_base = middle - direction * 8 * math.sqrt(3)
+                tip_left = tip_base - normal * 8
+                tip_right = tip_base + normal * 8
+
+                pygame.draw.line(self.__surface, "#00FF00", point1, point2)
+                pygame.draw.polygon(self.__surface, "#00FF00",
+                                    [middle, tip_left, tip_right])
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
