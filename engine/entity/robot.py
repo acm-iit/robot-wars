@@ -224,6 +224,16 @@ class Robot(entity.Entity):
 
         self.__time_until_next_shot = self.__shot_cooldown
 
+    def move_towards(self, point: Vector2, dt: float):
+        """
+        Sets the move_power and turn_power such that the Robot will move
+        towards a specified point.
+        """
+        self.turn_towards(point, dt)
+
+        distance = (self.position - point).magnitude()
+        self.move_power = distance / (self.__move_speed * dt)
+
     def turn_towards(self, point: Vector2, dt: float):
         """
         Sets the turn_power such that the Robot will face towards a specified
