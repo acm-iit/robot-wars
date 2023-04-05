@@ -36,6 +36,19 @@ HEALTH_BAR_LENGTH = 80              # Length of health bar
 HEALTH_BAR_WIDTH = 8                # Width of health bar
 
 
+def angle_difference(angle1: float, angle2: float) -> float:
+    """
+    Returns the angle difference that should be added to angle1 to direct it
+    towards angle2.
+    """
+    diff = (angle2 - angle1) % (2 * math.pi)
+    if diff < math.pi:
+        return diff
+    else:
+        # The shorter direction is counter-clockwise
+        return -(2 * math.pi - diff)
+
+
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
     def __init__(self):
@@ -221,12 +234,8 @@ class Robot(entity.Entity):
         current_angle = self.turret_rotation
         desired_angle = math.atan2(direction.y, direction.x)
 
-        diff = (desired_angle - current_angle) % (2 * math.pi)
-        if diff < math.pi:
-            self.turret_turn_power = diff / (self.__turret_turn_speed * dt)
-        else:
-            diff = 2 * math.pi - diff
-            self.turret_turn_power = -diff / (self.__turret_turn_speed * dt)
+        difference = angle_difference(current_angle, desired_angle)
+        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
 
     def update(self, dt: float):
         if self.on_update is not None:
