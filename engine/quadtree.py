@@ -380,7 +380,7 @@ class Quadtree:
 
     def __nearest_neighbor(self, node: Node, rect: Rect, point: Vector2,
                            predicate: Predicate) -> Optional[Entity]:
-        """Recursive helper function for Quadtree.nearest_neighbor"""
+        """Recursive helper function for Quadtree.nearest_neighbor."""
         closest: Optional[Entity] = None
 
         if node.is_branch:
