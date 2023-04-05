@@ -37,25 +37,25 @@ def get_child_rect(rect: Rect, i: int) -> Rect:
         assert False, "i must be 0, 1, 2, or 3"
 
 
-def get_quadrant(node_rect: Rect, entity_rect: Rect) -> Optional[int]:
+def get_quadrant_from_rect(node_rect: Rect, rect: Rect) -> Optional[int]:
     """
-    Given the rect of a node and the rect of an entity, returns the index of
-    the child node quadrant that the entity is fully contained in. If the
-    entity cannot be fully contained in any quadrant rect, then it returns
-    `None`, indicating that the entity belongs in this node.
+    Given the rect of a node and another rect, returns the index of the child
+    node quadrant that the rect is fully contained in. If the rect cannot be
+    fully contained in any quadrant rect, then it returns `None`, indicating
+    that the rect belongs in this node.
     """
-    if entity_rect.right < node_rect.centerx:
-        if entity_rect.bottom < node_rect.centery:
+    if rect.right < node_rect.centerx:
+        if rect.bottom < node_rect.centery:
             # Northwest
             return 0
-        elif entity_rect.top >= node_rect.centery:
+        elif rect.top >= node_rect.centery:
             # Southwest
             return 2
-    elif entity_rect.left >= node_rect.centerx:
-        if entity_rect.bottom < node_rect.centery:
+    elif rect.left >= node_rect.centerx:
+        if rect.bottom < node_rect.centery:
             # Northeast
             return 1
-        elif entity_rect.top >= node_rect.centery:
+        elif rect.top >= node_rect.centery:
             # Southeast
             return 3
 
@@ -129,7 +129,7 @@ class Node:
 
         new_self_entities = []
         for entity in self.entities:
-            i = get_quadrant(rect, entity.rect)
+            i = get_quadrant_from_rect(rect, entity.rect)
             if i is not None:
                 self.children[i].entities.append(entity)
             else:
@@ -188,7 +188,7 @@ class Quadtree:
 
     def __add_branch(self, node: Node, rect: Rect, entity: Entity, depth: int):
         """Adds entity to a branch node."""
-        i = get_quadrant(rect, entity.rect)
+        i = get_quadrant_from_rect(rect, entity.rect)
         if i is not None:
             # Add the entity in child node if entity is entirely contained in a
             # quadrant
@@ -226,7 +226,7 @@ class Quadtree:
 
     def __remove_branch(self, node: Node, rect: Rect, entity: Entity) -> bool:
         """Removes an entity from a branch node."""
-        i = get_quadrant(rect, entity.rect)
+        i = get_quadrant_from_rect(rect, entity.rect)
         if i is not None:
             # Remove entity from child node if it's entirely contained in it
             child_node = node.children[i]
