@@ -213,7 +213,7 @@ class Robot(entity.Entity):
 
     def update(self, dt: float):
         if self.on_update is not None:
-            self.on_update(self)
+            self.on_update(self, dt)
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
@@ -355,4 +355,4 @@ class Robot(entity.Entity):
 
 
 # Callback type for `on_update`
-Callback = Callable[[Robot], None]
+Callback = Callable[[Robot, float], None]

@@ -9,7 +9,7 @@ import pygame
 from engine import Arena, Robot
 
 
-def keyboard_control(robot: Robot):
+def keyboard_control(robot: Robot, _):
     """Keyboard control scheme for the user-controlled Robot."""
     keys = pygame.key.get_pressed()
     robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 0
@@ -26,7 +26,7 @@ def create_spin_control():
     turn_power = random() * 2 - 1
     turret_turn_power = random() * 2 - 1
 
-    def spin_control(robot: Robot):
+    def spin_control(robot: Robot, _):
         robot.shoot()
         robot.move_power = move_power
         robot.turn_power = turn_power
