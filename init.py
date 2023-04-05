@@ -59,4 +59,5 @@ if __name__ == "__main__":
     # arena.show_hitboxes = True
     # arena.show_fps = True
     # arena.show_quadtree = True
+    # arena.show_nearest_robot = True
     arena.run()
