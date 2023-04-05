@@ -42,20 +42,21 @@ Run `init.py` in Python. (This is a testing script and will be changed/moved in 
     * *Zoom-In* - Useful for observing the battle royale map!
 * Optimization
     * **[IMPLEMENTED]** *Quadtree Collision Filtering* - Use a `Quadtree` data structure to filter which collisions to check for as opposed to checking every pair of `Entity`s.
-    * *Parallelize `Entity.update`* - Invoke all calls of `Entity.update` in parallel since they operate independently.
+    * *Parallelize `Entity.update`* - Invoke all calls of `Entity.update` in parallel since they operate mostly independently (exception is modification of shared `Arena` state, like spawning `Bullet`s via `Robot.shoot`).
     * *Parallelize `Entity.handle_collision`* - Invoke all calls of `Entity.handle_collision` in parallel; modify the method to return new `position` and `rotation` properties that will be applied in parallel.
 * Game Rules
-    * *`Robot` Destruction* - Incorporate health in `Robot` and damage in `Bullet`. For now, we use one-shot kills.
+    * **[IMPLEMENTED]** *`Robot` Destruction* - Incorporate health in `Robot` and damage in `Bullet`.
     * *Win Condition* - Destroy the other `Robot`.
     * *Stalemate Condition* - Both `Robot`s are still alive after *n* seconds of simulation.
     * *Secondary Win Condition* - In case of stalemate, use this condition as a tiebreaker. Some ideas:
         * *Portion of `Arena` Discovered* - Reward the `Robot` who ventured out the most.
         * *Coins* - Place `Coin` entities around the `Arena`; whichever `Robot` collects the most wins in case of stalemate.
 * `Robot` Programmability
-    * *`RobotControl` Class* - Class which each team extends to personalize and program the behavior of their `Robot`.
+    * **[IMPLEMENTED]** *`Robot` Manipulation* - Expose API to move and turn the `Robot` and shoot `Bullet`s.
+    * **[IMPLEMENTED]** *Enemy `Robot` Detection* - Expose API to find the nearest `Robot` to a given `Robot`.
+    * *Raycasting* - Expose API to detect any `Entity`s in a given direction from a `Robot`, as well as the position and normal of the ray collision.
+    * *`RobotControl` Class* - Incorporate all programmable/personalizable `Robot` features into one class which each team extends with their implementation. For now, it's semi-implemented as the `Robot.on_update` callback, which is unideal because it doesn't secure the engine from unwanted modifications.
     * *Engine Encapsulation* - Prevent raw access to any `Entity`s or the `Arena`; the only accessible component is the `RobotControl` class.
-    * *`Entity` Detection* - Expose API in `RobotControl` to figure out the direction and proximity of other `Entity`s.
-    * *`Robot` Manipulation* - Expose API in `RobotControl` to move and turn the `Robot` and shoot `Bullet`s. For now, it's implemented as the `Robot.on_update` callback, which is unideal.
 * `Robot` Personalization
     * **[IMPLEMENTED]** *Color* - Set `Robot` colors via properties `color` and `head_color`.
     * *Size* - Set `Robot` size; larger size increases health and decreases speed.
