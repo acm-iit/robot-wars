@@ -36,6 +36,19 @@ HEALTH_BAR_LENGTH = 80              # Length of health bar
 HEALTH_BAR_WIDTH = 8                # Width of health bar
 
 
+def angle_difference(angle1: float, angle2: float) -> float:
+    """
+    Returns the angle difference that should be added to angle1 to direct it
+    towards angle2.
+    """
+    diff = (angle2 - angle1) % (2 * math.pi)
+    if diff < math.pi:
+        return diff
+    else:
+        # The shorter direction is counter-clockwise
+        return -(2 * math.pi - diff)
+
+
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
     def __init__(self):
@@ -52,7 +65,7 @@ class Robot(entity.Entity):
         self.color = ROBOT_COLOR                    # Color of robot body
         self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
 
-        self.__turret_rotation = 0                  # Turret rotation (radians)
+        self.turret_rotation = 0                    # Turret rotation (radians)
 
         self.__move_speed = 300                     # Maximum move speed
         self.__turn_speed = math.pi                 # Maximum turn speed
@@ -61,7 +74,7 @@ class Robot(entity.Entity):
         self.__left_tread_alpha = 0                 # Range: [0, 1)
         self.__right_tread_alpha = 0                # Range: [0, 1)
 
-        self.__shot_cooldown = 0.5                  # Shoot cooldown (seconds)
+        self.__shot_cooldown = 1                    # Shoot cooldown (seconds)
         self.__time_until_next_shot = 0             # Remaining cooldown
 
     @property
@@ -76,6 +89,15 @@ class Robot(entity.Entity):
         ]
 
     @property
+    def turret_rotation(self) -> float:
+        """Rotation of the Robot's turret."""
+        return self.__turret_rotation
+
+    @turret_rotation.setter
+    def turret_rotation(self, turret_rotation: float):
+        self.__turret_rotation = turret_rotation % (2 * math.pi)
+
+    @property
     def health(self) -> float:
         """Remaining health points of the Robot."""
         return self.__health
@@ -87,6 +109,12 @@ class Robot(entity.Entity):
         # Destroy the robot if it runs out of health
         if self.__health == 0:
             self.destroy()
+
+    @property
+    def nearest_robot(self) -> Optional[Robot]:
+        if self.arena is None:
+            return
+        return self.arena.nearest_robot(self)
 
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
@@ -180,8 +208,7 @@ class Robot(entity.Entity):
         `dt` represents the time delta in seconds.
         """
         dturret = self.__turret_turn_speed * self.turret_turn_power * dt
-        self.__turret_rotation += dturret
-        self.__turret_rotation %= 2 * math.pi
+        self.turret_rotation += dturret
 
     def shoot(self):
         """Makes the robot shoot a bullet in the direction of its turret."""
@@ -190,16 +217,52 @@ class Robot(entity.Entity):
         if self.__time_until_next_shot > 0:
             return
 
-        offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.__turret_rotation)
+        offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.turret_rotation)
         position = self.position + offset
-        bullet = entity.Bullet(position, self.__turret_rotation, self)
+        bullet = entity.Bullet(position, self.turret_rotation, self)
         self.arena.add_entity(bullet)
 
         self.__time_until_next_shot = self.__shot_cooldown
 
+    def move_towards(self, point: Vector2, dt: float):
+        """
+        Sets the move_power and turn_power such that the Robot will move
+        towards a specified point.
+        """
+        self.turn_towards(point, dt)
+
+        distance = (self.position - point).magnitude()
+        self.move_power = distance / (self.__move_speed * dt)
+
+    def turn_towards(self, point: Vector2, dt: float):
+        """
+        Sets the turn_power such that the Robot will face towards a specified
+        point.
+        """
+        direction = point - self.position
+
+        current_angle = self.rotation
+        desired_angle = math.atan2(direction.y, direction.x)
+
+        difference = angle_difference(current_angle, desired_angle)
+        self.turn_power = difference / (self.__turn_speed * dt)
+
+    def aim_towards(self, point: Vector2, dt: float):
+        """
+        Sets the turret_turn_power such that the turret will aim towards a
+        specified point.
+        """
+        direction = point - self.position
+
+        current_angle = self.turret_rotation
+        desired_angle = math.atan2(direction.y, direction.x)
+
+        difference = angle_difference(current_angle, desired_angle)
+        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
+
     def update(self, dt: float):
         if self.on_update is not None:
-            self.on_update(self)
+            self.on_update(self, dt)
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
@@ -308,7 +371,7 @@ class Robot(entity.Entity):
         # Draw turret
         pygame.draw.polygon(
             screen, TURRET_COLOR,
-            [self.position + offset.rotate_rad(self.__turret_rotation)
+            [self.position + offset.rotate_rad(self.turret_rotation)
              for offset in turret_vertex_offsets]
         )
 
@@ -341,4 +404,4 @@ class Robot(entity.Entity):
 
 
 # Callback type for `on_update`
-Callback = Callable[[Robot], None]
+Callback = Callable[[Robot, float], None]

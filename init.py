@@ -9,7 +9,7 @@ import pygame
 from engine import Arena, Robot
 
 
-def keyboard_control(robot: Robot):
+def keyboard_control(robot: Robot, _):
     """Keyboard control scheme for the user-controlled Robot."""
     keys = pygame.key.get_pressed()
     robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 0
@@ -20,13 +20,29 @@ def keyboard_control(robot: Robot):
         robot.shoot()
 
 
+def seek_nearest_robot(robot: Robot, dt: float):
+    """Control scheme which moves and shoots towards nearest Robot."""
+    nearest = robot.nearest_robot
+    if nearest is None:
+        robot.move_power = 0
+        robot.turn_power = 0
+        robot.turret_turn_power = 0
+        return
+
+    # Move and aim towards other robot
+    robot.aim_towards(nearest.position, dt)
+    robot.move_towards(nearest.position, dt)
+
+    robot.shoot()
+
+
 def create_spin_control():
     """Creates random control scheme for an NPC Robot."""
     move_power = random() * 2 - 1
     turn_power = random() * 2 - 1
     turret_turn_power = random() * 2 - 1
 
-    def spin_control(robot: Robot):
+    def spin_control(robot: Robot, _):
         robot.shoot()
         robot.move_power = move_power
         robot.turn_power = turn_power
@@ -36,7 +52,7 @@ def create_spin_control():
 
 
 if __name__ == "__main__":
-    arena = Arena.from_map_json("engine/maps/stress_test.json")
+    arena = Arena.from_map_json("engine/maps/circles.json")
     if arena is None:
         quit()
 
@@ -49,7 +65,11 @@ if __name__ == "__main__":
 
     robots.append(player_robot)
 
-    for i in range(63):
+    for i in range(3):
+        npc_robot = Robot()
+        npc_robot.on_update = seek_nearest_robot
+        robots.append(npc_robot)
+    for i in range(0):
         npc_robot = Robot()
         npc_robot.on_update = create_spin_control()
         robots.append(npc_robot)
@@ -59,4 +79,5 @@ if __name__ == "__main__":
     # arena.show_hitboxes = True
     # arena.show_fps = True
     # arena.show_quadtree = True
+    # arena.show_nearest_robot = True
     arena.run()
