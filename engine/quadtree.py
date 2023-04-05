@@ -63,6 +63,27 @@ def get_quadrant_from_rect(node_rect: Rect, rect: Rect) -> Optional[int]:
     return None
 
 
+def get_quadrant_from_point(node_rect: Rect, point: Vector2) -> int:
+    """
+    Given the rect of a node and a point, returns the index of the child node
+    quadrant that the point is within.
+    """
+    if point.x < node_rect.centerx:
+        if point.y < node_rect.centery:
+            # Northwest
+            return 0
+        else:  # point.y >= node_rect.centery
+            # Southwest
+            return 2
+    else:  # point.x >= node_rect.centerx
+        if point.y < node_rect.centery:
+            # Northeast
+            return 1
+        else:  # point.y >= node_rect.centery
+            # Southeast
+            return 3
+
+
 def distance_to_rect(point: Vector2, rect: Rect) -> float:
     """Finds the shortest distance between a point and a Rect."""
     # Coordinates of Rect border point closest to the provided point
