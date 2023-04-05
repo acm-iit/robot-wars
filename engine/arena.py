@@ -132,7 +132,10 @@ class Arena:
 
     def nearest_robot(self, robot: Robot) -> Optional[Robot]:
         """Returns the Robot closest to another Robot."""
-        assert self.__quadtree is not None, "Quadtree should exist"
+        # Robot.on_update may call this, and the quadtree won't exist on the
+        # first update, so just return None
+        if self.__quadtree is None:
+            return None
 
         neighbor = self.__quadtree.nearest_neighbor(
             robot.position,
