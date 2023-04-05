@@ -88,6 +88,12 @@ class Robot(entity.Entity):
         if self.__health == 0:
             self.destroy()
 
+    @property
+    def nearest_robot(self) -> Optional[Robot]:
+        if self.arena is None:
+            return
+        return self.arena.nearest_robot(self)
+
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
     @property
