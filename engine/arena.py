@@ -318,6 +318,11 @@ class Arena:
 
     def run(self):
         """Runs simulation of the Arena."""
+        has_path_graph = self.__path_graph is not None
+        assert has_path_graph, ("Must call Arena.prepare_path_graph after "
+                                "generating walls and before spawning other "
+                                "entities!")
+
         # pygame setup
         pygame.init()
 
