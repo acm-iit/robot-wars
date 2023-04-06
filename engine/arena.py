@@ -18,6 +18,7 @@ WALL_THICKNESS = 100
 FRAME_RATE = 60
 MAX_WINDOW_WIDTH = 1536
 MAX_WINDOW_HEIGHT = 768
+GRASS_COLOR = "#006600"
 
 
 class Arena:
@@ -295,7 +296,7 @@ class Arena:
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         # Fill the screen with a color to wipe away anything from last frame
-        self.__surface.fill("#006600")
+        self.__surface.fill(GRASS_COLOR)
 
         # Update each entity's state
         for entity in self.__entities:
