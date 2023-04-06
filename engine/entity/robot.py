@@ -238,8 +238,12 @@ class Robot(entity.Entity):
 
         self.turn_towards(point, dt)
 
-        distance = (self.position - point).magnitude()
-        self.move_power = distance / (self.__move_speed * dt)
+        direction = point - self.position
+        angle = math.atan2(direction.y, direction.x)
+        angle_diff = angle_difference(self.rotation, angle)
+
+        if abs(angle_diff) < math.pi / 16:
+            self.move_power = direction.magnitude() / (self.__move_speed * dt)
 
     def turn_towards(self, point: Vector2, dt: float):
         """
