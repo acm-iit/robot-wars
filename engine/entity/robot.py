@@ -273,6 +273,14 @@ class Robot(entity.Entity):
         difference = angle_difference(current_angle, desired_angle)
         self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
 
+    def pathfind(self, point: Vector2) -> Optional[list[Vector2]]:
+        """
+        Finds a path between the robot and a provided point, if there is one.
+        """
+        if self.arena is None:
+            return
+        return self.arena.pathfind(self, point)
+
     def update(self, dt: float):
         if self.on_update is not None:
             self.on_update(self, dt)
