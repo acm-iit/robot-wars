@@ -299,26 +299,12 @@ class Arena:
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
-        # Fill the screen with a color to wipe away anything from last frame
         self.__surface.fill(GRASS_COLOR)
-
-        # Update each entity's state
-        for entity in self.__entities:
-            entity.update(dt)
-
-        # Filter destroyed entities
+        self.__update_entities(dt)
         self.__filter_entities()
-
-        # Construct quadtree
         self.__construct_quadtree()
-
-        # Solve collisions
-        self.solve_collisions()
-
-        # Filter destroyed entities (yes, again)
+        self.__solve_collisions()
         self.__filter_entities()
-
-        # Render the scene
         self.__render_scene()
 
     def run(self):
