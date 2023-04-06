@@ -35,12 +35,15 @@ class Arena:
         self.__paths = list[list[Vector2]]()
 
         self.spawns: list[Vector2] = []
+
+        # Debug settings
         self.show_hitboxes = False
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
         self.show_path_graph = False
         self.show_paths = False
+        self.show_robot_nodes = False
 
         # Add surrounding walls
         north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
@@ -281,6 +284,13 @@ class Arena:
                 pygame.draw.lines(self.__surface, "#FFFF00", False, path)
             # Clear paths to avoid memory leak
             self.__paths = []
+
+        # Draw Robot nodes
+        if self.show_robot_nodes:
+            assert self.__path_graph is not None
+            for robot in self.get_entities_of_type(Robot):
+                node = self.__path_graph.get_closest_node(robot.position)
+                pygame.draw.circle(self.__surface, "#00FFFF", node.position, 8)
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
