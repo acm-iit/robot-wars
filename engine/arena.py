@@ -38,6 +38,7 @@ class Arena:
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
+        self.show_path_graph = False
 
         # Add surrounding walls
         north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
@@ -248,6 +249,11 @@ class Arena:
                 pygame.draw.line(self.__surface, "#00FF00", point1, point2)
                 pygame.draw.polygon(self.__surface, "#00FF00",
                                     [middle, tip_left, tip_right])
+
+        # Draw pathfinding graph
+        if self.show_path_graph:
+            assert self.__path_graph is not None
+            self.__path_graph.render(self.__surface)
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
