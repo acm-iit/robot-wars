@@ -54,7 +54,7 @@ Run `init.py` in Python. (This is a testing script and will be changed/moved in 
 * `Robot` Programmability
     * **[IMPLEMENTED]** *`Robot` Manipulation* - Expose API to move and turn the `Robot` and shoot `Bullet`s.
     * **[IMPLEMENTED]** *Enemy `Robot` Detection* - Expose API to find the nearest `Robot` to a given `Robot`.
-    * *Raycasting* - Expose API to detect any `Entity`s in a given direction from a `Robot`, as well as the position and normal of the ray collision.
+    * **[IMPLEMENTED]** *Pathfinding* - Expose API for `Robot`s to navigate their way to a location around `Wall`s.
     * *`RobotControl` Class* - Incorporate all programmable/personalizable `Robot` features into one class which each team extends with their implementation. For now, it's semi-implemented as the `Robot.on_update` callback, which is unideal because it doesn't secure the engine from unwanted modifications.
     * *Engine Encapsulation* - Prevent raw access to any `Entity`s or the `Arena`; the only accessible component is the `RobotControl` class.
 * `Robot` Personalization
