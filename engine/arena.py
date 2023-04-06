@@ -145,12 +145,6 @@ class Arena:
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def solve_collisions(self):
-        """Solves collisions between entities."""
-        assert self.__quadtree is not None, "Quadtree should exist"
-        for entity1, entity2 in self.__quadtree.find_all_intersections():
-            entity1.handle_collision(entity2)
-
     def nearest_robot(self, robot: Robot) -> Optional[Robot]:
         """Returns the Robot closest to another Robot."""
         # Robot.on_update may call this, and the quadtree won't exist on the
@@ -207,6 +201,12 @@ class Arena:
         self.__entities[:] = [entity
                               for entity in self.__entities
                               if entity.arena is self]
+
+    def __solve_collisions(self):
+        """Solves collisions between entities."""
+        assert self.__quadtree is not None, "Quadtree should exist"
+        for entity1, entity2 in self.__quadtree.find_all_intersections():
+            entity1.handle_collision(entity2)
 
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
