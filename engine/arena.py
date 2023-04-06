@@ -360,7 +360,14 @@ class Arena:
             self.update(remaining_dt)
 
             # Copy arena surface contents to screen
-            pygame.transform.smoothscale(self.__surface, window_size, screen)
+            ratio = self.__size.x / window_size.x
+            if ratio > 2:
+                # Use faster, normal scale if the ratio is too large
+                pygame.transform.scale(self.__surface, window_size, screen)
+            else:
+                # Use slower, smooth scale if the ratio isn't too large
+                pygame.transform.smoothscale(self.__surface, window_size,
+                                             screen)
 
             # Draw framerate onto the screen
             if self.show_fps and dt > 0:
