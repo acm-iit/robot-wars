@@ -233,6 +233,9 @@ class Robot(entity.Entity):
         Sets the move_power and turn_power such that the Robot will move
         towards a specified point.
         """
+        if dt == 0:
+            return
+
         self.turn_towards(point, dt)
 
         distance = (self.position - point).magnitude()
@@ -243,6 +246,9 @@ class Robot(entity.Entity):
         Sets the turn_power such that the Robot will face towards a specified
         point.
         """
+        if dt == 0:
+            return
+
         direction = point - self.position
 
         current_angle = self.rotation
@@ -256,6 +262,9 @@ class Robot(entity.Entity):
         Sets the turret_turn_power such that the turret will aim towards a
         specified point.
         """
+        if dt == 0:
+            return
+
         direction = point - self.position
 
         current_angle = self.turret_rotation
