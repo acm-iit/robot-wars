@@ -8,6 +8,7 @@ import pygame
 
 from engine.entity import Entity, Robot, Wall
 from engine.map import is_map
+from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
 
 Rect = pygame.Rect
@@ -30,6 +31,7 @@ class Arena:
         self.__size = size
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
+        self.__path_graph: Optional[PathfindingGraph] = None
 
         self.spawns: list[Vector2] = []
         self.show_hitboxes = False
@@ -86,6 +88,9 @@ class Arena:
 
             arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"])
                             for spawn_data in arena_data["spawns"]]
+
+            # Calculate pathfinding graph
+            arena.prepare_path_graph()
 
             return arena
 
@@ -144,6 +149,26 @@ class Arena:
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
         return neighbor
+
+    def prepare_path_graph(self):
+        """
+        Prepares the PathfindingGraph for this Arena, based on the Walls it
+        currently haves.
+        """
+        self.__construct_quadtree()
+        assert self.__quadtree is not None
+        self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+
+    def pathfind(self, robot: Robot, point: Vector2
+                 ) -> Optional[list[Vector2]]:
+        """
+        Finds a path between the robot and a provided point, if there is one.
+        """
+        assert self.__path_graph is not None, "Path graph should exist"
+        path = self.__path_graph.pathfind(robot.position, point)
+        if self.show_paths and path is not None:
+            self.__paths.append(path)
+        return path
 
     def __filter_entities(self):
         """
