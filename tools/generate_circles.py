@@ -30,7 +30,7 @@ Predicate = Callable[[int], bool]
 def create_circle(radius: int, predicate: Predicate) -> list[WallJson]:
     """
     Creates a circle of a specified radius, and uses a predicate to determine
-    which circle segments to exclude, given the index of the segment.
+    which circle segments to include, given the index of the segment.
 
     Index 0 corresponds to the first segment starting from the positive X axis,
     moving towards the positive Y axis.
