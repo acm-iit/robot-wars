@@ -35,6 +35,12 @@ HEALTH_DEFICIT_COLOR = "#CC0000"    # Color of deficit in health bar
 HEALTH_BAR_LENGTH = 80              # Length of health bar
 HEALTH_BAR_WIDTH = 8                # Width of health bar
 
+# Computed constants
+ROBOT_HITBOX_LENGTH = max(ROBOT_LENGTH, TREAD_LENGTH)
+ROBOT_HITBOX_WIDTH = ROBOT_WIDTH + TREAD_WIDTH
+ROBOT_RADIUS = math.sqrt(ROBOT_HITBOX_LENGTH * ROBOT_HITBOX_LENGTH
+                         + ROBOT_HITBOX_WIDTH * ROBOT_HITBOX_WIDTH) / 2
+
 
 def angle_difference(angle1: float, angle2: float) -> float:
     """
@@ -79,13 +85,11 @@ class Robot(entity.Entity):
 
     @property
     def hitbox(self) -> list[Vector2]:
-        length = max(ROBOT_LENGTH, TREAD_LENGTH)
-        width = ROBOT_WIDTH + TREAD_WIDTH
         return [
-            Vector2(length / 2, width / 2),
-            Vector2(length / 2, -width / 2),
-            Vector2(-length / 2, -width / 2),
-            Vector2(-length / 2, width / 2)
+            Vector2(ROBOT_HITBOX_LENGTH / 2, ROBOT_HITBOX_WIDTH / 2),
+            Vector2(ROBOT_HITBOX_LENGTH / 2, -ROBOT_HITBOX_WIDTH / 2),
+            Vector2(-ROBOT_HITBOX_LENGTH / 2, -ROBOT_HITBOX_WIDTH / 2),
+            Vector2(-ROBOT_HITBOX_LENGTH / 2, ROBOT_HITBOX_WIDTH / 2)
         ]
 
     @property
@@ -384,11 +388,9 @@ class Robot(entity.Entity):
         if self.health >= MAX_HEALTH:
             return
 
-        # Get "radius" of Robot
-        radius = self.hitbox[0].magnitude()
-
         # Top left position of bars
-        top_left = self.position + Vector2(-HEALTH_BAR_LENGTH / 2, radius)
+        top_left = self.position + Vector2(-HEALTH_BAR_LENGTH / 2,
+                                           ROBOT_RADIUS)
 
         # Draw deficit bar
         pygame.draw.rect(screen, HEALTH_DEFICIT_COLOR,
