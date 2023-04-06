@@ -122,18 +122,18 @@ class Arena:
         self.__entities.remove(entity)
         entity.arena = None
 
-    def spawn_entities(self, entities: list[Entity]):
+    def spawn_robots(self, robots: list[Robot]):
         """
-        Spawns a list of entities into unique spawn locations. The number of
-        entities must be lower than the number of arena spawns.
+        Spawns a list of robots into unique spawn locations. The number of
+        robots must be lower than the number of arena spawns.
         """
-        assert len(entities) <= len(self.spawns), "# of entities > # of spawns"
+        assert len(robots) <= len(self.spawns), "# of entities > # of spawns"
 
-        positions: list[Vector2] = sample(self.spawns, k=len(entities))
+        positions: list[Vector2] = sample(self.spawns, k=len(robots))
 
-        for entity in entities:
-            self.add_entity(entity)
-            entity.position = positions.pop()
+        for robot in robots:
+            self.add_entity(robot)
+            robot.position = positions.pop()
 
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """Returns a filtered list of entities of a certain class."""
