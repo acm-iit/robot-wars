@@ -187,6 +187,10 @@ class Arena:
         ratio = self.__size.x / self.window_size.x
         return point * ratio
 
+    def __update_entities(self, dt: float):
+        for entity in self.__entities:
+            entity.update(dt)
+
     def __filter_entities(self):
         """
         Filter out any entities that were destroyed during updating.
