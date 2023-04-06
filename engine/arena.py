@@ -69,6 +69,15 @@ class Arena:
         """
         return self.__surface
 
+    @property
+    def window_size(self) -> Vector2:
+        """
+        Read-only property that provides the size of the window surface.
+        """
+        window_rect = Rect(0, 0, MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT)
+        arena_rect = Rect(Vector2(), self.__size)
+        return Vector2(arena_rect.fit(window_rect).size)
+
     @staticmethod
     def from_map_json(filename: str) -> Optional[Arena]:
         """Constructs an Arena from a map config JSON file."""
@@ -172,6 +181,13 @@ class Arena:
         if self.show_paths and path is not None:
             self.__paths.append(path)
         return path
+
+    def window_to_arena(self, point: Vector2) -> Vector2:
+        """
+        Converts a point on the window surface to a point on the arena surface.
+        """
+        ratio = self.__size.x / self.window_size.x
+        return point * ratio
 
     def __filter_entities(self):
         """
@@ -295,13 +311,7 @@ class Arena:
         # pygame setup
         pygame.init()
 
-        # Clamp window size to be scaled down version of arena size
-        window_size = self.__size.copy()
-        if window_size.x > MAX_WINDOW_WIDTH:
-            window_size *= MAX_WINDOW_WIDTH / window_size.x
-        if window_size.y > MAX_WINDOW_HEIGHT:
-            window_size *= MAX_WINDOW_HEIGHT / window_size.y
-
+        window_size = self.window_size
         screen = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
         running = True
