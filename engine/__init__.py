@@ -7,3 +7,4 @@ from engine.entity import Bullet as Bullet
 from engine.entity import Entity as Entity
 from engine.entity import Robot as Robot
 from engine.entity import Wall as Wall
+from engine.entity.robot import ROBOT_RADIUS as ROBOT_RADIUS
