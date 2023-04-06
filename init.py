@@ -6,38 +6,92 @@ from random import random
 
 import pygame
 
-from engine import Arena, Robot
+from engine import Arena, Robot, ROBOT_RADIUS
 
 
-def keyboard_control(robot: Robot, _):
-    """Keyboard control scheme for the user-controlled Robot."""
-    keys = pygame.key.get_pressed()
-    robot.move_power = -1 if keys[pygame.K_s] else 1 if keys[pygame.K_w] else 0
-    robot.turn_power = -1 if keys[pygame.K_a] else 1 if keys[pygame.K_d] else 0
-    robot.turret_turn_power = (-1 if keys[pygame.K_q] else 1 if
-                               keys[pygame.K_e] else 0)
-    if keys[pygame.K_SPACE]:
-        robot.shoot()
+def human_controller_factory(arena: Arena):
+    """Creates a human control scheme for a Robot given an Arena."""
+    def human_controller(robot: Robot, _):
+        keys = pygame.key.get_pressed()
+
+        # Change motion power
+        robot.move_power = (-1 if keys[pygame.K_s] else 1 if keys[pygame.K_w]
+                            else 0)
+        robot.turn_power = (-1 if keys[pygame.K_a] else 1 if keys[pygame.K_d]
+                            else 0)
+        robot.turret_turn_power = (-1 if keys[pygame.K_q] else 1 if
+                                   keys[pygame.K_e] else 0)
+
+        # Shoot
+        if keys[pygame.K_SPACE]:
+            robot.shoot()
+
+        # Click to test pathfinding (with Arena.show_paths = True)
+        down, *_ = pygame.mouse.get_pressed()
+        if down:
+            window_point = pygame.Vector2(pygame.mouse.get_pos())
+            arena_point = arena.window_to_arena(window_point)
+            # Simply generate the path without using it, for viz purposes
+            robot.pathfind(arena_point)
+
+    return human_controller
 
 
-def seek_nearest_robot(robot: Robot, dt: float):
-    """Control scheme which moves and shoots towards nearest Robot."""
+def seek_pathfinding(robot: Robot, enemy: Robot, dt: float) -> bool:
+    """Helper function for moving a Robot towards its enemy via pathfinding."""
+    robot.move_power = 0
+    robot.turn_power = 0
+    robot.turret_turn_power = 0
+
+    if enemy.arena is None:
+        return False
+
+    # Aim towards enemy
+    robot.aim_towards(enemy.position, dt)
+
+    # Figure out path towards enemy
+    path = robot.pathfind(enemy.position)
+    if path is None:
+        return False
+
+    # Prune nodes until they're at least some distance away
+    i = 0
+    while i < len(path):
+        if (path[i] - robot.position).magnitude() > ROBOT_RADIUS:
+            break
+        i += 1
+    else:
+        return False
+
+    point = path[i]
+    robot.move_towards(point, dt)
+
+    return True
+
+
+def seek_robot_controller_factory(target: Robot):
+    """Creates a control scheme to seek a certain robot with pathfinding."""
+    def control(robot: Robot, dt: float):
+        if seek_pathfinding(robot, target, dt):
+            robot.shoot()
+
+    return control
+
+
+def seek_nearest_robot_controller(robot: Robot, dt: float):
+    """Control scheme for seeking the nearest robot with pathfinding."""
     nearest = robot.nearest_robot
     if nearest is None:
         robot.move_power = 0
         robot.turn_power = 0
         robot.turret_turn_power = 0
         return
-
-    # Move and aim towards other robot
-    robot.aim_towards(nearest.position, dt)
-    robot.move_towards(nearest.position, dt)
-
-    robot.shoot()
+    if seek_pathfinding(robot, nearest, dt):
+        robot.shoot()
 
 
-def create_spin_control():
-    """Creates random control scheme for an NPC Robot."""
+def spin_controller_factory():
+    """Creates random spinning control scheme for a Robot."""
     move_power = random() * 2 - 1
     turn_power = random() * 2 - 1
     turret_turn_power = random() * 2 - 1
@@ -52,32 +106,67 @@ def create_spin_control():
 
 
 if __name__ == "__main__":
+    # Load the map
     arena = Arena.from_map_json("engine/maps/circles.json")
     if arena is None:
         quit()
 
-    robots = []
-
+    # Create the player robot
     player_robot = Robot()
     player_robot.color = "#0000EE"
     player_robot.head_color = "#0000CC"
-    player_robot.on_update = keyboard_control
+    player_robot.on_update = human_controller_factory(arena)
 
-    robots.append(player_robot)
+    robots = [player_robot]
 
-    for i in range(3):
+    # You can configure how many of each type of NPC Robot you want in the
+    # `range` parameters of the for-loops below, just make sure the total
+    # number doesn't exceed the spawn count for the map.
+
+    # These Robots seek the player Robot
+    for i in range(1):
         npc_robot = Robot()
-        npc_robot.on_update = seek_nearest_robot
+        npc_robot.on_update = seek_robot_controller_factory(player_robot)
         robots.append(npc_robot)
-    for i in range(0):
+
+    # These Robots seek the nearest Robot
+    for i in range(1):
         npc_robot = Robot()
-        npc_robot.on_update = create_spin_control()
+        npc_robot.on_update = seek_nearest_robot_controller
         robots.append(npc_robot)
 
-    arena.spawn_entities(robots)
+    # These Robots spin, move, and shoot randomly
+    for i in range(1):
+        npc_robot = Robot()
+        npc_robot.on_update = spin_controller_factory()
+        robots.append(npc_robot)
 
-    # arena.show_hitboxes = True
-    # arena.show_fps = True
-    # arena.show_quadtree = True
-    # arena.show_nearest_robot = True
+    arena.spawn_robots(robots)
+
+    # Debug setting configuration:
+
+    # Shows hitboxes as red outlines around each entity.
+    arena.show_hitboxes = False
+
+    # Shows FPS in the top-left corner of the window.
+    arena.show_fps = False
+
+    # Shows the Quadtree; draws small blue circles at each node's region
+    # center, draws blue edges between them, and draws blue bounding rectangles
+    # around each entity.
+    arena.show_quadtree = False
+
+    # Shows the nearest-robot relations between Robots as green lines.
+    arena.show_nearest_robot = False
+
+    # Shows the pathfinding graph/mesh in magenta; very compute intensive!
+    arena.show_path_graph = False
+
+    # Shows all paths calculated by all entities in each frame in yellow.
+    arena.show_paths = False
+
+    # Shows the nearest pathfinding node for each Robot in cyan.
+    arena.show_robot_nodes = False
+
+    # Launch simulation
     arena.run()

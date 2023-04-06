@@ -8,6 +8,7 @@ import pygame
 
 from engine.entity import Entity, Robot, Wall
 from engine.map import is_map
+from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
 
 Rect = pygame.Rect
@@ -17,6 +18,7 @@ WALL_THICKNESS = 100
 FRAME_RATE = 60
 MAX_WINDOW_WIDTH = 1536
 MAX_WINDOW_HEIGHT = 768
+GRASS_COLOR = "#006600"
 
 
 class Arena:
@@ -30,12 +32,19 @@ class Arena:
         self.__size = size
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
+        self.__path_graph: Optional[PathfindingGraph] = None
+        self.__paths = list[list[Vector2]]()
 
         self.spawns: list[Vector2] = []
+
+        # Debug settings
         self.show_hitboxes = False
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
+        self.show_path_graph = False
+        self.show_paths = False
+        self.show_robot_nodes = False
 
         # Add surrounding walls
         north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
@@ -64,6 +73,15 @@ class Arena:
         """
         return self.__surface
 
+    @property
+    def window_size(self) -> Vector2:
+        """
+        Read-only property that provides the size of the window surface.
+        """
+        window_rect = Rect(0, 0, MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT)
+        arena_rect = Rect(Vector2(), self.__size)
+        return Vector2(arena_rect.fit(window_rect).size)
+
     @staticmethod
     def from_map_json(filename: str) -> Optional[Arena]:
         """Constructs an Arena from a map config JSON file."""
@@ -87,6 +105,9 @@ class Arena:
             arena.spawns = [Vector2(spawn_data["x"], spawn_data["y"])
                             for spawn_data in arena_data["spawns"]]
 
+            # Calculate pathfinding graph
+            arena.prepare_path_graph()
+
             return arena
 
     def add_entity(self, entity: Entity):
@@ -105,30 +126,24 @@ class Arena:
         self.__entities.remove(entity)
         entity.arena = None
 
-    def spawn_entities(self, entities: list[Entity]):
+    def spawn_robots(self, robots: list[Robot]):
         """
-        Spawns a list of entities into unique spawn locations. The number of
-        entities must be lower than the number of arena spawns.
+        Spawns a list of robots into unique spawn locations. The number of
+        robots must be lower than the number of arena spawns.
         """
-        assert len(entities) <= len(self.spawns), "# of entities > # of spawns"
+        assert len(robots) <= len(self.spawns), "# of entities > # of spawns"
 
-        positions: list[Vector2] = sample(self.spawns, k=len(entities))
+        positions: list[Vector2] = sample(self.spawns, k=len(robots))
 
-        for entity in entities:
-            self.add_entity(entity)
-            entity.position = positions.pop()
+        for robot in robots:
+            self.add_entity(robot)
+            robot.position = positions.pop()
 
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """Returns a filtered list of entities of a certain class."""
         return [entity
                 for entity in self.__entities
                 if type(entity) is typeVal]
-
-    def solve_collisions(self):
-        """Solves collisions between entities."""
-        assert self.__quadtree is not None, "Quadtree should exist"
-        for entity1, entity2 in self.__quadtree.find_all_intersections():
-            entity1.handle_collision(entity2)
 
     def nearest_robot(self, robot: Robot) -> Optional[Robot]:
         """Returns the Robot closest to another Robot."""
@@ -145,6 +160,37 @@ class Arena:
 
         return neighbor
 
+    def prepare_path_graph(self):
+        """
+        Prepares the PathfindingGraph for this Arena, based on the Walls it
+        currently haves.
+        """
+        self.__construct_quadtree()
+        assert self.__quadtree is not None
+        self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+
+    def pathfind(self, robot: Robot, point: Vector2
+                 ) -> Optional[list[Vector2]]:
+        """
+        Finds a path between the robot and a provided point, if there is one.
+        """
+        assert self.__path_graph is not None, "Path graph should exist"
+        path = self.__path_graph.pathfind(robot.position, point)
+        if self.show_paths and path is not None:
+            self.__paths.append(path)
+        return path
+
+    def window_to_arena(self, point: Vector2) -> Vector2:
+        """
+        Converts a point on the window surface to a point on the arena surface.
+        """
+        ratio = self.__size.x / self.window_size.x
+        return point * ratio
+
+    def __update_entities(self, dt: float):
+        for entity in self.__entities:
+            entity.update(dt)
+
     def __filter_entities(self):
         """
         Filter out any entities that were destroyed during updating.
@@ -159,6 +205,12 @@ class Arena:
         self.__entities[:] = [entity
                               for entity in self.__entities
                               if entity.arena is self]
+
+    def __solve_collisions(self):
+        """Solves collisions between entities."""
+        assert self.__quadtree is not None, "Quadtree should exist"
+        for entity1, entity2 in self.__quadtree.find_all_intersections():
+            entity1.handle_collision(entity2)
 
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
@@ -224,42 +276,48 @@ class Arena:
                 pygame.draw.polygon(self.__surface, "#00FF00",
                                     [middle, tip_left, tip_right])
 
+        # Draw pathfinding graph
+        if self.show_path_graph:
+            assert self.__path_graph is not None
+            self.__path_graph.render(self.__surface)
+
+        # Draw paths
+        if self.show_paths:
+            for path in self.__paths:
+                if len(path) < 2:
+                    continue
+                pygame.draw.lines(self.__surface, "#FFFF00", False, path)
+            # Clear paths to avoid memory leak
+            self.__paths = []
+
+        # Draw Robot nodes
+        if self.show_robot_nodes:
+            assert self.__path_graph is not None
+            for robot in self.get_entities_of_type(Robot):
+                node = self.__path_graph.get_closest_node(robot.position)
+                pygame.draw.circle(self.__surface, "#00FFFF", node.position, 8)
+
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
-        # Fill the screen with a color to wipe away anything from last frame
-        self.__surface.fill("#006600")
-
-        # Update each entity's state
-        for entity in self.__entities:
-            entity.update(dt)
-
-        # Filter destroyed entities
+        self.__surface.fill(GRASS_COLOR)
+        self.__update_entities(dt)
         self.__filter_entities()
-
-        # Construct quadtree
         self.__construct_quadtree()
-
-        # Solve collisions
-        self.solve_collisions()
-
-        # Filter destroyed entities (yes, again)
+        self.__solve_collisions()
         self.__filter_entities()
-
-        # Render the scene
         self.__render_scene()
 
     def run(self):
         """Runs simulation of the Arena."""
+        has_path_graph = self.__path_graph is not None
+        assert has_path_graph, ("Must call Arena.prepare_path_graph after "
+                                "generating walls and before spawning other "
+                                "entities!")
+
         # pygame setup
         pygame.init()
 
-        # Clamp window size to be scaled down version of arena size
-        window_size = self.__size.copy()
-        if window_size.x > MAX_WINDOW_WIDTH:
-            window_size *= MAX_WINDOW_WIDTH / window_size.x
-        if window_size.y > MAX_WINDOW_HEIGHT:
-            window_size *= MAX_WINDOW_HEIGHT / window_size.y
-
+        window_size = self.window_size
         screen = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
         running = True
@@ -293,7 +351,14 @@ class Arena:
             self.update(remaining_dt)
 
             # Copy arena surface contents to screen
-            pygame.transform.smoothscale(self.__surface, window_size, screen)
+            ratio = self.__size.x / window_size.x
+            if ratio > 2:
+                # Use faster, normal scale if the ratio is too large
+                pygame.transform.scale(self.__surface, window_size, screen)
+            else:
+                # Use slower, smooth scale if the ratio isn't too large
+                pygame.transform.smoothscale(self.__surface, window_size,
+                                             screen)
 
             # Draw framerate onto the screen
             if self.show_fps and dt > 0:

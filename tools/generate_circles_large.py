@@ -1,8 +1,8 @@
 """
-Generates the maps/circles.json map.
+Generates the maps/circles_large.json map.
 
-This map is a square map with two concentric circles with 4 entrances each.
-There are four spawns, one at each corner of the map.
+This map is a larger version of maps/circles.json (generate_circles.py).
+There are seventeen spawns spread throughout the map.
 """
 import json
 import math
@@ -11,15 +11,15 @@ from typing import Callable
 
 sys.path.append(".")
 
-from engine.map import MapJson, WallJson    # noqa: E402
+from engine.map import MapJson, PositionJson, WallJson    # noqa: E402
 
-FILENAME = "engine/maps/circles.json"
+FILENAME = "engine/maps/circles_large.json"
 
 NUM_CIRCLE_SEGMENTS = 32
-WALL_THICKNESS = 32
+WALL_THICKNESS = 64
 
-WIDTH = 1536
-HEIGHT = 1536
+WIDTH = 3072
+HEIGHT = 3072
 
 INNER_RADIUS = WIDTH // 16 * 3
 OUTER_RADIUS = WIDTH // 8 * 3
@@ -71,6 +71,47 @@ def left_right_up_down_predicate(i: int):
     return ((i + eighth // 2) // eighth) % 2 == 0
 
 
+def eight_spawns(inset: int) -> list[PositionJson]:
+    """
+    Compute a 3 x 3 arrangement of spawns (minus the middle) that are inset
+    from the edge of the map by a certain amount.
+    """
+    return [
+        {
+            "x": inset,
+            "y": inset
+        },
+        {
+            "x": inset,
+            "y": HEIGHT // 2
+        },
+        {
+            "x": inset,
+            "y": HEIGHT - inset
+        },
+        {
+            "x": WIDTH // 2,
+            "y": HEIGHT - inset
+        },
+        {
+            "x": WIDTH - inset,
+            "y": HEIGHT - inset
+        },
+        {
+            "x": WIDTH - inset,
+            "y": HEIGHT // 2
+        },
+        {
+            "x": WIDTH - inset,
+            "y": inset
+        },
+        {
+            "x": WIDTH // 2,
+            "y": inset
+        }
+    ]
+
+
 if __name__ == "__main__":
     walls = create_circle(INNER_RADIUS,
                           lambda i: not left_right_up_down_predicate(i))
@@ -82,22 +123,10 @@ if __name__ == "__main__":
             "height": HEIGHT
         },
         "walls": walls,
-        "spawns": [
+        "spawns": eight_spawns(128) + eight_spawns(768) + [
             {
-                "x": 128,
-                "y": 128
-            },
-            {
-                "x": 128,
-                "y": HEIGHT - 128
-            },
-            {
-                "x": WIDTH - 128,
-                "y": HEIGHT - 128
-            },
-            {
-                "x": WIDTH - 128,
-                "y": 128
+                "x": WIDTH // 2,
+                "y": HEIGHT // 2
             }
         ]
     }

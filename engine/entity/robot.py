@@ -35,6 +35,12 @@ HEALTH_DEFICIT_COLOR = "#CC0000"    # Color of deficit in health bar
 HEALTH_BAR_LENGTH = 80              # Length of health bar
 HEALTH_BAR_WIDTH = 8                # Width of health bar
 
+# Computed constants
+ROBOT_HITBOX_LENGTH = max(ROBOT_LENGTH, TREAD_LENGTH)
+ROBOT_HITBOX_WIDTH = ROBOT_WIDTH + TREAD_WIDTH
+ROBOT_RADIUS = math.sqrt(ROBOT_HITBOX_LENGTH * ROBOT_HITBOX_LENGTH
+                         + ROBOT_HITBOX_WIDTH * ROBOT_HITBOX_WIDTH) / 2
+
 
 def angle_difference(angle1: float, angle2: float) -> float:
     """
@@ -79,13 +85,11 @@ class Robot(entity.Entity):
 
     @property
     def hitbox(self) -> list[Vector2]:
-        length = max(ROBOT_LENGTH, TREAD_LENGTH)
-        width = ROBOT_WIDTH + TREAD_WIDTH
         return [
-            Vector2(length / 2, width / 2),
-            Vector2(length / 2, -width / 2),
-            Vector2(-length / 2, -width / 2),
-            Vector2(-length / 2, width / 2)
+            Vector2(ROBOT_HITBOX_LENGTH / 2, ROBOT_HITBOX_WIDTH / 2),
+            Vector2(ROBOT_HITBOX_LENGTH / 2, -ROBOT_HITBOX_WIDTH / 2),
+            Vector2(-ROBOT_HITBOX_LENGTH / 2, -ROBOT_HITBOX_WIDTH / 2),
+            Vector2(-ROBOT_HITBOX_LENGTH / 2, ROBOT_HITBOX_WIDTH / 2)
         ]
 
     @property
@@ -229,16 +233,26 @@ class Robot(entity.Entity):
         Sets the move_power and turn_power such that the Robot will move
         towards a specified point.
         """
+        if dt == 0:
+            return
+
         self.turn_towards(point, dt)
 
-        distance = (self.position - point).magnitude()
-        self.move_power = distance / (self.__move_speed * dt)
+        direction = point - self.position
+        angle = math.atan2(direction.y, direction.x)
+        angle_diff = angle_difference(self.rotation, angle)
+
+        if abs(angle_diff) < math.pi / 16:
+            self.move_power = direction.magnitude() / (self.__move_speed * dt)
 
     def turn_towards(self, point: Vector2, dt: float):
         """
         Sets the turn_power such that the Robot will face towards a specified
         point.
         """
+        if dt == 0:
+            return
+
         direction = point - self.position
 
         current_angle = self.rotation
@@ -252,6 +266,9 @@ class Robot(entity.Entity):
         Sets the turret_turn_power such that the turret will aim towards a
         specified point.
         """
+        if dt == 0:
+            return
+
         direction = point - self.position
 
         current_angle = self.turret_rotation
@@ -259,6 +276,14 @@ class Robot(entity.Entity):
 
         difference = angle_difference(current_angle, desired_angle)
         self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
+
+    def pathfind(self, point: Vector2) -> Optional[list[Vector2]]:
+        """
+        Finds a path between the robot and a provided point, if there is one.
+        """
+        if self.arena is None:
+            return
+        return self.arena.pathfind(self, point)
 
     def update(self, dt: float):
         if self.on_update is not None:
@@ -384,11 +409,9 @@ class Robot(entity.Entity):
         if self.health >= MAX_HEALTH:
             return
 
-        # Get "radius" of Robot
-        radius = self.hitbox[0].magnitude()
-
         # Top left position of bars
-        top_left = self.position + Vector2(-HEALTH_BAR_LENGTH / 2, radius)
+        top_left = self.position + Vector2(-HEALTH_BAR_LENGTH / 2,
+                                           ROBOT_RADIUS)
 
         # Draw deficit bar
         pygame.draw.rect(screen, HEALTH_DEFICIT_COLOR,
