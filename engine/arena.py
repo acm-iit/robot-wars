@@ -32,6 +32,7 @@ class Arena:
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
         self.__path_graph: Optional[PathfindingGraph] = None
+        self.__paths = list[list[Vector2]]()
 
         self.spawns: list[Vector2] = []
         self.show_hitboxes = False
@@ -39,6 +40,7 @@ class Arena:
         self.show_quadtree = False
         self.show_nearest_robot = False
         self.show_path_graph = False
+        self.show_paths = False
 
         # Add surrounding walls
         north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
@@ -254,6 +256,15 @@ class Arena:
         if self.show_path_graph:
             assert self.__path_graph is not None
             self.__path_graph.render(self.__surface)
+
+        # Draw paths
+        if self.show_paths:
+            for path in self.__paths:
+                if len(path) < 2:
+                    continue
+                pygame.draw.lines(self.__surface, "#FFFF00", False, path)
+            # Clear paths to avoid memory leak
+            self.__paths = []
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
