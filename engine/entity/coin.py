@@ -24,5 +24,14 @@ class Coin(entity.Entity):
         return [Vector2(COIN_RADIUS, 0).rotate_rad(i * dangle)
                 for i in range(NUM_HITBOX_VERTICES)]
 
+    def reacts_to_collisions(self) -> bool:
+        # Prevent collision reactions
+        return False
+
+    def on_collide(self, other: entity.Entity, _: Vector2):
+        if type(other) is entity.Robot:
+            # Destroy upon colliding with a Robot
+            self.destroy()
+
     def render(self, screen: pygame.Surface):
         pygame.draw.circle(screen, "#FFFF00", self.position, COIN_RADIUS)
