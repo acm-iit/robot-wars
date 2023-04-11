@@ -1,12 +1,12 @@
 from __future__ import annotations
 import json
 import math
-from random import sample
+from random import choice, sample
 from typing import Optional
 
 import pygame
 
-from engine.entity import Entity, Robot, Wall
+from engine.entity import Coin, Entity, Robot, Wall
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
@@ -34,6 +34,8 @@ class Arena:
         self.__quadtree: Optional[Quadtree] = None
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
+        self.__available_nodes: list[Vector2] = []
+        self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
 
         self.spawns: list[Vector2] = []
 
@@ -168,6 +170,7 @@ class Arena:
         self.__construct_quadtree()
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+        self.__available_nodes = self.__path_graph.get_available_nodes()
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -186,6 +189,13 @@ class Arena:
         """
         ratio = self.__size.x / self.window_size.x
         return point * ratio
+
+    def __update_coin(self):
+        """Ensure there's a Coin on screen for Robots to attain."""
+        if self.__coin.arena is None:
+            coin = Coin(choice(self.__available_nodes))
+            self.add_entity(coin)
+            self.__coin = coin
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
@@ -302,6 +312,7 @@ class Arena:
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
+        self.__update_coin()
         self.__update_entities(dt)
         self.__filter_entities()
         self.__construct_quadtree()
