@@ -7,7 +7,7 @@ import engine.entity as entity
 Vector2 = pygame.Vector2
 
 NUM_HITBOX_VERTICES = 3
-COIN_RADIUS = 8
+COIN_RADIUS = 24
 
 
 class Coin(entity.Entity):
