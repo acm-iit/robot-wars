@@ -235,6 +235,9 @@ class Arena:
 
     def __render_scene(self):
         """Renders the Arena onto self.__surface."""
+        # Clear screen with grass color
+        self.__surface.fill(GRASS_COLOR)
+
         # Draw updated entities onto the surface
         for entity in self.__entities:
             entity.render(self.__surface)
@@ -299,7 +302,6 @@ class Arena:
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
-        self.__surface.fill(GRASS_COLOR)
         self.__update_entities(dt)
         self.__filter_entities()
         self.__construct_quadtree()
