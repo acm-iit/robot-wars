@@ -19,11 +19,13 @@ class Coin(entity.Entity):
         super().__init__()
         self.position = position
 
+    @property
     def hitbox(self) -> list[Vector2]:
         dangle = 2 * math.pi / NUM_HITBOX_VERTICES
         return [Vector2(COIN_RADIUS, 0).rotate_rad(i * dangle)
                 for i in range(NUM_HITBOX_VERTICES)]
 
+    @property
     def reacts_to_collisions(self) -> bool:
         # Prevent collision reactions
         return False
