@@ -57,8 +57,9 @@ def angle_difference(angle1: float, angle2: float) -> float:
 
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
-    def __init__(self):
+    def __init__(self, name: str):
         super().__init__()
+        self.name = name
 
         self.on_update: Optional[Callback] = None   # Callback on each `update`
 

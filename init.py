@@ -112,7 +112,7 @@ if __name__ == "__main__":
         quit()
 
     # Create the player robot
-    player_robot = Robot()
+    player_robot = Robot("Player")
     player_robot.color = "#0000EE"
     player_robot.head_color = "#0000CC"
     player_robot.on_update = human_controller_factory(arena)
@@ -125,19 +125,19 @@ if __name__ == "__main__":
 
     # These Robots seek the player Robot
     for i in range(1):
-        npc_robot = Robot()
+        npc_robot = Robot(f"NPC {len(robots) + i}")
         npc_robot.on_update = seek_robot_controller_factory(player_robot)
         robots.append(npc_robot)
 
     # These Robots seek the nearest Robot
     for i in range(1):
-        npc_robot = Robot()
+        npc_robot = Robot(f"NPC {len(robots) + i}")
         npc_robot.on_update = seek_nearest_robot_controller
         robots.append(npc_robot)
 
     # These Robots spin, move, and shoot randomly
     for i in range(1):
-        npc_robot = Robot()
+        npc_robot = Robot(f"NPC {len(robots) + i}")
         npc_robot.on_update = spin_controller_factory()
         robots.append(npc_robot)
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     arena.show_hitboxes = False
 
     # Shows FPS in the top-left corner of the window.
-    arena.show_fps = False
+    arena.show_fps = True
 
     # Shows the Quadtree; draws small blue circles at each node's region
     # center, draws blue edges between them, and draws blue bounding rectangles
