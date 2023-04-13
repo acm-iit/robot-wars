@@ -73,6 +73,8 @@ class Robot(entity.Entity):
 
         self.turret_rotation = 0                    # Turret rotation (radians)
 
+        self.coins = 0                              # Number of coins collected
+
         self.__move_speed = 300                     # Maximum move speed
         self.__turn_speed = math.pi                 # Maximum turn speed
         self.__turret_turn_speed = 1.5 * math.pi    # Maximum turret turn speed

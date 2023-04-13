@@ -32,7 +32,8 @@ class Coin(entity.Entity):
 
     def on_collide(self, other: entity.Entity, _: Vector2):
         if type(other) is entity.Robot:
-            # Destroy upon colliding with a Robot
+            # Award coin and destroy Coin
+            other.coins += 1
             self.destroy()
 
     def render(self, screen: pygame.Surface):
