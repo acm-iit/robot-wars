@@ -8,6 +8,7 @@ Vector2 = pygame.Vector2
 
 NUM_HITBOX_VERTICES = 3
 COIN_RADIUS = 24
+COIN_COLOR = "#FFFF00"
 
 
 class Coin(entity.Entity):
@@ -39,4 +40,4 @@ class Coin(entity.Entity):
         self.destroy()
 
     def render(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, "#FFFF00", self.position, COIN_RADIUS)
+        pygame.draw.circle(screen, COIN_COLOR, self.position, COIN_RADIUS)
