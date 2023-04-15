@@ -296,7 +296,12 @@ class Robot(entity.Entity):
 
     def update(self, dt: float):
         if self.on_update is not None:
+            # Reset power values, since on_update will set them
+            self.move_power = 0
+            self.turn_power = 0
+            self.turret_turn_power = 0
             self.on_update(self, dt)
+
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
