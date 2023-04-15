@@ -31,10 +31,12 @@ class Coin(entity.Entity):
         return False
 
     def on_collide(self, other: entity.Entity, _: Vector2):
-        if type(other) is entity.Robot:
-            # Award coin and destroy Coin
-            other.coins += 1
-            self.destroy()
+        # Only award coin if it's alive and it touches a Robot
+        if self.arena is None or type(other) is not entity.Robot:
+            return
+        # Award coin and destroy Coin
+        other.coins += 1
+        self.destroy()
 
     def render(self, screen: pygame.Surface):
         pygame.draw.circle(screen, "#FFFF00", self.position, COIN_RADIUS)
