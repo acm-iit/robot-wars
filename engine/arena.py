@@ -171,6 +171,21 @@ class Arena:
 
         return neighbor
 
+    def nearest_coin(self, robot: Robot) -> Optional[Coin]:
+        """Returns the Coin closest to a Robot."""
+        # Robot.on_update may call this, and the quadtree won't exist on the
+        # first update, so just return None
+        if self.__quadtree is None:
+            return None
+
+        neighbor = self.__quadtree.nearest_neighbor(
+            robot.position,
+            lambda e: type(e) is Coin and e is not robot
+        )
+        assert neighbor is None or type(neighbor) is Coin, "Shouldn't happen"
+
+        return neighbor
+
     def prepare_path_graph(self):
         """
         Prepares the PathfindingGraph for this Arena, based on the Walls it
