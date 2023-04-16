@@ -8,6 +8,8 @@ import pygame
 
 from engine import Arena, Robot, ROBOT_RADIUS
 
+Vector2 = pygame.Vector2
+
 
 def human_controller_factory(arena: Arena):
     """Creates a human control scheme for a Robot given an Arena."""
@@ -29,7 +31,7 @@ def human_controller_factory(arena: Arena):
         # Click to test pathfinding (with Arena.show_paths = True)
         down, *_ = pygame.mouse.get_pressed()
         if down:
-            window_point = pygame.Vector2(pygame.mouse.get_pos())
+            window_point = Vector2(pygame.mouse.get_pos())
             arena_point = arena.window_to_arena(window_point)
             # Simply generate the path without using it, for viz purposes
             robot.pathfind(arena_point)
@@ -37,22 +39,15 @@ def human_controller_factory(arena: Arena):
     return human_controller
 
 
-def seek_pathfinding(robot: Robot, enemy: Robot, dt: float) -> bool:
-    """Helper function for moving a Robot towards its enemy via pathfinding."""
-    robot.move_power = 0
-    robot.turn_power = 0
-    robot.turret_turn_power = 0
-
-    if enemy.arena is None:
-        return False
-
-    # Aim towards enemy
-    robot.aim_towards(enemy.position, dt)
-
-    # Figure out path towards enemy
-    path = robot.pathfind(enemy.position)
+def seek_point_pathfinding(robot: Robot, point: Vector2, dt: float) -> bool:
+    """Helper function for moving a Robot towards a point via pathfinding."""
+    # Figure out path towards point
+    path = robot.pathfind(point)
     if path is None:
         return False
+
+    # Add point to path
+    path.append(point)
 
     # Prune nodes until they're at least some distance away
     i = 0
@@ -69,10 +64,22 @@ def seek_pathfinding(robot: Robot, enemy: Robot, dt: float) -> bool:
     return True
 
 
+def seek_enemy_pathfinding(robot: Robot, enemy: Robot, dt: float) -> bool:
+    """Helper function for moving a Robot towards its enemy via pathfinding."""
+    if enemy.arena is None:
+        return False
+
+    # Aim towards enemy
+    robot.aim_towards(enemy.position, dt)
+
+    # Move towards enemy
+    return seek_point_pathfinding(robot, enemy.position, dt)
+
+
 def seek_robot_controller_factory(target: Robot):
     """Creates a control scheme to seek a certain robot with pathfinding."""
     def control(robot: Robot, dt: float):
-        if seek_pathfinding(robot, target, dt):
+        if seek_enemy_pathfinding(robot, target, dt):
             robot.shoot()
 
     return control
@@ -81,13 +88,18 @@ def seek_robot_controller_factory(target: Robot):
 def seek_nearest_robot_controller(robot: Robot, dt: float):
     """Control scheme for seeking the nearest robot with pathfinding."""
     nearest = robot.nearest_robot
-    if nearest is None:
-        robot.move_power = 0
-        robot.turn_power = 0
-        robot.turret_turn_power = 0
-        return
-    if seek_pathfinding(robot, nearest, dt):
+    if nearest is not None and seek_enemy_pathfinding(robot, nearest, dt):
         robot.shoot()
+
+
+def seek_nearest_coin_controller(robot: Robot, dt: float):
+    """Control scheme for seeking the nearest coin with pathfinding."""
+    coin = robot.nearest_coin
+    if coin is None:
+        return
+
+    # Move towards coin
+    seek_point_pathfinding(robot, coin.position, dt)
 
 
 def spin_controller_factory():
@@ -112,7 +124,7 @@ if __name__ == "__main__":
         quit()
 
     # Create the player robot
-    player_robot = Robot()
+    player_robot = Robot("Player")
     player_robot.color = "#0000EE"
     player_robot.head_color = "#0000CC"
     player_robot.on_update = human_controller_factory(arena)
@@ -124,20 +136,26 @@ if __name__ == "__main__":
     # number doesn't exceed the spawn count for the map.
 
     # These Robots seek the player Robot
-    for i in range(1):
-        npc_robot = Robot()
+    for i in range(0):
+        npc_robot = Robot(f"NPC {len(robots)}")
         npc_robot.on_update = seek_robot_controller_factory(player_robot)
         robots.append(npc_robot)
 
     # These Robots seek the nearest Robot
     for i in range(1):
-        npc_robot = Robot()
+        npc_robot = Robot(f"NPC {len(robots)}")
         npc_robot.on_update = seek_nearest_robot_controller
         robots.append(npc_robot)
 
+    # These Robots seek the nearest Coin
+    for i in range(2):
+        npc_robot = Robot(f"NPC {len(robots)}")
+        npc_robot.on_update = seek_nearest_coin_controller
+        robots.append(npc_robot)
+
     # These Robots spin, move, and shoot randomly
-    for i in range(1):
-        npc_robot = Robot()
+    for i in range(0):
+        npc_robot = Robot(f"NPC {len(robots)}")
         npc_robot.on_update = spin_controller_factory()
         robots.append(npc_robot)
 
@@ -149,7 +167,7 @@ if __name__ == "__main__":
     arena.show_hitboxes = False
 
     # Shows FPS in the top-left corner of the window.
-    arena.show_fps = False
+    arena.show_fps = True
 
     # Shows the Quadtree; draws small blue circles at each node's region
     # center, draws blue edges between them, and draws blue bounding rectangles

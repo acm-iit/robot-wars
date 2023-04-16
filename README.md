@@ -48,9 +48,7 @@ Run `init.py` in Python. (This is a testing script and will be changed/moved in 
     * **[IMPLEMENTED]** *`Robot` Destruction* - Incorporate health in `Robot` and damage in `Bullet`.
     * *Win Condition* - Destroy the other `Robot`.
     * *Stalemate Condition* - Both `Robot`s are still alive after *n* seconds of simulation.
-    * *Secondary Win Condition* - In case of stalemate, use this condition as a tiebreaker. Some ideas:
-        * *Portion of `Arena` Discovered* - Reward the `Robot` who ventured out the most.
-        * *Coins* - Place `Coin` entities around the `Arena`; whichever `Robot` collects the most wins in case of stalemate.
+    * **[IMPLEMENTED]** *Coins* - Place `Coin` entities around the `Arena`; whichever `Robot` collects the most wins in case of stalemate.
 * `Robot` Programmability
     * **[IMPLEMENTED]** *`Robot` Manipulation* - Expose API to move and turn the `Robot` and shoot `Bullet`s.
     * **[IMPLEMENTED]** *Enemy `Robot` Detection* - Expose API to find the nearest `Robot` to a given `Robot`.

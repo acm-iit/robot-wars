@@ -57,8 +57,9 @@ def angle_difference(angle1: float, angle2: float) -> float:
 
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
-    def __init__(self):
+    def __init__(self, name: str):
         super().__init__()
+        self.name = name
 
         self.on_update: Optional[Callback] = None   # Callback on each `update`
 
@@ -72,6 +73,8 @@ class Robot(entity.Entity):
         self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
 
         self.turret_rotation = 0                    # Turret rotation (radians)
+
+        self.coins = 0                              # Number of coins collected
 
         self.__move_speed = 300                     # Maximum move speed
         self.__turn_speed = math.pi                 # Maximum turn speed
@@ -119,6 +122,12 @@ class Robot(entity.Entity):
         if self.arena is None:
             return
         return self.arena.nearest_robot(self)
+
+    @property
+    def nearest_coin(self) -> Optional[entity.Coin]:
+        if self.arena is None:
+            return
+        return self.arena.nearest_coin(self)
 
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].
@@ -287,7 +296,12 @@ class Robot(entity.Entity):
 
     def update(self, dt: float):
         if self.on_update is not None:
+            # Reset power values, since on_update will set them
+            self.move_power = 0
+            self.turn_power = 0
+            self.turret_turn_power = 0
             self.on_update(self, dt)
+
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)

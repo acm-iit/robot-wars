@@ -4,5 +4,6 @@
 from engine.entity.entity import Entity as Entity
 
 from engine.entity.bullet import Bullet as Bullet
+from engine.entity.coin import Coin as Coin
 from engine.entity.robot import Robot as Robot
 from engine.entity.wall import Wall as Wall

@@ -1,12 +1,12 @@
 from __future__ import annotations
 import json
 import math
-from random import sample
+from random import choice, sample
 from typing import Optional
 
 import pygame
 
-from engine.entity import Entity, Robot, Wall
+from engine.entity import Coin, Entity, Robot, Wall
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
@@ -16,9 +16,11 @@ Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
 FRAME_RATE = 60
-MAX_WINDOW_WIDTH = 1536
-MAX_WINDOW_HEIGHT = 768
+MAX_VIEWPORT_WIDTH = 1024
+MAX_VIEWPORT_HEIGHT = 768
 GRASS_COLOR = "#006600"
+ROBOT_LIST_WIDTH = 256
+ROBOT_LIST_COLOR = "#444444"
 
 
 class Arena:
@@ -34,6 +36,8 @@ class Arena:
         self.__quadtree: Optional[Quadtree] = None
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
+        self.__available_nodes: list[Vector2] = []
+        self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
 
         self.spawns: list[Vector2] = []
 
@@ -74,13 +78,20 @@ class Arena:
         return self.__surface
 
     @property
+    def viewport_size(self) -> Vector2:
+        """
+        Read-only property that provides the size of the viewport surface.
+        """
+        viewport_rect = Rect(0, 0, MAX_VIEWPORT_WIDTH, MAX_VIEWPORT_HEIGHT)
+        arena_rect = Rect(Vector2(), self.__size)
+        return Vector2(arena_rect.fit(viewport_rect).size)
+
+    @property
     def window_size(self) -> Vector2:
         """
-        Read-only property that provides the size of the window surface.
+        Read only property that provides the size of the window surface.
         """
-        window_rect = Rect(0, 0, MAX_WINDOW_WIDTH, MAX_WINDOW_HEIGHT)
-        arena_rect = Rect(Vector2(), self.__size)
-        return Vector2(arena_rect.fit(window_rect).size)
+        return self.viewport_size + Vector2(ROBOT_LIST_WIDTH, 0)
 
     @staticmethod
     def from_map_json(filename: str) -> Optional[Arena]:
@@ -160,6 +171,21 @@ class Arena:
 
         return neighbor
 
+    def nearest_coin(self, robot: Robot) -> Optional[Coin]:
+        """Returns the Coin closest to a Robot."""
+        # Robot.on_update may call this, and the quadtree won't exist on the
+        # first update, so just return None
+        if self.__quadtree is None:
+            return None
+
+        neighbor = self.__quadtree.nearest_neighbor(
+            robot.position,
+            lambda e: type(e) is Coin and e is not robot
+        )
+        assert neighbor is None or type(neighbor) is Coin, "Shouldn't happen"
+
+        return neighbor
+
     def prepare_path_graph(self):
         """
         Prepares the PathfindingGraph for this Arena, based on the Walls it
@@ -168,6 +194,7 @@ class Arena:
         self.__construct_quadtree()
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+        self.__available_nodes = self.__path_graph.get_available_nodes()
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -184,8 +211,15 @@ class Arena:
         """
         Converts a point on the window surface to a point on the arena surface.
         """
-        ratio = self.__size.x / self.window_size.x
+        ratio = self.__size.x / self.viewport_size.x
         return point * ratio
+
+    def __update_coin(self):
+        """Ensure there's a Coin on screen for Robots to attain."""
+        if self.__coin.arena is None:
+            coin = Coin(choice(self.__available_nodes))
+            self.add_entity(coin)
+            self.__coin = coin
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
@@ -235,6 +269,9 @@ class Arena:
 
     def __render_scene(self):
         """Renders the Arena onto self.__surface."""
+        # Clear screen with grass color
+        self.__surface.fill(GRASS_COLOR)
+
         # Draw updated entities onto the surface
         for entity in self.__entities:
             entity.render(self.__surface)
@@ -299,7 +336,7 @@ class Arena:
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
-        self.__surface.fill(GRASS_COLOR)
+        self.__update_coin()
         self.__update_entities(dt)
         self.__filter_entities()
         self.__construct_quadtree()
@@ -318,7 +355,8 @@ class Arena:
         pygame.init()
 
         window_size = self.window_size
-        screen = pygame.display.set_mode(window_size)
+        viewport_size = self.viewport_size
+        window = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
         running = True
         dt = 0
@@ -336,6 +374,9 @@ class Arena:
                 if event.type == pygame.QUIT:
                     running = False
 
+            # Clear window
+            window.fill(ROBOT_LIST_COLOR)
+
             total_frames += 1
             total_time += dt
 
@@ -350,23 +391,35 @@ class Arena:
                 remaining_dt -= 10 / FRAME_RATE
             self.update(remaining_dt)
 
-            # Copy arena surface contents to screen
-            ratio = self.__size.x / window_size.x
+            # Scale arena surface contents to create viewport surface
+            ratio = self.__size.x / viewport_size.x
+            viewport = None
             if ratio > 2:
                 # Use faster, normal scale if the ratio is too large
-                pygame.transform.scale(self.__surface, window_size, screen)
+                viewport = pygame.transform.scale(self.__surface,
+                                                  viewport_size)
             else:
                 # Use slower, smooth scale if the ratio isn't too large
-                pygame.transform.smoothscale(self.__surface, window_size,
-                                             screen)
+                viewport = pygame.transform.smoothscale(self.__surface,
+                                                        viewport_size)
 
-            # Draw framerate onto the screen
+            # Draw framerate onto the viewport
             if self.show_fps and dt > 0:
-                screen.blit(
+                viewport.blit(
                     font.render(f"FPS: {int(1 / dt)}", False, "#FF0000",
                                 "#000000"),
                     Vector2(),
                 )
+
+            # Draw viewport onto screen
+            window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
+
+            # Draw Robot scores
+            for i, robot in enumerate(self.get_entities_of_type(Robot)):
+                assert type(robot) is Robot, "Shouldn't happen"
+                window.blit(font.render(f"{robot.name}: {robot.coins} Coin(s)",
+                                        False, "#FFFFFF"),
+                            Vector2(0, i * 18))
 
             # Display results on window
             pygame.display.flip()
