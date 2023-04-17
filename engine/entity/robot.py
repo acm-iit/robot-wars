@@ -5,6 +5,7 @@ from typing import Callable, Optional
 import pygame
 
 import engine.entity as entity
+from engine.util import angle_difference
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -40,19 +41,6 @@ ROBOT_HITBOX_LENGTH = max(ROBOT_LENGTH, TREAD_LENGTH)
 ROBOT_HITBOX_WIDTH = ROBOT_WIDTH + TREAD_WIDTH
 ROBOT_RADIUS = math.sqrt(ROBOT_HITBOX_LENGTH * ROBOT_HITBOX_LENGTH
                          + ROBOT_HITBOX_WIDTH * ROBOT_HITBOX_WIDTH) / 2
-
-
-def angle_difference(angle1: float, angle2: float) -> float:
-    """
-    Returns the angle difference that should be added to angle1 to direct it
-    towards angle2.
-    """
-    diff = (angle2 - angle1) % (2 * math.pi)
-    if diff < math.pi:
-        return diff
-    else:
-        # The shorter direction is counter-clockwise
-        return -(2 * math.pi - diff)
 
 
 class Robot(entity.Entity):

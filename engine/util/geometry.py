@@ -70,6 +70,19 @@ def get_minimum_translation_vector(polygon1: list[Vector2],
     return mtv
 
 
+def angle_difference(angle1: float, angle2: float) -> float:
+    """
+    Returns the angle difference that should be added to angle1 to direct it
+    towards angle2.
+    """
+    diff = (angle2 - angle1) % (2 * math.pi)
+    if diff < math.pi:
+        return diff
+    else:
+        # The shorter direction is counter-clockwise
+        return -(2 * math.pi - diff)
+
+
 def line_segment_intersection(a1: Vector2, a2: Vector2,
                               b1: Vector2, b2: Vector2):
     """
