@@ -10,7 +10,7 @@ from engine.entity import Coin, Entity, Robot, Wall
 from engine.entity.coin import COIN_RADIUS
 from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
-from engine.pathfinding_new import PathfindingGraph as PathfindingGraphNew
+from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
 
 Rect = pygame.Rect
@@ -36,7 +36,7 @@ class Arena:
         self.__size = size
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
-        self.__path_graph_new: Optional[PathfindingGraphNew] = None
+        self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
@@ -49,7 +49,7 @@ class Arena:
         self.show_quadtree = False
         self.show_nearest_robot = False
         self.show_pathfinding_hitbox = False
-        self.show_path_graph_new = False
+        self.show_path_graph = False
         self.show_paths = False
         self.show_robot_nodes = False
 
@@ -191,17 +191,17 @@ class Arena:
         """
         self.__construct_quadtree()
         assert self.__quadtree is not None
-        self.__path_graph_new = PathfindingGraphNew(self)
-        self.__available_nodes = self.__path_graph_new.get_available_nodes()
+        self.__path_graph = PathfindingGraph(self)
+        self.__available_nodes = self.__path_graph.get_available_nodes()
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
         """
         Finds a path between the robot and a provided point, if there is one.
         """
-        assert self.__path_graph_new is not None, "Path graph should exist"
-        path = self.__path_graph_new.pathfind(robot.position, robot.rotation,
-                                              point)
+        assert self.__path_graph is not None, "Path graph should exist"
+        path = self.__path_graph.pathfind(robot.position, robot.rotation,
+                                          point)
 
         if path is None:
             return None
@@ -348,10 +348,10 @@ class Arena:
                 pygame.draw.lines(self.__surface, "#FFFFFF", True,
                                   wall.pathfinding_hitbox)
 
-        # Draw new pathfinding graph
-        if self.show_path_graph_new:
-            assert self.__path_graph_new is not None
-            self.__path_graph_new.render(self.__surface)
+        # Draw pathfinding graph
+        if self.show_path_graph:
+            assert self.__path_graph is not None
+            self.__path_graph.render(self.__surface)
 
         # Draw paths
         if self.show_paths:
@@ -364,10 +364,10 @@ class Arena:
 
         # Draw Robot nodes
         if self.show_robot_nodes:
-            assert self.__path_graph_new is not None
+            assert self.__path_graph is not None
             for robot in self.get_entities_of_type(Robot):
-                nodes = self.__path_graph_new.get_visible_nodes(robot.position,
-                                                                robot.rotation)
+                nodes = self.__path_graph.get_visible_nodes(robot.position,
+                                                            robot.rotation)
                 for node in nodes:
                     pygame.draw.circle(self.__surface, "#00FFFF",
                                        node.position, 8)
@@ -384,7 +384,7 @@ class Arena:
 
     def run(self):
         """Runs simulation of the Arena."""
-        has_path_graph = self.__path_graph_new is not None
+        has_path_graph = self.__path_graph is not None
         assert has_path_graph, ("Must call Arena.prepare_path_graph after "
                                 "generating walls and before spawning other "
                                 "entities!")

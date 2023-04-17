@@ -177,8 +177,8 @@ if __name__ == "__main__":
     # Shows the pathfinding hitboxes for Walls in white.
     arena.show_pathfinding_hitbox = False
 
-    # Shows the new pathfinding graph in magenta.
-    arena.show_path_graph_new = False
+    # Shows the pathfinding graph in magenta.
+    arena.show_path_graph = False
 
     # Shows all paths calculated by all entities in each frame in yellow.
     arena.show_paths = False
