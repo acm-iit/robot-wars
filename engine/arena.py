@@ -9,6 +9,7 @@ import pygame
 from engine.entity import Coin, Entity, Robot, Wall
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
+from engine.pathfinding_new import PathfindingGraph as PathfindingGraphNew
 from engine.quadtree import Quadtree
 
 Rect = pygame.Rect
@@ -35,6 +36,7 @@ class Arena:
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
         self.__path_graph: Optional[PathfindingGraph] = None
+        self.__path_graph_new: Optional[PathfindingGraphNew] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
@@ -47,6 +49,7 @@ class Arena:
         self.show_quadtree = False
         self.show_nearest_robot = False
         self.show_path_graph = False
+        self.show_path_graph_new = False
         self.show_paths = False
         self.show_robot_nodes = False
 
@@ -200,6 +203,7 @@ class Arena:
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
         self.__available_nodes = self.__path_graph.get_available_nodes()
+        self.__path_graph_new = PathfindingGraphNew(self)
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -322,6 +326,11 @@ class Arena:
         if self.show_path_graph:
             assert self.__path_graph is not None
             self.__path_graph.render(self.__surface)
+
+        # Draw new pathfinding graph
+        if self.show_path_graph_new:
+            assert self.__path_graph_new is not None
+            self.__path_graph_new.render(self.__surface)
 
         # Draw paths
         if self.show_paths:
