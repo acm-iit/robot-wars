@@ -36,6 +36,12 @@ HEALTH_DEFICIT_COLOR = "#CC0000"    # Color of deficit in health bar
 HEALTH_BAR_LENGTH = 80              # Length of health bar
 HEALTH_BAR_WIDTH = 8                # Width of health bar
 
+# Stat constants
+ROBOT_MOVE_SPEED = 300                      # Maximum move speed
+ROBOT_TURN_SPEED = math.pi                  # Maximum turn speed
+ROBOT_TURRET_TURN_SPEED = 1.5 * math.pi     # Maximum turret turn speed
+ROBOT_SHOT_COOLDOWN = 1                     # Shoot cooldown (seconds)
+
 # Computed constants
 ROBOT_HITBOX_LENGTH = max(ROBOT_LENGTH, TREAD_LENGTH)
 ROBOT_HITBOX_WIDTH = ROBOT_WIDTH + TREAD_WIDTH
@@ -64,15 +70,15 @@ class Robot(entity.Entity):
 
         self.coins = 0                              # Number of coins collected
 
-        self.__move_speed = 300                     # Maximum move speed
-        self.__turn_speed = math.pi                 # Maximum turn speed
-        self.__turret_turn_speed = 1.5 * math.pi    # Maximum turret turn speed
+        self.__move_speed = ROBOT_MOVE_SPEED
+        self.__turn_speed = ROBOT_TURN_SPEED
+        self.__turret_turn_speed = ROBOT_TURRET_TURN_SPEED
+        self.__shot_cooldown = ROBOT_SHOT_COOLDOWN
+
+        self.__time_until_next_shot = 0             # Remaining cooldown
 
         self.__left_tread_alpha = 0                 # Range: [0, 1)
         self.__right_tread_alpha = 0                # Range: [0, 1)
-
-        self.__shot_cooldown = 1                    # Shoot cooldown (seconds)
-        self.__time_until_next_shot = 0             # Remaining cooldown
 
     @property
     def hitbox(self) -> list[Vector2]:
