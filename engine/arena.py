@@ -206,8 +206,8 @@ class Arena:
         self.__available_nodes = self.__path_graph.get_available_nodes()
         self.__path_graph_new = PathfindingGraphNew(self)
 
-    def pathfind(self, robot: Robot, point: Vector2
-                 ) -> Optional[list[Vector2]]:
+    def pathfind_old(self, robot: Robot, point: Vector2
+                     ) -> Optional[list[Vector2]]:
         """
         Finds a path between the robot and a provided point, if there is one.
         """
@@ -216,6 +216,32 @@ class Arena:
         if self.show_paths and path is not None:
             self.__paths.append(path)
         return path
+
+    def pathfind(self, robot: Robot, point: Vector2
+                 ) -> Optional[list[Vector2]]:
+        """
+        Finds a path between the robot and a provided point, if there is one.
+        """
+        assert self.__path_graph_new is not None, "Path graph should exist"
+        path = self.__path_graph_new.pathfind(robot.position, robot.rotation,
+                                              point)
+
+        if path is None:
+            return None
+
+        if self.show_paths:
+            self.__paths.append(path)
+
+        # Prune nodes that are close to the Robot
+        i = 0
+        while i < len(path):
+            if (path[i] - robot.position).magnitude() > 1:
+                break
+            i += 1
+        else:
+            return None
+
+        return path[i:]
 
     def window_to_arena(self, point: Vector2) -> Vector2:
         """
@@ -368,7 +394,7 @@ class Arena:
 
     def run(self):
         """Runs simulation of the Arena."""
-        has_path_graph = self.__path_graph is not None
+        has_path_graph = self.__path_graph_new is not None
         assert has_path_graph, ("Must call Arena.prepare_path_graph after "
                                 "generating walls and before spawning other "
                                 "entities!")
