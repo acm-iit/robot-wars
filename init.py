@@ -46,20 +46,7 @@ def seek_point_pathfinding(robot: Robot, point: Vector2, dt: float) -> bool:
     if path is None:
         return False
 
-    # Add point to path
-    path.append(point)
-
-    # Prune nodes until they're at least some distance away
-    i = 0
-    while i < len(path):
-        if (path[i] - robot.position).magnitude() > ROBOT_RADIUS:
-            break
-        i += 1
-    else:
-        return False
-
-    point = path[i]
-    robot.move_towards(point, dt)
+    robot.move_towards(path[0], dt)
 
     return True
 
