@@ -68,3 +68,17 @@ def get_minimum_translation_vector(polygon1: list[Vector2],
             overlap = abs(axis_mtv)
             mtv = axis * axis_mtv
     return mtv
+
+
+def line_segment_intersection(a1: Vector2, a2: Vector2,
+                              b1: Vector2, b2: Vector2):
+    """
+    Compute the (t, u) intersection parameters' numerators as well as their
+    denominator for two line segments.
+    """
+    denom = (a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x)
+    if denom == 0:
+        return None
+    t_num = (a1.x - b1.x) * (b1.y - b2.y) - (a1.y - b1.y) * (b1.x - b2.x)
+    u_num = (a1.x - b1.x) * (a1.y - a2.y) - (a1.y - b1.y) * (a1.x - a2.x)
+    return t_num, u_num, denom
