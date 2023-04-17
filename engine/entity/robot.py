@@ -113,6 +113,7 @@ class Robot(entity.Entity):
 
     @property
     def nearest_robot(self) -> Optional[Robot]:
+        """Provides the nearest Robot to this Robot."""
         if self.arena is None:
             return
         return self.arena.nearest_robot(self)
