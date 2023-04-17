@@ -78,6 +78,11 @@ class Arena:
         return self.__surface
 
     @property
+    def size(self) -> Vector2:
+        """Read-only property that provides the size of the Arena."""
+        return self.__size.copy()
+
+    @property
     def viewport_size(self) -> Vector2:
         """
         Read-only property that provides the size of the viewport surface.
