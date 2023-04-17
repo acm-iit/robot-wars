@@ -70,6 +70,29 @@ def get_minimum_translation_vector(polygon1: list[Vector2],
     return mtv
 
 
+def is_point_in_polygon(point: Vector2, polygon: list[Vector2]):
+    """Determines if a point is in a convex polygon."""
+    sign = 0
+
+    for i in range(len(polygon)):
+        vertex1 = polygon[i]
+        vertex2 = polygon[(i + 1) % len(polygon)]
+
+        side_direction = vertex2 - vertex1
+        normal = Vector2(-side_direction.y, side_direction.x)
+        diff = point - vertex1
+
+        dot = diff.dot(normal)
+        dot_sign = 0 if dot == 0 else -1 if dot < 0 else 1
+
+        if sign == 0:
+            sign = dot_sign
+        elif dot_sign != 0 and dot_sign != sign:
+            return False
+
+    return True
+
+
 def angle_difference(angle1: float, angle2: float) -> float:
     """
     Returns the angle difference that should be added to angle1 to direct it
