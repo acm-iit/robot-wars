@@ -13,7 +13,7 @@ Vector2 = pygame.Vector2
 
 def human_controller_factory(arena: Arena):
     """Creates a human control scheme for a Robot given an Arena."""
-    def human_controller(robot: Robot, _):
+    def human_controller(robot: Robot, dt: float):
         keys = pygame.key.get_pressed()
 
         # Change motion power
@@ -21,20 +21,22 @@ def human_controller_factory(arena: Arena):
                             else 0)
         robot.turn_power = (-1 if keys[pygame.K_a] else 1 if keys[pygame.K_d]
                             else 0)
-        robot.turret_turn_power = (-1 if keys[pygame.K_q] else 1 if
-                                   keys[pygame.K_e] else 0)
 
-        # Shoot
-        if keys[pygame.K_SPACE]:
-            robot.shoot()
-
-        # Click to test pathfinding (with Arena.show_paths = True)
+        window_point = Vector2(pygame.mouse.get_pos())
+        arena_point = arena.window_to_arena(window_point)
         down, *_ = pygame.mouse.get_pressed()
-        if down:
-            window_point = Vector2(pygame.mouse.get_pos())
-            arena_point = arena.window_to_arena(window_point)
-            # Simply generate the path without using it, for viz purposes
-            robot.pathfind(arena_point)
+
+        if not arena.show_paths:
+            # Aim turret towards mouse
+            robot.aim_towards(arena_point, dt)
+            # Shoot
+            if down:
+                robot.shoot()
+        else:
+            # Click to test pathfinding (with Arena.show_paths = True)
+            if down:
+                # Simply generate the path without using it, for viz purposes
+                robot.pathfind(arena_point)
 
     return human_controller
 
