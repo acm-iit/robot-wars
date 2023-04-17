@@ -1,12 +1,14 @@
 from __future__ import annotations
 import json
 import math
-from random import choice, sample
+from random import choice, random, sample
 from typing import Optional
 
 import pygame
 
 from engine.entity import Coin, Entity, Robot, Wall
+from engine.entity.coin import COIN_RADIUS
+from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.pathfinding_new import PathfindingGraph as PathfindingGraphNew
@@ -203,8 +205,8 @@ class Arena:
         self.__construct_quadtree()
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
-        self.__available_nodes = self.__path_graph.get_available_nodes()
         self.__path_graph_new = PathfindingGraphNew(self)
+        self.__available_nodes = self.__path_graph_new.get_available_nodes()
 
     def pathfind_old(self, robot: Robot, point: Vector2
                      ) -> Optional[list[Vector2]]:
@@ -247,15 +249,31 @@ class Arena:
         """
         Converts a point on the window surface to a point on the arena surface.
         """
+        # Subtract width of robot list panel
+        point -= Vector2(ROBOT_LIST_WIDTH, 0)
         ratio = self.__size.x / self.viewport_size.x
         return point * ratio
 
     def __update_coin(self):
         """Ensure there's a Coin on screen for Robots to attain."""
-        if self.__coin.arena is None:
-            coin = Coin(choice(self.__available_nodes))
-            self.add_entity(coin)
-            self.__coin = coin
+        if self.__coin.arena is not None:
+            return
+
+        coin = Coin(Vector2())
+
+        if len(self.__available_nodes) == 0:
+            # If the Arena has no interior Walls, then spawn in a random
+            # location.
+            offset = ROBOT_HITBOX_WIDTH / 2 + COIN_RADIUS
+            interior_size = self.size - Vector2(offset * 2, offset * 2)
+            x = offset + random() * interior_size.x
+            y = offset + random() * interior_size.y
+            coin.position = Vector2(x, y)
+        else:
+            coin.position = choice(self.__available_nodes)
+
+        self.add_entity(coin)
+        self.__coin = coin
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
