@@ -79,6 +79,18 @@ def seek_coin_controller(robot: Robot, dt: float):
     seek_point_pathfinding(robot, coin, dt)
 
 
+def seek_coin_shoot_controller(robot: Robot, dt: float):
+    """
+    Control scheme for seeking the coin with pathfinding and shooting enemies.
+    """
+    seek_coin_controller(robot, dt)
+
+    nearest = robot.nearest_robot
+    if nearest is not None:
+        robot.aim_towards(nearest, dt)
+        robot.shoot()
+
+
 def spin_controller_factory():
     """Creates random spinning control scheme for a Robot."""
     move_power = random() * 2 - 1
@@ -119,15 +131,21 @@ if __name__ == "__main__":
         robots.append(npc_robot)
 
     # These Robots seek the nearest Robot
-    for i in range(1):
+    for i in range(0):
         npc_robot = Robot(f"NPC {len(robots)}")
         npc_robot.on_update = seek_nearest_robot_controller
         robots.append(npc_robot)
 
     # These Robots seek the nearest Coin
-    for i in range(2):
+    for i in range(0):
         npc_robot = Robot(f"NPC {len(robots)}")
         npc_robot.on_update = seek_coin_controller
+        robots.append(npc_robot)
+
+    # These Robots seek the Coin and shoot enemy robots
+    for i in range(1):
+        npc_robot = Robot(f"NPC {len(robots)}")
+        npc_robot.on_update = seek_coin_shoot_controller
         robots.append(npc_robot)
 
     # These Robots spin, move, and shoot randomly
