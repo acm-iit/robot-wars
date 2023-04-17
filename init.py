@@ -110,7 +110,7 @@ def spin_controller_factory():
 
 if __name__ == "__main__":
     # Load the map
-    arena = Arena.from_map_json("engine/maps/circles.json")
+    arena = Arena.from_map_json("engine/maps/maze.json")
     if arena is None:
         quit()
 
