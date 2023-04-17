@@ -395,10 +395,13 @@ class Arena:
 
         # Draw Robot nodes
         if self.show_robot_nodes:
-            assert self.__path_graph is not None
+            assert self.__path_graph_new is not None
             for robot in self.get_entities_of_type(Robot):
-                node = self.__path_graph.get_closest_node(robot.position)
-                pygame.draw.circle(self.__surface, "#00FFFF", node.position, 8)
+                nodes = self.__path_graph_new.get_visible_nodes(robot.position,
+                                                                robot.rotation)
+                for node in nodes:
+                    pygame.draw.circle(self.__surface, "#00FFFF",
+                                       node.position, 8)
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""

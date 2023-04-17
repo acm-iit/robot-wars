@@ -189,7 +189,7 @@ if __name__ == "__main__":
     # Shows all paths calculated by all entities in each frame in yellow.
     arena.show_paths = False
 
-    # Shows the nearest pathfinding node for each Robot in cyan.
+    # Shows the nearest pathfinding nodes for each Robot in cyan.
     arena.show_robot_nodes = False
 
     # Launch simulation
