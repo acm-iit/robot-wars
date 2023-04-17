@@ -82,3 +82,23 @@ def line_segment_intersection(a1: Vector2, a2: Vector2,
     t_num = (a1.x - b1.x) * (b1.y - b2.y) - (a1.y - b1.y) * (b1.x - b2.x)
     u_num = (a1.x - b1.x) * (a1.y - a2.y) - (a1.y - b1.y) * (a1.x - a2.x)
     return t_num, u_num, denom
+
+
+def ray_segment_intersection(origin: Vector2, direction: Vector2,
+                             point1: Vector2, point2: Vector2):
+    """
+    Compute the fraction of the direction applied to the origin for the
+    intersection between a ray and a line segment.
+    """
+    ray_end = origin + direction
+    result = line_segment_intersection(origin, ray_end, point1, point2)
+    if result is None:
+        return None
+    t_num, u_num, denom = result
+    lower = denom * 1e-4
+    upper = denom - lower
+    if denom < 0 and (t_num > 0 or u_num > lower or u_num < upper):
+        return None
+    if denom > 0 and (t_num < 0 or u_num < lower or u_num > upper):
+        return None
+    return t_num / denom
