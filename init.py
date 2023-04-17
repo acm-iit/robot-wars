@@ -69,7 +69,7 @@ def seek_nearest_robot_controller(robot: Robot, dt: float):
         robot.shoot()
 
 
-def seek_nearest_coin_controller(robot: Robot, dt: float):
+def seek_coin_controller(robot: Robot, dt: float):
     """Control scheme for seeking the nearest coin with pathfinding."""
     coin = robot.coin
     if coin is None:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     # These Robots seek the nearest Coin
     for i in range(2):
         npc_robot = Robot(f"NPC {len(robots)}")
-        npc_robot.on_update = seek_nearest_coin_controller
+        npc_robot.on_update = seek_coin_controller
         robots.append(npc_robot)
 
     # These Robots spin, move, and shoot randomly
