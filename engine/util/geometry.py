@@ -123,3 +123,13 @@ def raycast(origin: Vector2, direction: Vector2,
         hit = min(hit, new_hit)
 
     return hit
+
+
+def can_see(point1: Vector2, point2: Vector2,
+            segments: list[tuple[Vector2, Vector2]]):
+    """Determines if point1 and point2 can see each other."""
+    hit = raycast(point1, point2 - point1, segments)
+    if hit is None:
+        return True
+
+    return hit > 0.999
