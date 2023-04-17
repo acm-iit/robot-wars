@@ -164,7 +164,7 @@ if __name__ == "__main__":
     arena.show_hitboxes = False
 
     # Shows FPS in the top-left corner of the window.
-    arena.show_fps = True
+    arena.show_fps = False
 
     # Shows the Quadtree; draws small blue circles at each node's region
     # center, draws blue edges between them, and draws blue bounding rectangles
