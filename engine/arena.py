@@ -10,7 +10,6 @@ from engine.entity import Coin, Entity, Robot, Wall
 from engine.entity.coin import COIN_RADIUS
 from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
-from engine.pathfinding import PathfindingGraph
 from engine.pathfinding_new import PathfindingGraph as PathfindingGraphNew
 from engine.quadtree import Quadtree
 
@@ -37,7 +36,6 @@ class Arena:
         self.__size = size
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
-        self.__path_graph: Optional[PathfindingGraph] = None
         self.__path_graph_new: Optional[PathfindingGraphNew] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
@@ -51,7 +49,6 @@ class Arena:
         self.show_quadtree = False
         self.show_nearest_robot = False
         self.show_pathfinding_hitbox = False
-        self.show_path_graph = False
         self.show_path_graph_new = False
         self.show_paths = False
         self.show_robot_nodes = False
@@ -194,20 +191,8 @@ class Arena:
         """
         self.__construct_quadtree()
         assert self.__quadtree is not None
-        # self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
         self.__path_graph_new = PathfindingGraphNew(self)
         self.__available_nodes = self.__path_graph_new.get_available_nodes()
-
-    def pathfind_old(self, robot: Robot, point: Vector2
-                     ) -> Optional[list[Vector2]]:
-        """
-        Finds a path between the robot and a provided point, if there is one.
-        """
-        assert self.__path_graph is not None, "Path graph should exist"
-        path = self.__path_graph.pathfind(robot.position, point)
-        if self.show_paths and path is not None:
-            self.__paths.append(path)
-        return path
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -362,11 +347,6 @@ class Arena:
                 assert type(wall) is Wall, "Shouldn't happen"
                 pygame.draw.lines(self.__surface, "#FFFFFF", True,
                                   wall.pathfinding_hitbox)
-
-        # Draw pathfinding graph
-        if self.show_path_graph:
-            assert self.__path_graph is not None
-            self.__path_graph.render(self.__surface)
 
         # Draw new pathfinding graph
         if self.show_path_graph_new:
