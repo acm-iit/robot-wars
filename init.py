@@ -64,22 +64,11 @@ def seek_point_pathfinding(robot: Robot, point: Vector2, dt: float) -> bool:
     return True
 
 
-def seek_enemy_pathfinding(robot: Robot, enemy: Robot, dt: float) -> bool:
-    """Helper function for moving a Robot towards its enemy via pathfinding."""
-    if enemy.arena is None:
-        return False
-
-    # Aim towards enemy
-    robot.aim_towards(enemy.position, dt)
-
-    # Move towards enemy
-    return seek_point_pathfinding(robot, enemy.position, dt)
-
-
 def seek_robot_controller_factory(target: Robot):
     """Creates a control scheme to seek a certain robot with pathfinding."""
     def control(robot: Robot, dt: float):
-        if seek_enemy_pathfinding(robot, target, dt):
+        if seek_point_pathfinding(robot, target.position, dt):
+            robot.aim_towards(target.position, dt)
             robot.shoot()
 
     return control
@@ -88,7 +77,8 @@ def seek_robot_controller_factory(target: Robot):
 def seek_nearest_robot_controller(robot: Robot, dt: float):
     """Control scheme for seeking the nearest robot with pathfinding."""
     nearest = robot.nearest_robot
-    if nearest is not None and seek_enemy_pathfinding(robot, nearest, dt):
+    if nearest is not None and seek_point_pathfinding(robot, nearest, dt):
+        robot.aim_towards(nearest, dt)
         robot.shoot()
 
 

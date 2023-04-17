@@ -112,8 +112,8 @@ class Robot(entity.Entity):
             self.destroy()
 
     @property
-    def nearest_robot(self) -> Optional[Robot]:
-        """Provides the nearest Robot to this Robot."""
+    def nearest_robot(self) -> Optional[Vector2]:
+        """Provides the position of the nearest Robot to this Robot."""
         if self.arena is None:
             return
         return self.arena.nearest_robot(self)

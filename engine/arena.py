@@ -172,8 +172,8 @@ class Arena:
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def nearest_robot(self, robot: Robot) -> Optional[Robot]:
-        """Returns the Robot closest to another Robot."""
+    def nearest_robot(self, robot: Robot) -> Optional[Vector2]:
+        """Returns the position of the Robot closest to another Robot."""
         # Robot.on_update may call this, and the quadtree won't exist on the
         # first update, so just return None
         if self.__quadtree is None:
@@ -185,7 +185,7 @@ class Arena:
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
-        return neighbor
+        return neighbor.position if neighbor is not None else None
 
     def prepare_path_graph(self):
         """
@@ -338,12 +338,11 @@ class Arena:
             for robot in self.get_entities_of_type(Robot):
                 assert type(robot) is Robot, "Shouldn't happen"
 
-                closest = self.nearest_robot(robot)
-                if closest is None:
+                point2 = self.nearest_robot(robot)
+                if point2 is None:
                     continue
 
                 point1 = robot.position
-                point2 = closest.position
 
                 middle = (point1 + point2) / 2
                 direction = (point2 - point1).normalize()
