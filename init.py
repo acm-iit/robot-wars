@@ -6,7 +6,7 @@ from random import random
 
 import pygame
 
-from engine import Arena, Robot, ROBOT_RADIUS
+from engine import Arena, Robot
 
 Vector2 = pygame.Vector2
 
