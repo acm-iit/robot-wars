@@ -102,3 +102,24 @@ def ray_segment_intersection(origin: Vector2, direction: Vector2,
     if denom > 0 and (t_num < 0 or u_num < lower or u_num > upper):
         return None
     return t_num / denom
+
+
+def raycast(origin: Vector2, direction: Vector2,
+            segments: list[tuple[Vector2, Vector2]]):
+    """Find the intersection between a ray and one or more segments."""
+    if direction == Vector2():
+        return None
+
+    hit = math.inf
+
+    for point1, point2 in segments:
+        if point1 == origin or point2 == origin:
+            # Skip over segments where either endpoint is the origin
+            continue
+
+        new_hit = ray_segment_intersection(origin, direction, point1, point2)
+        if new_hit is None:
+            continue
+        hit = min(hit, new_hit)
+
+    return hit
