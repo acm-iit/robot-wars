@@ -48,6 +48,7 @@ class Arena:
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
+        self.show_pathfinding_hitbox = False
         self.show_path_graph = False
         self.show_path_graph_new = False
         self.show_paths = False
@@ -321,6 +322,13 @@ class Arena:
                 pygame.draw.line(self.__surface, "#00FF00", point1, point2)
                 pygame.draw.polygon(self.__surface, "#00FF00",
                                     [middle, tip_left, tip_right])
+
+        # Draw Wall pathfinding hitboxes
+        if self.show_pathfinding_hitbox:
+            for wall in self.get_entities_of_type(Wall):
+                assert type(wall) is Wall, "Shouldn't happen"
+                pygame.draw.lines(self.__surface, "#FFFFFF", True,
+                                  wall.pathfinding_hitbox)
 
         # Draw pathfinding graph
         if self.show_path_graph:
