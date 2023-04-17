@@ -204,7 +204,7 @@ class Arena:
         """
         self.__construct_quadtree()
         assert self.__quadtree is not None
-        self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+        # self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
         self.__path_graph_new = PathfindingGraphNew(self)
         self.__available_nodes = self.__path_graph_new.get_available_nodes()
 
