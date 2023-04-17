@@ -118,10 +118,11 @@ class Robot(entity.Entity):
         return self.arena.nearest_robot(self)
 
     @property
-    def nearest_coin(self) -> Optional[entity.Coin]:
+    def coin(self) -> Optional[Vector2]:
+        """Provides the position of the Coin in the Arena."""
         if self.arena is None:
             return
-        return self.arena.nearest_coin(self)
+        return self.arena.coin
 
     # We separate the `X_power` members into properties with specialized
     # setters so that we can clamp the values between [-1, 1].

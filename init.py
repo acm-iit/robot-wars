@@ -94,12 +94,12 @@ def seek_nearest_robot_controller(robot: Robot, dt: float):
 
 def seek_nearest_coin_controller(robot: Robot, dt: float):
     """Control scheme for seeking the nearest coin with pathfinding."""
-    coin = robot.nearest_coin
+    coin = robot.coin
     if coin is None:
         return
 
     # Move towards coin
-    seek_point_pathfinding(robot, coin.position, dt)
+    seek_point_pathfinding(robot, coin, dt)
 
 
 def spin_controller_factory():

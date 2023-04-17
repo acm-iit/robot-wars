@@ -84,6 +84,11 @@ class Arena:
         return self.__surface
 
     @property
+    def coin(self) -> Vector2:
+        """Read-only property that provides the position of the Coin."""
+        return self.__coin.position
+
+    @property
     def size(self) -> Vector2:
         """Read-only property that provides the size of the Arena."""
         return self.__size.copy()
@@ -179,21 +184,6 @@ class Arena:
             lambda e: type(e) is Robot and e is not robot
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
-
-        return neighbor
-
-    def nearest_coin(self, robot: Robot) -> Optional[Coin]:
-        """Returns the Coin closest to a Robot."""
-        # Robot.on_update may call this, and the quadtree won't exist on the
-        # first update, so just return None
-        if self.__quadtree is None:
-            return None
-
-        neighbor = self.__quadtree.nearest_neighbor(
-            robot.position,
-            lambda e: type(e) is Coin and e is not robot
-        )
-        assert neighbor is None or type(neighbor) is Coin, "Shouldn't happen"
 
         return neighbor
 
