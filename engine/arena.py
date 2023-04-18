@@ -215,8 +215,8 @@ class Arena:
 
     def nearby_bullets(self, robot: Robot) -> list[tuple[Vector2, Vector2]]:
         """
-        Returns the positions and velocities of Bullets within a radius of a
-        Robot.
+        Returns the positions and velocities of enemy Bullets within a radius
+        of a Robot.
         """
         if self.__quadtree is None:
             return []
@@ -227,7 +227,7 @@ class Arena:
         result = list[tuple[Vector2, Vector2]]()
 
         for entity in entities:
-            if type(entity) is not Bullet:
+            if type(entity) is not Bullet or entity.origin == robot:
                 continue
             if (entity.position - robot.position).magnitude() > 256:
                 continue
