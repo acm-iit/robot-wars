@@ -1,6 +1,9 @@
 # flake8: noqa
 from engine.util.draw import draw_gradient as draw_gradient
 from engine.util.draw import draw_gradient_line as draw_gradient_line
-from engine.util.draw import draw_gradient_path as draw_gradient_path                               
+from engine.util.draw import draw_gradient_path as draw_gradient_path
+from engine.util.geometry import angle_difference as angle_difference
+from engine.util.geometry import can_see as can_see
 from engine.util.geometry import check_polygon_collision as check_polygon_collision
 from engine.util.geometry import get_minimum_translation_vector as get_minimum_translation_vector
+from engine.util.geometry import is_point_in_polygon as is_point_in_polygon

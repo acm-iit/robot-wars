@@ -1,12 +1,14 @@
 from __future__ import annotations
 import json
 import math
-from random import choice, sample
+from random import choice, random, sample
 from typing import Optional
 
 import pygame
 
 from engine.entity import Coin, Entity, Robot, Wall
+from engine.entity.coin import COIN_RADIUS
+from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
@@ -46,6 +48,7 @@ class Arena:
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
+        self.show_pathfinding_hitbox = False
         self.show_path_graph = False
         self.show_paths = False
         self.show_robot_nodes = False
@@ -76,6 +79,16 @@ class Arena:
         Read-only property that provides reference to drawn arena surface.
         """
         return self.__surface
+
+    @property
+    def coin(self) -> Vector2:
+        """Read-only property that provides the position of the Coin."""
+        return self.__coin.position
+
+    @property
+    def size(self) -> Vector2:
+        """Read-only property that provides the size of the Arena."""
+        return self.__size.copy()
 
     @property
     def viewport_size(self) -> Vector2:
@@ -156,8 +169,8 @@ class Arena:
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def nearest_robot(self, robot: Robot) -> Optional[Robot]:
-        """Returns the Robot closest to another Robot."""
+    def nearest_robot(self, robot: Robot) -> Optional[Vector2]:
+        """Returns the position of the Robot closest to another Robot."""
         # Robot.on_update may call this, and the quadtree won't exist on the
         # first update, so just return None
         if self.__quadtree is None:
@@ -169,22 +182,7 @@ class Arena:
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
-        return neighbor
-
-    def nearest_coin(self, robot: Robot) -> Optional[Coin]:
-        """Returns the Coin closest to a Robot."""
-        # Robot.on_update may call this, and the quadtree won't exist on the
-        # first update, so just return None
-        if self.__quadtree is None:
-            return None
-
-        neighbor = self.__quadtree.nearest_neighbor(
-            robot.position,
-            lambda e: type(e) is Coin and e is not robot
-        )
-        assert neighbor is None or type(neighbor) is Coin, "Shouldn't happen"
-
-        return neighbor
+        return neighbor.position if neighbor is not None else None
 
     def prepare_path_graph(self):
         """
@@ -193,7 +191,7 @@ class Arena:
         """
         self.__construct_quadtree()
         assert self.__quadtree is not None
-        self.__path_graph = PathfindingGraph(self.__size, self.__quadtree)
+        self.__path_graph = PathfindingGraph(self)
         self.__available_nodes = self.__path_graph.get_available_nodes()
 
     def pathfind(self, robot: Robot, point: Vector2
@@ -202,24 +200,55 @@ class Arena:
         Finds a path between the robot and a provided point, if there is one.
         """
         assert self.__path_graph is not None, "Path graph should exist"
-        path = self.__path_graph.pathfind(robot.position, point)
-        if self.show_paths and path is not None:
+        path = self.__path_graph.pathfind(robot.position, robot.rotation,
+                                          point)
+
+        if path is None:
+            return None
+
+        if self.show_paths:
             self.__paths.append(path)
-        return path
+
+        # Prune nodes that are close to the Robot
+        i = 0
+        while i < len(path):
+            if (path[i] - robot.position).magnitude() > 1:
+                break
+            i += 1
+        else:
+            return None
+
+        return path[i:]
 
     def window_to_arena(self, point: Vector2) -> Vector2:
         """
         Converts a point on the window surface to a point on the arena surface.
         """
+        # Subtract width of robot list panel
+        point -= Vector2(ROBOT_LIST_WIDTH, 0)
         ratio = self.__size.x / self.viewport_size.x
         return point * ratio
 
     def __update_coin(self):
         """Ensure there's a Coin on screen for Robots to attain."""
-        if self.__coin.arena is None:
-            coin = Coin(choice(self.__available_nodes))
-            self.add_entity(coin)
-            self.__coin = coin
+        if self.__coin.arena is not None:
+            return
+
+        coin = Coin(Vector2())
+
+        if len(self.__available_nodes) == 0:
+            # If the Arena has no interior Walls, then spawn in a random
+            # location.
+            offset = ROBOT_HITBOX_WIDTH / 2 + COIN_RADIUS
+            interior_size = self.size - Vector2(offset * 2, offset * 2)
+            x = offset + random() * interior_size.x
+            y = offset + random() * interior_size.y
+            coin.position = Vector2(x, y)
+        else:
+            coin.position = choice(self.__available_nodes)
+
+        self.add_entity(coin)
+        self.__coin = coin
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
@@ -294,12 +323,11 @@ class Arena:
             for robot in self.get_entities_of_type(Robot):
                 assert type(robot) is Robot, "Shouldn't happen"
 
-                closest = self.nearest_robot(robot)
-                if closest is None:
+                point2 = self.nearest_robot(robot)
+                if point2 is None:
                     continue
 
                 point1 = robot.position
-                point2 = closest.position
 
                 middle = (point1 + point2) / 2
                 direction = (point2 - point1).normalize()
@@ -312,6 +340,13 @@ class Arena:
                 pygame.draw.line(self.__surface, "#00FF00", point1, point2)
                 pygame.draw.polygon(self.__surface, "#00FF00",
                                     [middle, tip_left, tip_right])
+
+        # Draw Wall pathfinding hitboxes
+        if self.show_pathfinding_hitbox:
+            for wall in self.get_entities_of_type(Wall):
+                assert type(wall) is Wall, "Shouldn't happen"
+                pygame.draw.lines(self.__surface, "#FFFFFF", True,
+                                  wall.pathfinding_hitbox)
 
         # Draw pathfinding graph
         if self.show_path_graph:
@@ -331,8 +366,11 @@ class Arena:
         if self.show_robot_nodes:
             assert self.__path_graph is not None
             for robot in self.get_entities_of_type(Robot):
-                node = self.__path_graph.get_closest_node(robot.position)
-                pygame.draw.circle(self.__surface, "#00FFFF", node.position, 8)
+                nodes = self.__path_graph.get_visible_nodes(robot.position,
+                                                            robot.rotation)
+                for node in nodes:
+                    pygame.draw.circle(self.__surface, "#00FFFF",
+                                       node.position, 8)
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""

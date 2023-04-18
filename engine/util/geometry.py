@@ -68,3 +68,94 @@ def get_minimum_translation_vector(polygon1: list[Vector2],
             overlap = abs(axis_mtv)
             mtv = axis * axis_mtv
     return mtv
+
+
+def is_point_in_polygon(point: Vector2, polygon: list[Vector2]):
+    """Determines if a point is in a convex polygon."""
+    sign = 0
+
+    for i in range(len(polygon)):
+        vertex1 = polygon[i]
+        vertex2 = polygon[(i + 1) % len(polygon)]
+
+        side_direction = vertex2 - vertex1
+        normal = Vector2(-side_direction.y, side_direction.x)
+        diff = point - vertex1
+
+        dot = diff.dot(normal)
+        dot_sign = 0 if dot == 0 else -1 if dot < 0 else 1
+
+        if sign == 0:
+            sign = dot_sign
+        elif dot_sign != 0 and dot_sign != sign:
+            return False
+
+    return True
+
+
+def angle_difference(angle1: float, angle2: float) -> float:
+    """
+    Returns the angle difference that should be added to angle1 to direct it
+    towards angle2.
+    """
+    diff = (angle2 - angle1) % (2 * math.pi)
+    if diff < math.pi:
+        return diff
+    else:
+        # The shorter direction is counter-clockwise
+        return -(2 * math.pi - diff)
+
+
+def line_segment_intersection(a1: Vector2, a2: Vector2,
+                              b1: Vector2, b2: Vector2):
+    """
+    Compute the (t, u) intersection parameters' numerators as well as their
+    denominator for two line segments.
+    """
+    denom = (a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x)
+    if denom == 0:
+        return None
+    t_num = (a1.x - b1.x) * (b1.y - b2.y) - (a1.y - b1.y) * (b1.x - b2.x)
+    u_num = (a1.x - b1.x) * (a1.y - a2.y) - (a1.y - b1.y) * (a1.x - a2.x)
+    return t_num, u_num, denom
+
+
+def check_segment_intersection(a1: Vector2, a2: Vector2,
+                               b1: Vector2, b2: Vector2):
+    """Checks if two line segments intersect."""
+    result = line_segment_intersection(a1, a2, b1, b2)
+    if result is None:
+        return False
+    t_num, u_num, denom = result
+    lower = denom * 1e-4
+    upper = denom - lower
+    if denom < 0 and (t_num > lower or t_num < upper
+                      or u_num > lower or u_num < upper):
+        return False
+    if denom > 0 and (t_num < lower or t_num > upper
+                      or u_num < lower or u_num > upper):
+        return False
+    return True
+
+
+def raycast(origin: Vector2, endpoint: Vector2,
+            segments: list[tuple[Vector2, Vector2]]):
+    """Determines if a ray intersects one or more segments."""
+    if origin == endpoint:
+        return None
+
+    for point1, point2 in segments:
+        if point1 == origin or point2 == origin:
+            # Skip over segments where either endpoint is the origin
+            continue
+
+        if check_segment_intersection(origin, endpoint, point1, point2):
+            return True
+
+    return False
+
+
+def can_see(point1: Vector2, point2: Vector2,
+            segments: list[tuple[Vector2, Vector2]]):
+    """Determines if point1 and point2 can see each other."""
+    return not raycast(point1, point2, segments)

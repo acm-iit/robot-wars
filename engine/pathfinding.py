@@ -6,14 +6,26 @@ from typing import Optional
 
 import pygame
 
-from engine.entity.robot import ROBOT_HITBOX_WIDTH, ROBOT_HITBOX_LENGTH
-from engine.quadtree import Quadtree
-from engine.util import check_polygon_collision
+import engine
+from engine.entity import Wall
+from engine.entity.robot import ROBOT_MOVE_SPEED, ROBOT_TURN_SPEED
+from engine.util import (angle_difference, can_see, check_polygon_collision,
+                         is_point_in_polygon)
 
-Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
-NODE_SIZE = 64
+
+def evaluate_cost(start: Vector2, rotation: float, end: Vector2):
+    """
+    Returns the cost of moving from start with defined rotation to end, in
+    seconds.
+    """
+    difference = end - start
+    distance_cost = difference.magnitude() / ROBOT_MOVE_SPEED
+
+    angle = math.atan2(difference.y, difference.x)
+    turn_cost = abs(angle_difference(rotation, angle)) / ROBOT_TURN_SPEED
+    return distance_cost + turn_cost
 
 
 class Node:
@@ -32,19 +44,27 @@ class Node:
         return True
 
     @staticmethod
-    def a_star(start: Node, goal: Node) -> Optional[list[Node]]:
+    def a_star(start: Node, goal: Node, start_rotation: float
+               ) -> Optional[list[Node]]:
         """Computes the path from start to goal using A*."""
+        # Map of node to node preceding it on the path
+        came_from = dict[Node, Node]()
+
         # Define h (heuristic) as distance between nodes
         def h(node: Node):
-            return (goal.position - node.position).magnitude()
+            rotation = 0
+            if node == start:
+                rotation = start_rotation
+            elif node in came_from:
+                previous = came_from[node]
+                difference = node.position - previous.position
+                rotation = math.atan2(difference.y, difference.x)
+            return evaluate_cost(node.position, rotation, goal.position)
         h_start = h(start)
 
         # Heap of reachable nodes, sorted by f-value
         open_set = list[tuple[float, Node]]()
         heapq.heappush(open_set, (h_start, start))
-
-        # Map of node to node preceding it on the path
-        came_from = dict[Node, Node]()
 
         def get_path(node) -> list[Node]:
             """Constructs the path to node via came_from."""
@@ -81,9 +101,18 @@ class Node:
                 # We found our goal, return the path
                 return get_path(current)
 
+            rotation = 0
+            if current == start:
+                rotation = start_rotation
+            if current in came_from:
+                previous = came_from[current]
+                difference = current.position - previous.position
+                rotation = math.atan2(difference.y, difference.x)
+
             for neighbor in current.neighbors:
-                distance = (neighbor.position - current.position).magnitude()
-                tentative_g_score = g_score[current] + distance
+                cost = evaluate_cost(current.position, rotation,
+                                     neighbor.position)
+                tentative_g_score = g_score[current] + cost
                 # If this new g-score for the neighbor is lower, then update
                 if tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
@@ -106,96 +135,114 @@ class PathfindingGraph:
     """
     Graph of pathfinding nodes used to aid Robots to navigate around Walls.
     """
-    def __init__(self, size: Vector2, quadtree: Quadtree):
-        self.__size = size
-        self.__nodes = self.__construct_nodes(size, quadtree)
+    def __init__(self, arena: engine.Arena):
+        self.__arena = arena
+        entities = arena.entities
+        assert all(type(entity) is Wall for entity in entities)
 
-    def __construct_nodes(self, size: Vector2, quadtree: Quadtree
-                          ) -> list[list[Node]]:
-        """
-        Constructs 2D array of nodes evenly spaced around the Arena, and
-        determines the edges between the nodes.
-        """
-        width = int(size.x / NODE_SIZE)
-        height = int(size.y / NODE_SIZE)
-        nodes = [[Node(Vector2(NODE_SIZE * (i + 0.5), NODE_SIZE * (j + 0.5)))
-                  for i in range(width)] for j in range(height)]
+        self.__create_graph(entities)  # type: ignore
 
-        # Connect nodes
-        for j1 in range(height):
-            for i1 in range(width):
-                node1 = nodes[j1][i1]
-                for dj in range(-1, 2):
-                    for di in range(-1, 2):
-                        if dj == 0 and di == 0:
-                            continue
-                        j2, i2 = j1 + dj, i1 + di
-                        if j2 < 0 or j2 >= height or i2 < 0 or i2 >= width:
-                            continue
-                        node2 = nodes[j2][i2]
-                        if self.__can_connect(node1, node2, quadtree):
-                            node1.neighbors.append(node2)
+    def __create_graph(self, walls: list[Wall]):
+        hitboxes = list[list[Vector2]]()
+        node_set = set[tuple[float, float]]()
+        segments = list[tuple[Vector2, Vector2]]()
 
-        return nodes
+        # Record all nodes, including ones that may be in other hitboxes
+        for wall in walls:
+            hitbox = wall.pathfinding_hitbox
+            hitboxes.append(hitbox)
+            for vertex in hitbox:
+                node_set.add((vertex.x, vertex.y))
 
-    def __can_connect(self, node1: Node, node2: Node, quadtree: Quadtree
-                      ) -> bool:
-        """Determines if node1 can reach node2 directly."""
-        direction = (node2.position - node1.position).normalize()
-        normal = direction.rotate_rad(math.pi / 2)
+        remove_set = set[tuple[float, float]]()
 
-        # Construct a box-cast of the Robot shape between the two nodes
-        look_offset = direction * ROBOT_HITBOX_LENGTH / 2
-        side_offset = normal * ROBOT_HITBOX_WIDTH / 2
-        rectangle = [
-            node1.position + side_offset,
-            node1.position - side_offset,
-            node2.position - side_offset + look_offset,
-            node2.position + side_offset + look_offset
-        ]
+        for i in range(len(hitboxes) - 1):
+            for j in range(i + 1, len(hitboxes)):
+                hitbox1 = hitboxes[i]
+                hitbox2 = hitboxes[j]
 
-        # Get the bounding rect of the rectangle
-        min_x, min_y = math.inf, math.inf
-        max_x, max_y = -math.inf, -math.inf
-        for vertex in rectangle:
-            min_x = min(min_x, vertex.x)
-            min_y = min(min_y, vertex.y)
-            max_x = max(max_x, vertex.x)
-            max_y = max(max_y, vertex.y)
-        bounding_rectangle = Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+                if not check_polygon_collision(hitbox1, hitbox2):
+                    continue
 
-        # Query the quadtree with the bounding rectangle
-        entities = quadtree.query(bounding_rectangle)
-        # Note that `entities` must only consist of Walls, since this is
-        # performed at the beginning of a round and is not intended to
-        # consider collisions with other Entities
+                # Remove nodes contained in other hitboxes
+                for vertex in hitbox1:
+                    if is_point_in_polygon(vertex, hitbox2):
+                        remove_set.add((vertex.x, vertex.y))
+                for vertex in hitbox2:
+                    if is_point_in_polygon(vertex, hitbox1):
+                        remove_set.add((vertex.x, vertex.y))
 
-        # Check for polygon collisions with the original rectangle
-        for entity in entities:
-            if check_polygon_collision(entity.absolute_hitbox, rectangle):
-                return False
-        return True
+        node_set.difference_update(remove_set)
 
-    def get_closest_node(self, point: Vector2) -> Node:
-        """Determines the closest node to a point."""
-        j = int(point.y / NODE_SIZE)
-        i = int(point.x / NODE_SIZE)
-        return self.__nodes[j][i]
+        # Record line segments
+        for hitbox in hitboxes:
+            for i in range(len(hitbox)):
+                vertex1 = hitbox[i]
+                vertex2 = hitbox[(i + 1) % len(hitbox)]
+                segments.append((vertex1, vertex2))
 
-    def pathfind(self, point1: Vector2, point2: Vector2
+        nodes = [Node(Vector2(x, y)) for x, y in node_set]
+
+        # Set node position epsilon to a generous amount to account for
+        # floating point error in can_see
+        for node in nodes:
+            node.position.epsilon = 1e-4
+
+        # Connect nodes by visibility
+        for i in range(len(nodes) - 1):
+            node1 = nodes[i]
+            for j in range(i + 1, len(nodes)):
+                node2 = nodes[j]
+                if can_see(node1.position, node2.position, segments):
+                    node1.neighbors.append(node2)
+                    node2.neighbors.append(node1)
+
+        self.__nodes = nodes
+        self.__segments = segments
+
+    def get_visible_nodes(self, point: Vector2, rotation: Optional[float]):
+        """Returns a list of up to 8 visible nodes, sorted by closeness."""
+        def sort_key(node: Node):
+            if rotation is not None:
+                return evaluate_cost(point, rotation, node.position)
+            else:
+                return (point - node.position).magnitude_squared()
+
+        sorted_nodes = sorted(self.__nodes, key=sort_key)
+
+        result = list[Node]()
+        i = 0
+
+        while (len(result) == 0 or i < 8) and i < len(sorted_nodes):
+            node = sorted_nodes[i]
+            if can_see(point, node.position, self.__segments):
+                result.append(node)
+            i += 1
+
+        return result
+
+    def pathfind(self, start: Vector2, rotation: float, end: Vector2
                  ) -> Optional[list[Vector2]]:
-        """Finds a path between point1 and point2 in the PathfindingGraph."""
-        # First, determine if these points can map to nodes in the graph.
-        rect = Rect(Vector2(), self.__size)
-        if not rect.contains(Rect(point1, Vector2())):
-            return None
-        if not rect.contains(Rect(point2, Vector2())):
-            return None
+        """Finds a path between start and end in the PathfindingGraph."""
+        # Handle case where a straight line works
+        if can_see(start, end, self.__segments):
+            return [start, end]
 
-        node1 = self.get_closest_node(point1)
-        node2 = self.get_closest_node(point2)
+        # Create temporary start and end nodes.
+        # NOTE: this won't work in parallel!
+        start_node = Node(start)
+        start_node.neighbors = self.get_visible_nodes(start, rotation)
+        end_node = Node(end)
+        end_neighbors = self.get_visible_nodes(end, None)
+        for neighbor in end_neighbors:
+            neighbor.neighbors.append(end_node)
 
-        node_path = Node.a_star(node1, node2)
+        node_path = Node.a_star(start_node, end_node, rotation)
+
+        # Remove end_node from it's neighbors' neighbors arrays
+        for neighbor in end_neighbors:
+            neighbor.neighbors.remove(end_node)
+
         if node_path is None:
             return None
 
@@ -204,14 +251,17 @@ class PathfindingGraph:
     def get_available_nodes(self) -> list[Vector2]:
         """Returns positions of all nodes with at least one neighbor."""
         return [node.position
-                for row in self.__nodes
-                for node in row
-                if len(node.neighbors) > 0]
+                for node in self.__nodes
+                if len(node.neighbors) > 0
+                if node.position.x > 0
+                if node.position.x < self.__arena.size.x
+                if node.position.y > 0
+                if node.position.y < self.__arena.size.y]
 
     def render(self, surface: pygame.Surface):
         """Draws the PathfindingGraph onto a surface."""
-        for row in self.__nodes:
-            for node in row:
-                for neighbor in node.neighbors:
-                    pygame.draw.line(surface, "#FF00FF", node.position,
-                                     neighbor.position)
+        for node in self.__nodes:
+            pygame.draw.circle(surface, "#FF00FF", node.position, 4)
+            for neighbor in node.neighbors:
+                pygame.draw.line(surface, "#FF00FF", node.position,
+                                 neighbor.position)
