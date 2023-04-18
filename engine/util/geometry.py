@@ -120,52 +120,42 @@ def line_segment_intersection(a1: Vector2, a2: Vector2,
     return t_num, u_num, denom
 
 
-def ray_segment_intersection(origin: Vector2, direction: Vector2,
-                             point1: Vector2, point2: Vector2):
-    """
-    Compute the fraction of the direction applied to the origin for the
-    intersection between a ray and a line segment.
-    """
-    ray_end = origin + direction
-    result = line_segment_intersection(origin, ray_end, point1, point2)
+def check_segment_intersection(a1: Vector2, a2: Vector2,
+                               b1: Vector2, b2: Vector2):
+    """Checks if two line segments intersect."""
+    result = line_segment_intersection(a1, a2, b1, b2)
     if result is None:
-        return None
+        return False
     t_num, u_num, denom = result
     lower = denom * 1e-4
     upper = denom - lower
-    if denom < 0 and (t_num > 0 or u_num > lower or u_num < upper):
-        return None
-    if denom > 0 and (t_num < 0 or u_num < lower or u_num > upper):
-        return None
-    return t_num / denom
+    if denom < 0 and (t_num > lower or t_num < upper
+                      or u_num > lower or u_num < upper):
+        return False
+    if denom > 0 and (t_num < lower or t_num > upper
+                      or u_num < lower or u_num > upper):
+        return False
+    return True
 
 
-def raycast(origin: Vector2, direction: Vector2,
+def raycast(origin: Vector2, endpoint: Vector2,
             segments: list[tuple[Vector2, Vector2]]):
-    """Find the intersection between a ray and one or more segments."""
-    if direction == Vector2():
+    """Determines if a ray intersects one or more segments."""
+    if origin == endpoint:
         return None
-
-    hit = math.inf
 
     for point1, point2 in segments:
         if point1 == origin or point2 == origin:
             # Skip over segments where either endpoint is the origin
             continue
 
-        new_hit = ray_segment_intersection(origin, direction, point1, point2)
-        if new_hit is None:
-            continue
-        hit = min(hit, new_hit)
+        if check_segment_intersection(origin, endpoint, point1, point2):
+            return True
 
-    return hit
+    return False
 
 
 def can_see(point1: Vector2, point2: Vector2,
             segments: list[tuple[Vector2, Vector2]]):
     """Determines if point1 and point2 can see each other."""
-    hit = raycast(point1, point2 - point1, segments)
-    if hit is None:
-        return True
-
-    return hit > 0.999
+    return not raycast(point1, point2, segments)
