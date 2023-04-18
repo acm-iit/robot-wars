@@ -147,6 +147,7 @@ class PathfindingGraph:
         node_set = set[tuple[float, float]]()
         segments = list[tuple[Vector2, Vector2]]()
 
+        # Record all nodes, including ones that may be in other hitboxes
         for wall in walls:
             hitbox = wall.pathfinding_hitbox
             hitboxes.append(hitbox)
@@ -163,7 +164,7 @@ class PathfindingGraph:
                 if not check_polygon_collision(hitbox1, hitbox2):
                     continue
 
-                # Remove nodes contained in other hitbox
+                # Remove nodes contained in other hitboxes
                 for vertex in hitbox1:
                     if is_point_in_polygon(vertex, hitbox2):
                         remove_set.add((vertex.x, vertex.y))
@@ -173,6 +174,7 @@ class PathfindingGraph:
 
         node_set.difference_update(remove_set)
 
+        # Record line segments
         for hitbox in hitboxes:
             for i in range(len(hitbox)):
                 vertex1 = hitbox[i]
@@ -186,6 +188,7 @@ class PathfindingGraph:
         for node in nodes:
             node.position.epsilon = 1e-4
 
+        # Connect nodes by visibility
         for i in range(len(nodes) - 1):
             node1 = nodes[i]
             for j in range(i + 1, len(nodes)):
@@ -198,7 +201,7 @@ class PathfindingGraph:
         self.__segments = segments
 
     def get_visible_nodes(self, point: Vector2, rotation: Optional[float]):
-        """Returns a list of up to 16 visible nodes, sorted by closeness."""
+        """Returns a list of up to 8 visible nodes, sorted by closeness."""
         def sort_key(node: Node):
             if rotation is not None:
                 return evaluate_cost(point, rotation, node.position)
@@ -221,15 +224,12 @@ class PathfindingGraph:
     def pathfind(self, start: Vector2, rotation: float, end: Vector2
                  ) -> Optional[list[Vector2]]:
         """Finds a path between start and end in the PathfindingGraph."""
-        # start_node = self.get_closest_node(start, rotation)
-        # end_node = self.get_closest_node(end, rotation)
-        # if not start_node or not end_node:
-        #     return None
-
         # Handle case where a straight line works
         if can_see(start, end, self.__segments):
             return [start, end]
 
+        # Create temporary start and end nodes.
+        # NOTE: this won't work in parallel!
         start_node = Node(start)
         start_node.neighbors = self.get_visible_nodes(start, rotation)
         end_node = Node(end)
@@ -239,6 +239,7 @@ class PathfindingGraph:
 
         node_path = Node.a_star(start_node, end_node, rotation)
 
+        # Remove end_node from it's neighbors' neighbors arrays
         for neighbor in end_neighbors:
             neighbor.neighbors.remove(end_node)
 
