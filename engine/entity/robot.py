@@ -310,6 +310,12 @@ class Robot(entity.Entity):
             return
         return self.arena.pathfind(self, point)
 
+    def can_see(self, point: Vector2) -> bool:
+        """Determines if this Robot has line of sight with a point."""
+        if self.arena is None:
+            return False
+        return self.arena.can_see(self, point)
+
     def consume_output(self, output: ControlOutput, dt: float):
         self.move_power = output.move_power
         self.turn_power = output.turn_power
@@ -343,6 +349,10 @@ class Robot(entity.Entity):
             position, rotation = enemy
             input.enemy_position = (position.x, position.y)
             input.enemy_rotation = rotation
+
+            input.can_see_robot = self.can_see(position)
+        else:
+            input.can_see_robot = False
 
         bullets = self.nearby_bullets
         input.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]

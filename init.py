@@ -29,14 +29,13 @@ enemies = [
 force_enemy = None
 
 
+# Implement your controller here!
 class MyController(Controller):
     def __init__(self):
         super().__init__("MyRobot", "#EEEEEE", "#CCCCCC")
 
     def act(self, input: ControlInput, output: ControlOutput):
-        output.move_to = input.enemy_position
-        output.aim_at_position(input.enemy_position)
-        output.shoot = True
+        pass
 
 
 if __name__ == "__main__":

@@ -42,17 +42,17 @@ class ControlInput:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
-        # self.can_see_robot: bool = False
-        # """
-        # Determines if the robot can see the enemy robot, as a boolean where
-        # `True` implies it can do so.
+        self.can_see_robot: bool = False
+        """
+        Determines if the robot can see the enemy robot, as a boolean where
+        `True` implies it can do so.
 
-        # "See" is defined as having line-of-sight with the enemy, with no
-        # impeding obstacles.
+        "See" is defined as having line-of-sight with the enemy, with no
+        impeding obstacles.
 
-        # In the case of multiple enemy robots (i.e. battle royale), this
-        # applies to the nearest enemy robot.
-        # """
+        In the case of multiple enemy robots (i.e. battle royale), this applies
+        to the nearest enemy robot.
+        """
 
         self.bullets: list[tuple[float, float, float, float]] = []
         """

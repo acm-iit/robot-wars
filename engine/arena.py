@@ -14,6 +14,7 @@ from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
+from engine.util import can_see
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -41,6 +42,7 @@ class Arena:
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
+        self.__segments: list[tuple[Vector2, Vector2]] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
         self.__robots = list[tuple[Robot, Controller]]()
 
@@ -236,6 +238,10 @@ class Arena:
 
         return result
 
+    def can_see(self, robot: Robot, point: Vector2) -> bool:
+        """Determines if a Robot has line of sight with a point."""
+        return can_see(robot.position, point, self.__segments)
+
     def prepare_path_graph(self):
         """
         Prepares the PathfindingGraph for this Arena, based on the Walls it
@@ -245,6 +251,14 @@ class Arena:
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self)
         self.__available_nodes = self.__path_graph.get_available_nodes()
+
+        # Save wall segments
+        for wall in self.get_entities_of_type(Wall):
+            hitbox = wall.absolute_hitbox
+            for i in range(len(hitbox)):
+                vertex1 = hitbox[i]
+                vertex2 = hitbox[(i + 1) % len(hitbox)]
+                self.__segments.append((vertex1, vertex2))
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -304,6 +318,8 @@ class Arena:
 
     def __update_robots(self, dt: float):
         for robot, controller in self.__robots:
+            if robot.arena is None:
+                continue
             input = robot.produce_input()
             output = ControlOutput(input)
             try:
