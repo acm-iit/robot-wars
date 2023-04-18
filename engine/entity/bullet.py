@@ -10,6 +10,7 @@ Vector2 = pygame.Vector2
 
 BULLET_RADIUS = 8
 BULLET_COLOR = "#222222"
+BULLET_SPEED = 500
 
 TRAIL_LENGTH = 128
 TRAIL_HEAD_COLOR = "#AAAAAA60"
@@ -25,9 +26,9 @@ class Bullet(entity.Entity):
                  origin: entity.Robot):
         super().__init__()
 
-        self.__lifetime = 2     # Lifetime of the bullet (seconds)
-        self.__speed = 500      # Speed of the bullet (pixels/second)
-        self.origin = origin    # Robot from which this bullet was created
+        self.__lifetime = 2             # Lifetime of the bullet (seconds)
+        self.__speed = BULLET_SPEED     # Speed of the bullet (pixels/second)
+        self.origin = origin            # Robot which created this bullet
 
         # Add origin to collision filter
         self.collision_filter.add(origin)

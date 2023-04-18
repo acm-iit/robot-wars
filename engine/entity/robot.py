@@ -4,6 +4,7 @@ from typing import Callable, Optional
 
 import pygame
 
+from engine.control import ControlInput, ControlOutput
 import engine.entity as entity
 from engine.util import angle_difference
 
@@ -112,17 +113,26 @@ class Robot(entity.Entity):
             self.destroy()
 
     @property
-    def nearest_robot(self) -> Optional[Vector2]:
+    def nearest_robot(self) -> Optional[tuple[Vector2, float]]:
         """Provides the position of the nearest Robot to this Robot."""
         if self.arena is None:
-            return
+            return None
         return self.arena.nearest_robot(self)
+
+    @property
+    def nearby_bullets(self) -> list[tuple[Vector2, Vector2]]:
+        """
+        Provides the positions and velocities of nearby Bullets to this Robot.
+        """
+        if self.arena is None:
+            return []
+        return self.arena.nearby_bullets(self)
 
     @property
     def coin(self) -> Optional[Vector2]:
         """Provides the position of the Coin in the Arena."""
         if self.arena is None:
-            return
+            return None
         return self.arena.coin
 
     # We separate the `X_power` members into properties with specialized
@@ -250,37 +260,47 @@ class Robot(entity.Entity):
         if abs(angle_diff) < math.pi / 16:
             self.move_power = direction.magnitude() / (self.__move_speed * dt)
 
+    def turn_to(self, angle: float, dt: float):
+        """
+        Sets the turn_power such that the Robot will face towards a specified
+        angle.
+        """
+        if dt == 0:
+            return
+
+        difference = angle_difference(self.rotation, angle)
+        self.turn_power = difference / (self.__turn_speed * dt)
+
     def turn_towards(self, point: Vector2, dt: float):
         """
         Sets the turn_power such that the Robot will face towards a specified
         point.
         """
+        direction = point - self.position
+        desired_angle = math.atan2(direction.y, direction.x)
+
+        self.turn_to(desired_angle, dt)
+
+    def aim_at(self, angle: float, dt: float):
+        """
+        Sets the turret_turn_power such that the Robot's turret will face
+        towards a specified angle.
+        """
         if dt == 0:
             return
 
-        direction = point - self.position
-
-        current_angle = self.rotation
-        desired_angle = math.atan2(direction.y, direction.x)
-
-        difference = angle_difference(current_angle, desired_angle)
-        self.turn_power = difference / (self.__turn_speed * dt)
+        difference = angle_difference(self.turret_rotation, angle)
+        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
 
     def aim_towards(self, point: Vector2, dt: float):
         """
         Sets the turret_turn_power such that the turret will aim towards a
         specified point.
         """
-        if dt == 0:
-            return
-
         direction = point - self.position
-
-        current_angle = self.turret_rotation
         desired_angle = math.atan2(direction.y, direction.x)
 
-        difference = angle_difference(current_angle, desired_angle)
-        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
+        self.aim_at(desired_angle, dt)
 
     def pathfind(self, point: Vector2) -> Optional[list[Vector2]]:
         """
@@ -289,6 +309,49 @@ class Robot(entity.Entity):
         if self.arena is None:
             return
         return self.arena.pathfind(self, point)
+
+    def consume_output(self, output: ControlOutput, dt: float):
+        self.move_power = output.move_power
+        self.turn_power = output.turn_power
+        self.turret_turn_power = output.turret_turn_power
+
+        if output.turn_to is not None:
+            output.turn_to %= 2 * math.pi
+            self.turn_to(output.turn_to, dt)
+
+        if output.move_to is not None:
+            x, y = output.move_to
+            path = self.pathfind(Vector2(x, y))
+            if path is not None:
+                self.move_towards(path[0], dt)
+
+        if output.aim_at is not None:
+            output.aim_at %= 2 * math.pi
+            self.aim_at(output.aim_at, dt)
+
+        if output.shoot:
+            self.shoot()
+
+    def produce_input(self) -> ControlInput:
+        input = ControlInput()
+
+        input.position = (self.position.x, self.position.y)
+        input.rotation = self.rotation
+
+        enemy = self.nearest_robot
+        if enemy is not None:
+            position, rotation = enemy
+            input.enemy_position = (position.x, position.y)
+            input.enemy_rotation = rotation
+
+        bullets = self.nearby_bullets
+        input.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]
+
+        coin = self.coin
+        if coin is not None:
+            input.coin = (coin.x, coin.y)
+
+        return input
 
     def update(self, dt: float):
         if self.on_update is not None:

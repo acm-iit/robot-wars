@@ -6,7 +6,9 @@ from typing import Optional
 
 import pygame
 
-from engine.entity import Coin, Entity, Robot, Wall
+from engine.control import Controller, ControlOutput
+from engine.entity import Bullet, Coin, Entity, Robot, Wall
+from engine.entity.bullet import BULLET_SPEED
 from engine.entity.coin import COIN_RADIUS
 from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
@@ -40,6 +42,7 @@ class Arena:
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
+        self.__robots = list[tuple[Robot, Controller]]()
 
         self.spawns: list[Vector2] = []
 
@@ -150,7 +153,14 @@ class Arena:
         self.__entities.remove(entity)
         entity.arena = None
 
-    def spawn_robots(self, robots: list[Robot]):
+    def add_robot(self, controller: Controller):
+        robot = Robot(controller.name)
+        robot.color = controller.body_color
+        robot.head_color = controller.head_color
+        self.__robots.append((robot, controller))
+        self.add_entity(robot)
+
+    def spawn_robots_old(self, robots: list[Robot]):
         """
         Spawns a list of robots into unique spawn locations. The number of
         robots must be lower than the number of arena spawns.
@@ -163,14 +173,30 @@ class Arena:
             self.add_entity(robot)
             robot.position = positions.pop()
 
+    def spawn_robots(self):
+        """
+        Spawns the Arena's robots into unique spawn locations. The number of
+        robots must be lower than the number of arena spawns.
+        """
+        robots = self.__robots
+        assert len(robots) <= len(self.spawns), "# of entities > # of spawns"
+
+        positions: list[Vector2] = sample(self.spawns, k=len(robots))
+
+        for robot, _ in robots:
+            robot.position = positions.pop()
+
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """Returns a filtered list of entities of a certain class."""
         return [entity
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def nearest_robot(self, robot: Robot) -> Optional[Vector2]:
-        """Returns the position of the Robot closest to another Robot."""
+    def nearest_robot(self, robot: Robot) -> Optional[tuple[Vector2, float]]:
+        """
+        Returns the position and rotation of the Robot closest to another
+        Robot.
+        """
         # Robot.on_update may call this, and the quadtree won't exist on the
         # first update, so just return None
         if self.__quadtree is None:
@@ -182,7 +208,33 @@ class Arena:
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
-        return neighbor.position if neighbor is not None else None
+        if neighbor is None:
+            return None
+
+        return neighbor.position, neighbor.rotation
+
+    def nearby_bullets(self, robot: Robot) -> list[tuple[Vector2, Vector2]]:
+        """
+        Returns the positions and velocities of Bullets within a radius of a
+        Robot.
+        """
+        if self.__quadtree is None:
+            return []
+
+        query_rect = Rect(robot.position - Vector2(256), Vector2(512))
+
+        entities = self.__quadtree.query(query_rect)
+        result = list[tuple[Vector2, Vector2]]()
+
+        for entity in entities:
+            if type(entity) is not Bullet:
+                continue
+            if (entity.position - robot.position).magnitude() > 256:
+                continue
+            velocity = Vector2(BULLET_SPEED, 0).rotate_rad(entity.rotation)
+            result.append((entity.position, velocity))
+
+        return result
 
     def prepare_path_graph(self):
         """
@@ -249,6 +301,16 @@ class Arena:
 
         self.add_entity(coin)
         self.__coin = coin
+
+    def __update_robots(self, dt: float):
+        for robot, controller in self.__robots:
+            input = robot.produce_input()
+            output = ControlOutput(input)
+            try:
+                controller.act(input, output)
+            except Exception:
+                pass
+            robot.consume_output(output, dt)
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
@@ -323,11 +385,12 @@ class Arena:
             for robot in self.get_entities_of_type(Robot):
                 assert type(robot) is Robot, "Shouldn't happen"
 
-                point2 = self.nearest_robot(robot)
-                if point2 is None:
+                nearest = self.nearest_robot(robot)
+                if nearest is None:
                     continue
 
                 point1 = robot.position
+                point2, _ = nearest
 
                 middle = (point1 + point2) / 2
                 direction = (point2 - point1).normalize()
@@ -375,6 +438,7 @@ class Arena:
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         self.__update_coin()
+        self.__update_robots(dt)
         self.__update_entities(dt)
         self.__filter_entities()
         self.__construct_quadtree()
