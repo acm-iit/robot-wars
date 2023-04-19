@@ -199,7 +199,7 @@ class Arena:
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def nearest_robot(self, robot: Robot) -> Optional[tuple[Vector2, float]]:
+    def nearest_robot(self, robot: Robot) -> Optional[Robot]:
         """
         Returns the position and rotation of the Robot closest to another
         Robot.
@@ -215,10 +215,7 @@ class Arena:
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
-        if neighbor is None:
-            return None
-
-        return neighbor.position, neighbor.rotation
+        return neighbor if neighbor is not None else None
 
     def nearby_bullets(self, robot: Robot) -> list[tuple[Vector2, Vector2]]:
         """
@@ -472,7 +469,7 @@ class Arena:
                     continue
 
                 point1 = robot.position
-                point2, _ = nearest
+                point2 = nearest.position
 
                 middle = (point1 + point2) / 2
                 direction = (point2 - point1).normalize()

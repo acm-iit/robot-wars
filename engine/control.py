@@ -50,6 +50,17 @@ class ControlInput:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
+        self.enemy_turret_rotation: float = 0
+        """
+        Rotation of the enemy robot's turret, in radians measured clockwise
+        from the positive X-axis (right).
+
+        In the case of multiple enemy robots (i.e. battle royale), this is the
+        rotation of the nearest enemy robot's turret.
+
+        (It is measured clockwise since the positive Y-axis is down!)
+        """
+
         self.can_see_enemy: bool = False
         """
         Determines if the robot can see the enemy robot, as a boolean where

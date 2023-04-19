@@ -113,7 +113,7 @@ class Robot(entity.Entity):
             self.destroy()
 
     @property
-    def nearest_robot(self) -> Optional[tuple[Vector2, float]]:
+    def nearest_robot(self) -> Optional[Robot]:
         """Provides the position of the nearest Robot to this Robot."""
         if self.arena is None:
             return None
@@ -347,11 +347,11 @@ class Robot(entity.Entity):
 
         enemy = self.nearest_robot
         if enemy is not None:
-            position, rotation = enemy
-            input.enemy_position = (position.x, position.y)
-            input.enemy_rotation = rotation
+            input.enemy_position = (enemy.position.x, enemy.position.y)
+            input.enemy_rotation = enemy.rotation
+            input.enemy_turret_rotation = enemy.turret_rotation
 
-            input.can_see_enemy = self.can_see(position)
+            input.can_see_enemy = self.can_see(enemy.position)
         else:
             input.can_see_enemy = False
 
