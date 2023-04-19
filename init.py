@@ -3,7 +3,6 @@ from random import choice
 from engine import (Arena, Controller, controllers, ControllerAction,
                     ControllerState)
 
-
 # List of available maps
 maps = [
     "engine/maps/basic.json",
