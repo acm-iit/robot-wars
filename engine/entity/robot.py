@@ -470,7 +470,11 @@ class Robot(entity.Entity):
         # Update shot cooldown
         self.time_until_next_shot = max(self.time_until_next_shot - dt, 0)
 
-    def render(self, screen: pygame.Surface):
+    def render_at_position(self, surface: pygame.Surface, position: Vector2):
+        """
+        Renders this Robot on a surface at a particular position; used to show
+        Robot display on the Robot list.
+        """
         # Pixel offsets of treads vertices relative to the center of the treads
         tread_vertex_offsets = [
             Vector2(TREAD_LENGTH / 2, TREAD_WIDTH / 2),
@@ -481,19 +485,19 @@ class Robot(entity.Entity):
 
         # Vertices (in absolute coordinates) of the left and right treads
         left_tread_vertices = [
-            self.position + (Vector2(0, -ROBOT_WIDTH / 2)
-                             + tread_offset).rotate_rad(self.rotation)
+            position + (Vector2(0, -ROBOT_WIDTH / 2)
+                        + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
         right_tread_vertices = [
-            self.position + (Vector2(0, ROBOT_WIDTH / 2)
-                             + tread_offset).rotate_rad(self.rotation)
+            position + (Vector2(0, ROBOT_WIDTH / 2)
+                        + tread_offset).rotate_rad(self.rotation)
             for tread_offset in tread_vertex_offsets
         ]
 
         # Draw treads rectangles
-        pygame.draw.polygon(screen, TREADS_COLOR, left_tread_vertices)
-        pygame.draw.polygon(screen, TREADS_COLOR, right_tread_vertices)
+        pygame.draw.polygon(surface, TREADS_COLOR, left_tread_vertices)
+        pygame.draw.polygon(surface, TREADS_COLOR, right_tread_vertices)
 
         # Length of each tread segment
         segment_length = TREAD_LENGTH / NUM_TREAD_SEGMENTS
@@ -505,14 +509,14 @@ class Robot(entity.Entity):
             left_offset -= TREAD_LENGTH / 2
             left_offset *= Vector2(1, 0).rotate_rad(self.rotation)
             # Absolute center position of left line
-            left_position = self.position + left_offset
+            left_position = position + left_offset
 
             # Offset of right line from the robot center along treads length
             right_offset = (i + self.__right_tread_alpha) * segment_length
             right_offset -= TREAD_LENGTH / 2
             right_offset *= Vector2(1, 0).rotate_rad(self.rotation)
             # Absolute position of right line along length of treads
-            right_position = self.position + right_offset
+            right_position = position + right_offset
 
             # Distance to inner and outer endpoints of tread lines
             inner = ROBOT_WIDTH / 2 - TREAD_WIDTH / 2
@@ -520,14 +524,14 @@ class Robot(entity.Entity):
 
             # Draw line on left treads
             pygame.draw.line(
-                screen, TREADS_LINES_COLOR,
+                surface, TREADS_LINES_COLOR,
                 left_position + Vector2(0, -inner).rotate_rad(self.rotation),
                 left_position + Vector2(0, -outer).rotate_rad(self.rotation),
                 width=2
             )
             # Draw line on right treads
             pygame.draw.line(
-                screen, TREADS_LINES_COLOR,
+                surface, TREADS_LINES_COLOR,
                 right_position + Vector2(0, inner).rotate_rad(self.rotation),
                 right_position + Vector2(0, outer).rotate_rad(self.rotation),
                 width=2
@@ -542,8 +546,8 @@ class Robot(entity.Entity):
         ]
 
         # Draw robot body
-        pygame.draw.polygon(screen, self.color,
-                            [self.position + offset.rotate_rad(self.rotation)
+        pygame.draw.polygon(surface, self.color,
+                            [position + offset.rotate_rad(self.rotation)
                              for offset in robot_vertex_offsets])
 
         root3div2 = math.sqrt(3) / 2
@@ -556,8 +560,8 @@ class Robot(entity.Entity):
         ]
 
         # Draw arrow to denote front of robot
-        pygame.draw.polygon(screen, ARROW_COLOR,
-                            [self.position + offset.rotate_rad(self.rotation)
+        pygame.draw.polygon(surface, ARROW_COLOR,
+                            [position + offset.rotate_rad(self.rotation)
                              for offset in arrow_vertex_offsets])
 
         # Offsets of robot turret vertices (without rotation)
@@ -570,14 +574,17 @@ class Robot(entity.Entity):
 
         # Draw turret
         pygame.draw.polygon(
-            screen, TURRET_COLOR,
-            [self.position + offset.rotate_rad(self.turret_rotation)
+            surface, TURRET_COLOR,
+            [position + offset.rotate_rad(self.turret_rotation)
              for offset in turret_vertex_offsets]
         )
 
         # Draw robot head
-        pygame.draw.circle(screen, self.head_color, self.position,
+        pygame.draw.circle(surface, self.head_color, position,
                            ROBOT_HEAD_RADIUS)
+
+    def render(self, screen: pygame.Surface):
+        return self.render_at_position(screen, self.position)
 
     def post_render(self, screen: pygame.Surface):
         # Draw health bar
