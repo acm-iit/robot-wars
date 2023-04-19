@@ -15,6 +15,8 @@ from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
+from engine.robotlist import (render_robot_list, WIDTH as ROBOT_LIST_WIDTH,
+                              COLOR as ROBOT_LIST_COLOR)
 from engine.util import can_see
 
 Rect = pygame.Rect
@@ -22,11 +24,9 @@ Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
 FRAME_RATE = 60
-MAX_VIEWPORT_WIDTH = 1024
-MAX_VIEWPORT_HEIGHT = 768
+MAX_VIEWPORT_WIDTH = 896
+MAX_VIEWPORT_HEIGHT = 896
 GRASS_COLOR = "#006600"
-ROBOT_LIST_WIDTH = 256
-ROBOT_LIST_COLOR = "#444444"
 
 BULLET_COLLIDE_RADIUS = 16          # Radius for collisions w/ other bullets
 BULLET_COLLIDE_EFFECT_RADIUS = 24   # Radius for collision boom effect
@@ -54,6 +54,7 @@ class Arena:
         self.__bullet_collisions = list[tuple[Vector2, float]]()
 
         self.spawns: list[Vector2] = []
+        self.total_sim_time = 0         # Total simulation time (not elapsed)
 
         # Debug settings
         self.show_hitboxes = False
@@ -547,11 +548,11 @@ class Arena:
         dt = 0
 
         # Font to render debug text
-        font = pygame.font.SysFont("couriernew", 18)
+        font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
 
         total_frames = 0
         total_frame_time = 0        # Actual elapsed time
-        total_sim_time = 0              # Simulated time
+        self.total_sim_time = 0     # Simulated time
 
         while running:
             # Poll for events
@@ -569,7 +570,7 @@ class Arena:
             # If simulation runs slower, keep time step at desired rate to
             # prevent large time steps
             time_step = min(dt, 1 / FRAME_RATE)
-            total_sim_time += time_step
+            self.total_sim_time += time_step
 
             # Simulate a time step
             self.update(time_step)
@@ -577,7 +578,7 @@ class Arena:
             # Scale arena surface contents to create viewport surface
             ratio = self.__size.x / viewport_size.x
             viewport = None
-            if ratio > 2:
+            if ratio > 3:
                 # Use faster, normal scale if the ratio is too large
                 viewport = pygame.transform.scale(self.__surface,
                                                   viewport_size)
@@ -597,12 +598,8 @@ class Arena:
             # Draw viewport onto screen
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
-            # Draw Robot scores
-            for i, robot in enumerate(self.get_entities_of_type(Robot)):
-                assert type(robot) is Robot, "Shouldn't happen"
-                window.blit(font.render(f"{robot.name}: {robot.coins} Coin(s)",
-                                        False, "#FFFFFF"),
-                            Vector2(0, i * 18))
+            # Draw Robot list
+            render_robot_list(window, [robot for robot, _ in self.__robots])
 
             # Display results on window
             pygame.display.flip()

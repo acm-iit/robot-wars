@@ -14,7 +14,7 @@ maps = [
 ]
 
 # If set, use this map instead of a random one above
-map = maps[1]
+map = maps[5]
 
 # List of enemy robot controllers
 enemies = [
@@ -24,7 +24,7 @@ enemies = [
     controllers.AggreedyController
 ]
 
-# If set, use this enemy controller instead of a random one above
+# If set, use this enemy controller only instead of randomly chosen ones
 enemy = None
 
 
@@ -44,9 +44,13 @@ if __name__ == "__main__":
     if arena is None:
         quit(1)
 
-    # Add enemy robot
-    enemy = enemy if enemy is not None else choice(enemies)
-    arena.add_robot(enemy())
+    # Uncomment the below to show FPS
+    # arena.show_fps = True
+
+    # Add enemy robot(s)
+    for i in range(15):
+        chosen_enemy = enemy if enemy is not None else choice(enemies)
+        arena.add_robot(chosen_enemy())
 
     # Add your robot
     arena.add_robot(MyController())
