@@ -115,9 +115,36 @@ class ControlOutput:
     def __init__(self, input: ControlInput):
         self.__input = input
 
-        self.move_power = 0
-        self.turn_power = 0
-        self.turret_turn_power = 0
+        self.move_power: float = 0
+        """
+        Current velocity of the robot, represented as a fraction of maximum
+        movement speed between `-1` and `1`, inclusive.
+
+        Positive values correspond to moving forwards, while negative values
+        correspond to moving backwards.
+        """
+
+        self.turn_power: float = 0
+        """
+        Current angular velocity of the robot, represented as a fraction of
+        maximum turning speed between `-1` and `1`, inclusive.
+
+        Positive values correspond to turning clockwise, while negative values
+        correspond to turning counter-clockwise.
+
+        (Positive is clockwise because the positive Y-axis is down!)
+        """
+
+        self.turret_turn_power: float = 0
+        """
+        Current angular velocity of the turret, represented as a fraction of
+        maximum turret turning speed between `-1` and `1`, inclusive.
+
+        Positive values correspond to turning clockwise, while negative values
+        correspond to turning counter-clockwise.
+
+        (Positive is clockwise because the positive Y-axis is down!)
+        """
 
         self.move_toward: tuple[float, float] | None = None
         """
@@ -129,70 +156,7 @@ class ControlOutput:
         If unused, set to `None`.
         """
 
-        self.turn_toward = None
-        self.aim_toward = None
-
-        self.shoot: bool = False
-        """
-        Determines if the robot should shoot during this time step.
-
-        `False` represents no shooting, `True` represents shooting.
-        """
-
-    @property
-    def move_power(self) -> float:
-        """
-        Current velocity of the robot, represented as a fraction of maximum
-        movement speed between `-1` and `1`, inclusive.
-
-        Positive values correspond to moving forwards, while negative values
-        correspond to moving backwards.
-        """
-        self.__move_power = min(max(self.__move_power, -1), 1)
-        return self.__move_power
-
-    @move_power.setter
-    def move_power(self, move_power: float):
-        self.__move_power = min(max(move_power, -1), 1)
-
-    @property
-    def turn_power(self) -> float:
-        """
-        Current angular velocity of the robot, represented as a fraction of
-        maximum turning speed between `-1` and `1`, inclusive.
-
-        Positive values correspond to turning clockwise, while negative values
-        correspond to turning counter-clockwise.
-
-        (Positive is clockwise because the positive Y-axis is down!)
-        """
-        self.__turn_power = min(max(self.__turn_power, -1), 1)
-        return self.__turn_power
-
-    @turn_power.setter
-    def turn_power(self, turn_power: float):
-        self.__turn_power = min(max(turn_power, -1), 1)
-
-    @property
-    def turret_turn_power(self) -> float:
-        """
-        Current angular velocity of the turret, represented as a fraction of
-        maximum turret turning speed between `-1` and `1`, inclusive.
-
-        Positive values correspond to turning clockwise, while negative values
-        correspond to turning counter-clockwise.
-
-        (Positive is clockwise because the positive Y-axis is down!)
-        """
-        self.__turret_turn_power = min(max(self.__turret_turn_power, -1), 1)
-        return self.__turret_turn_power
-
-    @turret_turn_power.setter
-    def turret_turn_power(self, turret_turn_power: float):
-        self.__turret_turn_power = min(max(turret_turn_power, -1), 1)
-
-    @property
-    def turn_toward(self) -> float | None:
+        self.turn_toward: float | tuple[float, float] | None = None
         """
         Angle or position that the robot should turn itself toward.
 
@@ -206,32 +170,8 @@ class ControlOutput:
 
         (Angles are measured clockwise since the positive Y-axis is down!)
         """
-        # Normalize value (in case the user somehow sets internal __turn_toward
-        # to an incorrect value)
-        if self.__turn_toward is not None:
-            self.__turn_toward %= 2 * math.pi
 
-        return self.__turn_toward
-
-    @turn_toward.setter
-    def turn_toward(self, target: float | tuple[float, float] | None):
-        if target is None:
-            self.__turn_toward = None
-            return
-
-        # Handle case where target is a position
-        if type(target) is tuple:
-            target = angle_to(*self.__input.position, *target)
-
-        # Python type checker doesn't seem to understand that target should be
-        # a float by here...
-        assert type(target) is float, ("turn_toward should be float or tuple "
-                                       "of floats")
-
-        self.__turn_toward = target % (2 * math.pi)
-
-    @property
-    def aim_toward(self) -> float | None:
+        self.aim_toward: float | tuple[float, float] | None = None
         """
         Angle or position that the robot should aim its turret toward.
 
@@ -245,29 +185,13 @@ class ControlOutput:
 
         (Angles are measured clockwise since the positive Y-axis is down!)
         """
-        # Normalize value (in case the user somehow sets internal __aim_toward
-        # to an incorrect value)
-        if self.__aim_toward is not None:
-            self.__aim_toward %= 2 * math.pi
 
-        return self.__aim_toward
+        self.shoot: bool = False
+        """
+        Determines if the robot should shoot during this time step.
 
-    @aim_toward.setter
-    def aim_toward(self, target: float | tuple[float, float] | None):
-        if target is None:
-            self.__aim_toward = None
-            return
-
-        # Handle case where target is a position
-        if type(target) is tuple:
-            target = angle_to(*self.__input.position, *target)
-
-        # Python type checker doesn't seem to understand that target should be
-        # a float by here...
-        assert type(target) is float, ("aim_toward should be float or tuple "
-                                       "of floats")
-
-        self.__aim_toward = target % (2 * math.pi)
+        `False` represents no shooting, `True` represents shooting.
+        """
 
 
 class Controller:

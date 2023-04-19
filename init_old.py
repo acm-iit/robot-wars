@@ -28,7 +28,7 @@ def human_controller_factory(arena: Arena):
 
         if not arena.show_paths:
             # Aim turret towards mouse
-            robot.aim_towards(arena_point, dt)
+            robot.aim_toward(arena_point, dt)
             # Shoot
             if down:
                 robot.shoot()
@@ -48,7 +48,7 @@ def seek_point_pathfinding(robot: Robot, point: Vector2, dt: float) -> bool:
     if path is None:
         return False
 
-    robot.move_towards(path[0], dt)
+    robot.move_toward(path[0], dt)
 
     return True
 
@@ -57,7 +57,7 @@ def seek_robot_controller_factory(target: Robot):
     """Creates a control scheme to seek a certain robot with pathfinding."""
     def control(robot: Robot, dt: float):
         if seek_point_pathfinding(robot, target.position, dt):
-            robot.aim_towards(target.position, dt)
+            robot.aim_toward(target.position, dt)
             robot.shoot()
 
     return control
@@ -69,7 +69,7 @@ def seek_nearest_robot_controller(robot: Robot, dt: float):
     if nearest is None:
         return
     if seek_point_pathfinding(robot, nearest.position, dt):
-        robot.aim_towards(nearest.position, dt)
+        robot.aim_toward(nearest.position, dt)
         robot.shoot()
 
 
@@ -93,7 +93,7 @@ def seek_coin_shoot_controller(robot: Robot, dt: float):
     if nearest is None:
         return
 
-    robot.aim_towards(nearest.position, dt)
+    robot.aim_toward(nearest.position, dt)
     robot.shoot()
 
 

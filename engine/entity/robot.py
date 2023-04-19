@@ -243,15 +243,15 @@ class Robot(entity.Entity):
 
         self.__time_until_next_shot = self.__shot_cooldown
 
-    def move_towards(self, point: Vector2, dt: float):
+    def move_toward(self, point: Vector2, dt: float):
         """
         Sets the move_power and turn_power such that the Robot will move
-        towards a specified point.
+        toward a specified point.
         """
         if dt == 0:
             return
 
-        self.turn_towards(point, dt)
+        self.turn_toward(point, dt)
 
         direction = point - self.position
         angle = math.atan2(direction.y, direction.x)
@@ -260,47 +260,35 @@ class Robot(entity.Entity):
         if abs(angle_diff) < math.pi / 16:
             self.move_power = direction.magnitude() / (self.__move_speed * dt)
 
-    def turn_to(self, angle: float, dt: float):
+    def turn_toward(self, angle_or_point: float | Vector2, dt: float):
         """
-        Sets the turn_power such that the Robot will face towards a specified
-        angle.
+        Sets the turn_power such that the Robot will face toward a specified
+        angle or point.
         """
-        if dt == 0:
-            return
+        if type(angle_or_point) is float:
+            if dt == 0:
+                return
 
-        difference = angle_difference(self.rotation, angle)
-        self.turn_power = difference / (self.__turn_speed * dt)
+            diff = angle_difference(self.rotation, angle_or_point)
+            self.turn_power = diff / (self.__turn_speed * dt)
+        elif type(angle_or_point) is Vector2:
+            direction = angle_or_point - self.position
+            self.turn_toward(math.atan2(direction.y, direction.x), dt)
 
-    def turn_towards(self, point: Vector2, dt: float):
+    def aim_toward(self, angle_or_point: float | Vector2, dt: float):
         """
-        Sets the turn_power such that the Robot will face towards a specified
-        point.
+        Sets the turret_turn_power such that the turret will aim toward a
+        specified angle or point.
         """
-        direction = point - self.position
-        desired_angle = math.atan2(direction.y, direction.x)
+        if type(angle_or_point) is float:
+            if dt == 0:
+                return
 
-        self.turn_to(desired_angle, dt)
-
-    def aim_at(self, angle: float, dt: float):
-        """
-        Sets the turret_turn_power such that the Robot's turret will face
-        towards a specified angle.
-        """
-        if dt == 0:
-            return
-
-        difference = angle_difference(self.turret_rotation, angle)
-        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
-
-    def aim_towards(self, point: Vector2, dt: float):
-        """
-        Sets the turret_turn_power such that the turret will aim towards a
-        specified point.
-        """
-        direction = point - self.position
-        desired_angle = math.atan2(direction.y, direction.x)
-
-        self.aim_at(desired_angle, dt)
+            diff = angle_difference(self.turret_rotation, angle_or_point)
+            self.turret_turn_power = diff / (self.__turret_turn_speed * dt)
+        elif type(angle_or_point) is Vector2:
+            direction = angle_or_point - self.position
+            self.aim_toward(math.atan2(direction.y, direction.x), dt)
 
     def pathfind(self, point: Vector2) -> Optional[list[Vector2]]:
         """
@@ -317,23 +305,25 @@ class Robot(entity.Entity):
         return self.arena.can_see(self, point)
 
     def consume_output(self, output: ControlOutput, dt: float):
-        self.move_power = output.move_power
-        self.turn_power = output.turn_power
-        self.turret_turn_power = output.turret_turn_power
+        self.move_power = min(max(output.move_power, -1), 1)
+        self.turn_power = min(max(output.turn_power, -1), 1)
+        self.turret_turn_power = min(max(output.turret_turn_power, -1), 1)
 
-        turn_toward = output.turn_toward
-        if turn_toward is not None:
-            self.turn_to(turn_toward, dt)
+        if type(output.turn_toward) is float:
+            self.turn_toward(output.turn_toward % 2 * math.pi, dt)
+        elif type(output.turn_toward) is tuple:
+            self.turn_toward(Vector2(*output.turn_toward), dt)
 
         if output.move_toward is not None:
             x, y = output.move_toward
             path = self.pathfind(Vector2(x, y))
             if path is not None:
-                self.move_towards(path[0], dt)
+                self.move_toward(path[0], dt)
 
-        aim_toward = output.aim_toward
-        if aim_toward is not None:
-            self.aim_at(aim_toward, dt)
+        if type(output.aim_toward) is float:
+            self.aim_toward(output.aim_toward % 2 * math.pi, dt)
+        elif type(output.aim_toward) is tuple:
+            self.aim_toward(Vector2(*output.aim_toward), dt)
 
         if output.shoot:
             self.shoot()
