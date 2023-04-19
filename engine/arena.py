@@ -54,6 +54,7 @@ class Arena:
         self.__bullet_collisions = list[tuple[Vector2, float]]()
 
         self.spawns: list[Vector2] = []
+        self.total_sim_time = 0         # Total simulation time (not elapsed)
 
         # Debug settings
         self.show_hitboxes = False
@@ -551,7 +552,7 @@ class Arena:
 
         total_frames = 0
         total_frame_time = 0        # Actual elapsed time
-        total_sim_time = 0              # Simulated time
+        self.total_sim_time = 0     # Simulated time
 
         while running:
             # Poll for events
@@ -569,7 +570,7 @@ class Arena:
             # If simulation runs slower, keep time step at desired rate to
             # prevent large time steps
             time_step = min(dt, 1 / FRAME_RATE)
-            total_sim_time += time_step
+            self.total_sim_time += time_step
 
             # Simulate a time step
             self.update(time_step)

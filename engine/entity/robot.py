@@ -78,6 +78,8 @@ class Robot(entity.Entity):
 
         self.coins = 0                              # Number of coins collected
 
+        self.death_time = math.inf                  # Time of death
+
         # Velocity from last update call
         self.last_velocity = Vector2()
 
@@ -120,6 +122,8 @@ class Robot(entity.Entity):
 
         # Destroy the robot if it runs out of health
         if self.__health == 0:
+            if self.arena is not None:
+                self.death_time = self.arena.total_sim_time
             self.destroy()
 
     @property
