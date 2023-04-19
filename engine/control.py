@@ -1,5 +1,24 @@
 import math
 
+from engine.util import angle_difference as angle_difference    # noqa
+
+
+def distance(x1: float, y1: float, x2: float, y2: float) -> float:
+    """
+    Calculates the Euclidean distance between two points `(x1, y1)` and
+    `(x2, y2)`.
+    """
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+
+
+def angle_to(x1: float, y1: float, x2: float, y2: float) -> float:
+    """
+    Calculates the angle, in radians, for an object located at `(x1, y1)` to be
+    facing an object located at `(x2, y2)`.
+    """
+    dx, dy = x2 - x1, y2 - y1
+    return math.atan2(dy, dx)
+
 
 class ControlInput:
     """
@@ -100,39 +119,18 @@ class ControlOutput:
         self.turn_power = 0
         self.turret_turn_power = 0
 
-        self.move_to: tuple[float, float] | None = None
+        self.move_toward: tuple[float, float] | None = None
         """
-        Position that the robot should move towards using pathfinding, as a
+        Position that the robot should move toward using pathfinding, as a
         tuple `(x, y)` measured from the top-left point of the arena.
 
-        This value overrides `move_power`, `turn_power`, and `turn_to`.
+        This value overrides `move_power`, `turn_power`, and `turn_toward`.
 
         If unused, set to `None`.
         """
 
-        self.turn_to: float | None = None
-        """
-        Angle that the robot should turn itself towards, in radians measured
-        clockwise from the positive X-axis (right).
-
-        This value overrides `turn_power`.
-
-        If unused, set to `None`.
-
-        (It is measured clockwise since the positive Y-axis is down!)
-        """
-
-        self.aim_at: float | None = None
-        """
-        Angle that the robot should aim its turret in, in radians measured
-        clockwise from the positive X-axis (right).
-
-        This value overrides `turret_turn_power`.
-
-        If unused, set to `None`.
-
-        (It is measured clockwise since the positive Y-axis is down!)
-        """
+        self.turn_toward = None
+        self.aim_toward = None
 
         self.shoot: bool = False
         """
@@ -193,37 +191,83 @@ class ControlOutput:
     def turret_turn_power(self, turret_turn_power: float):
         self.__turret_turn_power = min(max(turret_turn_power, -1), 1)
 
-    def turn_to_position(self, target: tuple[float, float]):
+    @property
+    def turn_toward(self) -> float | None:
         """
-        Helper function for turning the robot towards a particular point in the
-        arena. This sets `turn_to` to the calculated angle between the robot
-        and `target`.
+        Angle or position that the robot should turn itself toward.
 
-        `target` is a tuple of `(x, y)`.
+        Angles should be in radians measured clockwise from the positive X-axis
+        (right), while positions should be tuples of floats `(x, y)` measured
+        from the top-left point of the arena.
 
-        Note that the robot won't immediately turn to this position in one time
-        step, this simply sets the goal rotation.
+        This value overrides `turn_power`.
+
+        If unused, set to `None`.
+
+        (Angles are measured clockwise since the positive Y-axis is down!)
         """
-        target_x, target_y = target
-        current_x, current_y = self.__input.position
-        difference_x, difference_y = target_x - current_x, target_y - current_y
-        self.turn_to = math.atan2(difference_y, difference_x)
+        # Normalize value (in case the user somehow sets internal __turn_toward
+        # to an incorrect value)
+        if self.__turn_toward is not None:
+            self.__turn_toward %= 2 * math.pi
 
-    def aim_at_position(self, target: tuple[float, float]):
+        return self.__turn_toward
+
+    @turn_toward.setter
+    def turn_toward(self, target: float | tuple[float, float] | None):
+        if target is None:
+            self.__turn_toward = None
+            return
+
+        # Handle case where target is a position
+        if type(target) is tuple:
+            target = angle_to(*self.__input.position, *target)
+
+        # Python type checker doesn't seem to understand that target should be
+        # a float by here...
+        assert type(target) is float, ("turn_toward should be float or tuple "
+                                       "of floats")
+
+        self.__turn_toward = target % (2 * math.pi)
+
+    @property
+    def aim_toward(self) -> float | None:
         """
-        Helper function for aiming the robot's turret towards a particular
-        point in the arena. This sets `aim_at` to the calculated angle between
-        the robot and `target`.
+        Angle or position that the robot should aim its turret toward.
 
-        `target` is a tuple of `(x, y)`.
+        Angles should be in radians measured clockwise from the positive X-axis
+        (right), while positions should be tuples of floats `(x, y)` measured
+        from the top-left point of the arena.
 
-        Note that the turret won't immediately aim at this position in one time
-        step, this simply sets the goal turret rotation.
+        This value overrides `turret_turn_power`.
+
+        If unused, set to `None`.
+
+        (Angles are measured clockwise since the positive Y-axis is down!)
         """
-        target_x, target_y = target
-        current_x, current_y = self.__input.position
-        difference_x, difference_y = target_x - current_x, target_y - current_y
-        self.aim_at = math.atan2(difference_y, difference_x)
+        # Normalize value (in case the user somehow sets internal __aim_toward
+        # to an incorrect value)
+        if self.__aim_toward is not None:
+            self.__aim_toward %= 2 * math.pi
+
+        return self.__aim_toward
+
+    @aim_toward.setter
+    def aim_toward(self, target: float | tuple[float, float] | None):
+        if target is None:
+            self.__aim_toward = None
+            return
+
+        # Handle case where target is a position
+        if type(target) is tuple:
+            target = angle_to(*self.__input.position, *target)
+
+        # Python type checker doesn't seem to understand that target should be
+        # a float by here...
+        assert type(target) is float, ("aim_toward should be float or tuple "
+                                       "of floats")
+
+        self.__aim_toward = target % (2 * math.pi)
 
 
 class Controller:

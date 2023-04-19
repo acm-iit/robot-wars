@@ -321,19 +321,19 @@ class Robot(entity.Entity):
         self.turn_power = output.turn_power
         self.turret_turn_power = output.turret_turn_power
 
-        if output.turn_to is not None:
-            output.turn_to %= 2 * math.pi
-            self.turn_to(output.turn_to, dt)
+        turn_toward = output.turn_toward
+        if turn_toward is not None:
+            self.turn_to(turn_toward, dt)
 
-        if output.move_to is not None:
-            x, y = output.move_to
+        if output.move_toward is not None:
+            x, y = output.move_toward
             path = self.pathfind(Vector2(x, y))
             if path is not None:
                 self.move_towards(path[0], dt)
 
-        if output.aim_at is not None:
-            output.aim_at %= 2 * math.pi
-            self.aim_at(output.aim_at, dt)
+        aim_toward = output.aim_toward
+        if aim_toward is not None:
+            self.aim_at(aim_toward, dt)
 
         if output.shoot:
             self.shoot()
