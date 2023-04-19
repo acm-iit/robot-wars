@@ -86,7 +86,7 @@ class Robot(entity.Entity):
         self.__turret_turn_speed = ROBOT_TURRET_TURN_SPEED
         self.__shot_cooldown = ROBOT_SHOT_COOLDOWN
 
-        self.__time_until_next_shot = 0             # Remaining cooldown
+        self.time_until_next_shot = 0               # Remaining cooldown
 
         self.__left_tread_alpha = 0                 # Range: [0, 1)
         self.__right_tread_alpha = 0                # Range: [0, 1)
@@ -246,7 +246,7 @@ class Robot(entity.Entity):
         """Makes the robot shoot a bullet in the direction of its turret."""
         assert self.arena is not None, "Robot doesn't have corresponding Arena"
 
-        if self.__time_until_next_shot > 0:
+        if self.time_until_next_shot > 0:
             return
 
         offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.turret_rotation)
@@ -254,7 +254,7 @@ class Robot(entity.Entity):
         bullet = entity.Bullet(position, self.turret_rotation, self)
         self.arena.add_entity(bullet)
 
-        self.__time_until_next_shot = self.__shot_cooldown
+        self.time_until_next_shot = self.__shot_cooldown
 
     def move_toward(self, point: Vector2, dt: float):
         """
@@ -426,6 +426,9 @@ class Robot(entity.Entity):
         state.turret_rotation = self.turret_rotation
         state.max_turret_turn_speed = self.__turret_turn_speed
 
+        state.shot_cooldown = self.time_until_next_shot
+        state.shot_speed = BULLET_SPEED
+
         enemy = self.nearest_robot
         if enemy is not None:
             state.enemy_position = (enemy.position.x, enemy.position.y)
@@ -433,6 +436,8 @@ class Robot(entity.Entity):
                                     enemy.last_velocity.y)
             state.enemy_rotation = enemy.rotation
             state.enemy_turret_rotation = enemy.turret_rotation
+
+            state.enemy_shot_cooldown = enemy.time_until_next_shot
 
             state.can_see_enemy = self.can_see(enemy.position)
         else:
@@ -444,9 +449,6 @@ class Robot(entity.Entity):
         coin = self.coin
         if coin is not None:
             state.coin_position = (coin.x, coin.y)
-
-        state.shot_cooldown = self.__time_until_next_shot
-        state.shot_speed = BULLET_SPEED
 
         return state
 
@@ -465,7 +467,7 @@ class Robot(entity.Entity):
             self.shoot()
 
         # Update shot cooldown
-        self.__time_until_next_shot = max(self.__time_until_next_shot - dt, 0)
+        self.time_until_next_shot = max(self.time_until_next_shot - dt, 0)
 
     def render(self, screen: pygame.Surface):
         # Pixel offsets of treads vertices relative to the center of the treads

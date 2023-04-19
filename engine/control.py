@@ -74,6 +74,21 @@ class ControllerState:
         `turret_turn_power = 1` or `-1`.
         """
 
+        self.shot_cooldown: float = 0
+        """
+        Time left until the robot can shoot a bullet. Every time a robot shoots
+        a bullet, it cannot shoot again for `1` second.
+
+        If the value is `0`, then setting `ControllerAction.shoot = True` will
+        successfully shoot a bullet.
+        """
+
+        self.shot_speed: float = 0
+        """
+        Scalar speed of the robot's bullets when it shoots. Useful for
+        predicting own bullet paths.
+        """
+
         self.enemy_position: tuple[float, float] = (0, 0)
         """
         Position of the enemy robot, as a tuple `(x, y)` measured from the
@@ -116,6 +131,17 @@ class ControllerState:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
+        self.enemy_shot_cooldown: float = 0
+        """
+        Time left until the enemy robot can shoot a bullet. Every time a robot
+        shoots a bullet, it cannot shoot again for `1` second.
+
+        If the value is `0`, then the enemy robot is able to shoot a bullet.
+
+        In the case of multiple enemy robots (i.e. battle royale), this is the
+        shot cooldown of the nearest enemy robot.
+        """
+
         self.can_see_enemy: bool = False
         """
         Determines if the robot can see the enemy robot, as a boolean where
@@ -140,21 +166,6 @@ class ControllerState:
         """
         Position of the coin, as a tuple `(x, y)` measured from the top-left
         point of the arena.
-        """
-
-        self.shot_cooldown: float = 0
-        """
-        Time left until the robot can shoot a bullet. Every time a robot shoots
-        a bullet, it cannot shoot again for `1` second.
-
-        If the value is `0`, then setting `ControllerAction.shoot = True` will
-        successfully shoot a bullet.
-        """
-
-        self.shot_speed: float = 0
-        """
-        Scalar speed of the robot's bullets when it shoots. Useful for
-        predicting own bullet paths.
         """
 
 
