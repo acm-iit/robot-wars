@@ -549,7 +549,8 @@ class Arena:
         font = pygame.font.SysFont("couriernew", 18)
 
         total_frames = 0
-        total_time = 0
+        total_frame_time = 0        # Actual elapsed time
+        total_sim_time = 0              # Simulated time
 
         while running:
             # Poll for events
@@ -562,18 +563,15 @@ class Arena:
             window.fill(ROBOT_LIST_COLOR)
 
             total_frames += 1
-            total_time += dt
+            total_frame_time += dt
+
+            # If simulation runs slower, keep time step at desired rate to
+            # prevent large time steps
+            time_step = min(dt, 1 / FRAME_RATE)
+            total_sim_time += time_step
 
             # Simulate a time step
-            # When dragging the window, the clock freezes and resumes once
-            # finished dragging. This can cause large values of `dt`, which can
-            # cause entities to move too far and avoid collisions, so we handle
-            # that case here by splitting it into smaller time steps.
-            remaining_dt = dt
-            while remaining_dt > 10 / FRAME_RATE:
-                self.update(10 / FRAME_RATE)
-                remaining_dt -= 10 / FRAME_RATE
-            self.update(remaining_dt)
+            self.update(time_step)
 
             # Scale arena surface contents to create viewport surface
             ratio = self.__size.x / viewport_size.x
@@ -608,11 +606,9 @@ class Arena:
             # Display results on window
             pygame.display.flip()
 
-            # Limits FPS to 60
-            # `dt`` is delta time in seconds since last frame, used for
-            # framerate-independent physics.
+            # Limit FPS
             dt = clock.tick(FRAME_RATE) / 1000
 
         pygame.quit()
 
-        print(f"Overall FPS: {total_frames / total_time}")
+        print(f"Overall FPS: {total_frames / total_frame_time}")
