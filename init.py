@@ -34,8 +34,8 @@ class MyController(Controller):
     def __init__(self):
         super().__init__("MyRobot", "#EEEEEE", "#CCCCCC")
 
-    def act(self, input: ControlInput, output: ControlOutput):
-        pass
+    def act(self, input: ControlInput) -> ControlOutput:
+        return ControlOutput()
 
 
 if __name__ == "__main__":

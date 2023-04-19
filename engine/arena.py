@@ -7,7 +7,7 @@ from typing import Optional
 
 import pygame
 
-from engine.control import Controller, ControlOutput
+from engine.control import Controller
 from engine.entity import Bullet, Coin, Entity, Robot, Wall
 from engine.entity.bullet import BULLET_SPEED
 from engine.entity.coin import COIN_RADIUS
@@ -324,10 +324,8 @@ class Arena:
             if robot.arena is None:
                 continue
             input = robot.produce_input()
-            output = ControlOutput()
             try:
-                controller.act(input, output)
-                robot.consume_output(output, dt)
+                robot.consume_output(controller.act(input), dt)
             except Exception:
                 print(f"[ERROR ({robot.name})]: Error occurred during robot "
                       "execution; see below traceback")

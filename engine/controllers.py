@@ -11,11 +11,15 @@ class SpinController(Controller):
         self.turn_power = random() * 2 - 1
         self.turret_turn_power = random() * 2 - 1
 
-    def act(self, _, output: ControlOutput):
+    def act(self, _) -> ControlOutput:
+        output = ControlOutput()
+
         output.shoot = True
         output.move_power = self.move_power
         output.turn_power = self.turn_power
         output.turret_turn_power = self.turret_turn_power
+
+        return output
 
 
 class AggressiveController(Controller):
@@ -23,11 +27,15 @@ class AggressiveController(Controller):
     def __init__(self):
         super().__init__("Aggressive", "#EE00EE", "#CC00CC")
 
-    def act(self, input: ControlInput, output: ControlOutput):
+    def act(self, input: ControlInput) -> ControlOutput:
+        output = ControlOutput()
+
         output.move_toward = input.enemy_position
         if input.can_see_enemy:
             output.aim_toward = input.enemy_position
             output.shoot = True
+
+        return output
 
 
 class GreedyController(Controller):
@@ -35,8 +43,12 @@ class GreedyController(Controller):
     def __init__(self):
         super().__init__("Greedy", "#00EE00", "#00CC00")
 
-    def act(self, input: ControlInput, output: ControlOutput):
+    def act(self, input: ControlInput) -> ControlOutput:
+        output = ControlOutput()
+
         output.move_toward = input.coin_position
+
+        return output
 
 
 class AggreedyController(Controller):
@@ -44,8 +56,12 @@ class AggreedyController(Controller):
     def __init__(self):
         super().__init__("Aggreedy", "#0000EE", "#0000CC")
 
-    def act(self, input: ControlInput, output: ControlOutput):
+    def act(self, input: ControlInput) -> ControlOutput:
+        output = ControlOutput()
+
         output.move_toward = input.coin_position
         if input.can_see_enemy:
             output.aim_toward = input.enemy_position
             output.shoot = True
+
+        return output

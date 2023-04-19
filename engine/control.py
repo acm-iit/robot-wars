@@ -210,11 +210,11 @@ class Controller:
         self.body_color = body_color
         self.head_color = head_color
 
-    def act(self, input: ControlInput, output: ControlOutput):
+    def act(self, input: ControlInput) -> ControlOutput:
         """
-        Runs this Controller on a Robot's input to modify an output that
+        Runs this Controller on a Robot's input to produce an output that
         determines how the Robot will behave in this time step.
 
         Override this with your own behavior!
         """
-        pass
+        return ControlOutput()
