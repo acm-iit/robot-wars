@@ -52,7 +52,7 @@ class Bullet(entity.Entity):
         return False
 
     def on_collide(self, other: entity.Entity, translation: Vector2):
-        if other is self.origin:
+        if other is self.origin or self.arena is None:
             return
 
         if type(other) is entity.Robot:

@@ -27,6 +27,10 @@ GRASS_COLOR = "#006600"
 ROBOT_LIST_WIDTH = 256
 ROBOT_LIST_COLOR = "#444444"
 
+BULLET_COLLIDE_RADIUS = 24          # Radius for collisions w/ other bullets
+BULLET_COLLIDE_COLOR = "#FC9803"
+BULLET_COLLIDE_EFFECT_TIME = 0.3
+
 
 class Arena:
     """
@@ -45,6 +49,7 @@ class Arena:
         self.__segments: list[tuple[Vector2, Vector2]] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
         self.__robots = list[tuple[Robot, Controller]]()
+        self.__bullet_collisions = list[tuple[Vector2, float]]()
 
         self.spawns: list[Vector2] = []
 
@@ -353,6 +358,54 @@ class Arena:
         for entity1, entity2 in self.__quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
 
+    def __update_bullets(self, dt: float):
+        """Handles bullet collision negation."""
+        assert self.__quadtree is not None, "Quadtree should exist"
+
+        self.__bullet_collisions[:] = [(p, t - dt)
+                                       for p, t in self.__bullet_collisions]
+        self.__bullet_collisions[:] = [(p, t)
+                                       for p, t in self.__bullet_collisions
+                                       if t > 0]
+
+        bullets = self.get_entities_of_type(Bullet)
+
+        for bullet in bullets:
+            assert type(bullet) is Bullet, "Shouldn't happen"
+            if bullet.arena is None:
+                continue
+
+            query_rect = Rect(
+                bullet.position - Vector2(BULLET_COLLIDE_RADIUS),
+                Vector2(BULLET_COLLIDE_RADIUS * 2)
+            )
+            entities = self.__quadtree.query(query_rect)
+
+            collided = 1
+            position_sum = bullet.position
+
+            for entity in entities:
+                if type(entity) is not Bullet:
+                    continue
+
+                if entity.origin == bullet.origin:
+                    continue
+
+                dist = (entity.position - bullet.position).magnitude()
+                if dist > BULLET_COLLIDE_RADIUS:
+                    continue
+
+                entity.destroy()
+
+                collided += 1
+                position_sum += entity.position
+
+            if collided > 1:
+                collision_point = position_sum / collided
+                self.__bullet_collisions.append((collision_point,
+                                                 BULLET_COLLIDE_EFFECT_TIME))
+                bullet.destroy()
+
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
         # Calculate Quadtree bounds
@@ -384,6 +437,19 @@ class Arena:
             entity.render(self.__surface)
         for entity in self.__entities:
             entity.post_render(self.__surface)
+
+        # Draw bullet collisions
+        for point, time in self.__bullet_collisions:
+            alpha = (time / BULLET_COLLIDE_EFFECT_TIME) ** 2
+            size = BULLET_COLLIDE_RADIUS * 2 * (1 + (1 - alpha) * 0.5)
+            color = pygame.Color(BULLET_COLLIDE_COLOR)
+            color.a = int(alpha * 255)
+
+            boom = pygame.Surface(Vector2(size), flags=pygame.SRCALPHA)
+
+            pygame.draw.circle(boom, color, Vector2(size / 2), size / 2)
+
+            self.__surface.blit(boom, point - Vector2(size / 2))
 
         # Draw hitboxes
         if self.show_hitboxes:
@@ -459,6 +525,7 @@ class Arena:
         self.__filter_entities()
         self.__construct_quadtree()
         self.__solve_collisions()
+        self.__update_bullets(dt)
         self.__filter_entities()
         self.__render_scene()
 
