@@ -6,6 +6,7 @@ import pygame
 
 from engine.control import ControllerAction, ControllerState
 import engine.entity as entity
+from engine.entity.bullet import BULLET_SPEED
 from engine.util import angle_difference
 
 Rect = pygame.Rect
@@ -439,6 +440,7 @@ class Robot(entity.Entity):
             state.coin_position = (coin.x, coin.y)
 
         state.shot_cooldown = self.__time_until_next_shot
+        state.shot_speed = BULLET_SPEED
 
         return state
 

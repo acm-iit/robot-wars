@@ -133,6 +133,12 @@ class ControllerState:
         successfully shoot a bullet.
         """
 
+        self.shot_speed: float = 0
+        """
+        Scalar speed of the robot's bullets when it shoots. Useful for
+        predicting own bullet paths.
+        """
+
 
 class ControllerAction:
     """
