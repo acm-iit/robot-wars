@@ -22,6 +22,14 @@ class ControlInput:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
+        self.turret_rotation: float = 0
+        """
+        Rotation of the robot's turret, in radians measured clockwise from the
+        positive X-axis (right).
+
+        (It is measured clockwise since the positive Y-axis is down!)
+        """
+
         self.enemy_position: tuple[float, float] = (0, 0)
         """
         Position of the enemy robot, as a tuple `(x, y)` measured from the

@@ -343,6 +343,7 @@ class Robot(entity.Entity):
 
         input.position = (self.position.x, self.position.y)
         input.rotation = self.rotation
+        input.turret_rotation = self.turret_rotation
 
         enemy = self.nearest_robot
         if enemy is not None:
