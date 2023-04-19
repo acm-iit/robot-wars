@@ -378,9 +378,6 @@ class Robot(entity.Entity):
                 path = self.pathfind(Vector2(x, y))
                 if path is not None:
                     self.move_toward(path[0], dt)
-                else:
-                    self.__warn(f"ControllerAction.move_toward position ({x}, "
-                                f"{y}) is unreachable")
             else:
                 self.__warn("ControllerAction.move_toward tuple values must "
                             f"be valid numbers; got ({x}, {y}); defaulting to "
