@@ -42,7 +42,9 @@ class Arena:
     """
     def __init__(self, size: Vector2):
         self.__entities: list[Entity] = []
+        self.__original_size = size     # Unmodified size of the Arena
         self.__size = size
+        self.origin = Vector2()         # Top-left corner of Arena space
         self.__surface = pygame.Surface(size)
         self.__quadtree: Optional[Quadtree] = None
         self.__path_graph: Optional[PathfindingGraph] = None
@@ -55,6 +57,7 @@ class Arena:
 
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
+        self.is_shrinking = False       # Whether to close walls in over time
 
         # Debug settings
         self.show_hitboxes = False
@@ -67,19 +70,8 @@ class Arena:
         self.show_robot_nodes = False
 
         # Add surrounding walls
-        north_wall = Wall(Vector2(size.x / 2, -WALL_THICKNESS / 2 - 1),
-                          Vector2(size.x, WALL_THICKNESS))
-        south_wall = Wall(Vector2(size.x / 2, size.y + WALL_THICKNESS / 2 + 1),
-                          Vector2(size.x, WALL_THICKNESS))
-        west_wall = Wall(Vector2(-WALL_THICKNESS / 2 - 1, size.y / 2),
-                         Vector2(WALL_THICKNESS, size.y))
-        east_wall = Wall(Vector2(size.x + WALL_THICKNESS / 2 + 1, size.y / 2),
-                         Vector2(WALL_THICKNESS, size.y))
-
-        self.add_entity(north_wall)
-        self.add_entity(south_wall)
-        self.add_entity(west_wall)
-        self.add_entity(east_wall)
+        self.boundary_walls = list[Wall]()
+        self.set_boundary_walls()
 
     @property
     def entities(self) -> list[Entity]:
@@ -109,7 +101,7 @@ class Arena:
         Read-only property that provides the size of the viewport surface.
         """
         viewport_rect = Rect(0, 0, MAX_VIEWPORT_WIDTH, MAX_VIEWPORT_HEIGHT)
-        arena_rect = Rect(Vector2(), self.__size)
+        arena_rect = Rect(Vector2(), self.__original_size)
         return Vector2(arena_rect.fit(viewport_rect).size)
 
     @property
@@ -130,6 +122,8 @@ class Arena:
                                  arena_data["size"]["height"])
             arena = Arena(arena_size)
 
+            arena.is_shrinking = arena_data["is_shrinking"]
+
             for wall_data in arena_data["walls"]:
                 wall_position = Vector2(wall_data["position"]["x"],
                                         wall_data["position"]["y"])
@@ -146,6 +140,31 @@ class Arena:
             arena.prepare_path_graph()
 
             return arena
+
+    def set_boundary_walls(self):
+        """Adds Walls that surround the Arena."""
+        for wall in self.boundary_walls:
+            wall.destroy()
+
+        origin = self.origin
+        size = self.__size
+        thick = WALL_THICKNESS
+
+        north_wall = Wall(origin + Vector2(size.x / 2, -thick / 2 - 1),
+                          Vector2(size.x + 2 * thick, thick))
+        south_wall = Wall(origin + Vector2(size.x / 2, size.y + thick / 2 + 1),
+                          Vector2(size.x + 2 * thick, thick))
+        west_wall = Wall(origin + Vector2(-thick / 2 - 1, size.y / 2),
+                         Vector2(thick, size.y + 2 * thick))
+        east_wall = Wall(origin + Vector2(size.x + thick / 2 + 1, size.y / 2),
+                         Vector2(thick, size.y + 2 * thick))
+
+        self.add_entity(north_wall)
+        self.add_entity(south_wall)
+        self.add_entity(west_wall)
+        self.add_entity(east_wall)
+
+        self.boundary_walls = [north_wall, south_wall, west_wall, east_wall]
 
     def add_entity(self, entity: Entity):
         """
@@ -297,13 +316,31 @@ class Arena:
         """
         # Subtract width of robot list panel
         point -= Vector2(ROBOT_LIST_WIDTH, 0)
-        ratio = self.__size.x / self.viewport_size.x
+        ratio = self.__original_size.x / self.viewport_size.x
         return point * ratio
+
+    def __update_shrinking(self):
+        """Handles the shrinking of the Arena over time."""
+        if not self.is_shrinking:
+            return
+
+        og_size = self.__original_size
+        shrink = self.total_sim_time * 16
+        shrink = min(shrink, min(og_size.x, og_size.y) / 2 - 256)
+
+        self.origin = Vector2(shrink)
+        self.__size = self.__original_size - Vector2(2 * shrink)
+        self.set_boundary_walls()
 
     def __update_coin(self):
         """Ensure there's a Coin on screen for Robots to attain."""
         if self.__coin.arena is not None:
-            return
+            # Make sure the coin is in the shrunk area
+            shrunk = Rect(self.origin, self.__size)
+            if shrunk.contains(self.__coin.rect):
+                return
+            else:
+                self.__coin.destroy()
 
         coin = Coin(Vector2())
 
@@ -311,10 +348,10 @@ class Arena:
             # If the Arena has no interior Walls, then spawn in a random
             # location.
             offset = ROBOT_HITBOX_WIDTH / 2 + COIN_RADIUS
-            interior_size = self.size - Vector2(offset * 2, offset * 2)
+            interior_size = self.__size - Vector2(offset * 2, offset * 2)
             x = offset + random() * interior_size.x
             y = offset + random() * interior_size.y
-            coin.position = Vector2(x, y)
+            coin.position = self.origin + Vector2(x, y)
         else:
             coin.position = choice(self.__available_nodes)
 
@@ -406,6 +443,15 @@ class Arena:
                 self.__bullet_collisions.append((collision_point,
                                                  BULLET_COLLIDE_EFFECT_TIME))
                 bullet.destroy()
+
+    def __clear_offscreen_entities(self):
+        """Removes all entities not within the playable area."""
+        rect = Rect(self.origin, self.__size)
+        for entity in self.__entities:
+            if entity.is_static:
+                continue
+            if not rect.colliderect(entity.rect):
+                entity.destroy()
 
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
@@ -520,6 +566,8 @@ class Arena:
 
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
+        self.total_sim_time += dt
+        self.__update_shrinking()
         self.__update_coin()
         self.__update_robots(dt)
         self.__update_entities(dt)
@@ -527,6 +575,7 @@ class Arena:
         self.__construct_quadtree()
         self.__solve_collisions()
         self.__update_bullets(dt)
+        self.__clear_offscreen_entities()
         self.__filter_entities()
         self.__render_scene()
 
@@ -570,13 +619,12 @@ class Arena:
             # If simulation runs slower, keep time step at desired rate to
             # prevent large time steps
             time_step = min(dt, 1 / FRAME_RATE)
-            self.total_sim_time += time_step
 
             # Simulate a time step
             self.update(time_step)
 
             # Scale arena surface contents to create viewport surface
-            ratio = self.__size.x / viewport_size.x
+            ratio = self.__original_size.x / viewport_size.x
             viewport = None
             if ratio > 3:
                 # Use faster, normal scale if the ratio is too large
