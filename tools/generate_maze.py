@@ -107,7 +107,7 @@ def create_walls(graph: list[Node]):
                     },
                     "size": {
                         "width": WALL_THICKNESS,
-                        "height": NODE_SIZE
+                        "height": NODE_SIZE + WALL_THICKNESS
                     },
                     "rotation": 0
                 })
@@ -118,7 +118,7 @@ def create_walls(graph: list[Node]):
                         "y": node.y + NODE_SIZE // 2
                     },
                     "size": {
-                        "width": NODE_SIZE,
+                        "width": NODE_SIZE + WALL_THICKNESS,
                         "height": WALL_THICKNESS
                     },
                     "rotation": 0
