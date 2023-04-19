@@ -323,9 +323,8 @@ class Arena:
         for robot, controller in self.__robots:
             if robot.arena is None:
                 continue
-            input = robot.produce_input()
             try:
-                robot.consume_output(controller.act(input), dt)
+                robot.perform_action(controller.act(robot.compute_state()), dt)
             except Exception:
                 print(f"[ERROR ({robot.name})]: Error occurred during robot "
                       "execution; see below traceback")

@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 import pygame
 
-from engine.control import ControlInput, ControlOutput
+from engine.control import ControllerAction, ControllerState
 import engine.entity as entity
 from engine.util import angle_difference
 
@@ -316,36 +316,36 @@ class Robot(entity.Entity):
         """
         print(f"[WARN ({self.name})]: {message}")
 
-    def consume_output(self, output: ControlOutput, dt: float):
+    def perform_action(self, action: ControllerAction, dt: float):
         """
-        Sets the values of a ControlOutput to the Robot's values. Performs
-        validation on the ControlOutput values.
+        Sets the values of a ControllerAction to the Robot's values. Performs
+        validation on the ControllerAction values.
         """
-        move_power = output.move_power
+        move_power = action.move_power
         if is_number(move_power) and not math.isnan(move_power):
             self.move_power = min(max(move_power, -1), 1)
         else:
-            self.__warn("ControlOutput.move_power should be a valid number; "
-                        f"got {move_power}; defaulting to 0")
+            self.__warn("ControllerAction.move_power should be a valid "
+                        f"number; got {move_power}; defaulting to 0")
             self.move_power = 0
 
-        turn_power = output.turn_power
+        turn_power = action.turn_power
         if is_number(turn_power) and not math.isnan(turn_power):
             self.turn_power = min(max(turn_power, -1), 1)
         else:
-            self.__warn("ControlOutput.turn_power should be a valid number; "
-                        f"got {turn_power}; defaulting to 0")
+            self.__warn("ControllerAction.turn_power should be a valid "
+                        f"number; got {turn_power}; defaulting to 0")
             self.turn_power = 0
 
-        turr_turn_power = output.turret_turn_power
+        turr_turn_power = action.turret_turn_power
         if is_number(turr_turn_power) and not math.isnan(turr_turn_power):
             self.turret_turn_power = min(max(turr_turn_power, -1), 1)
         else:
-            self.__warn("ControlOutput.turret_turn_power should be a valid "
+            self.__warn("ControllerAction.turret_turn_power should be a valid "
                         f"number; got {turr_turn_power}; defaulting to 0")
             self.turret_turn_power = 0
 
-        turn_toward = output.turn_toward
+        turn_toward = action.turn_toward
         if is_number(turn_toward) and not math.isnan(turn_toward):  # type: ignore # noqa
             self.turn_toward(turn_toward % 2 * math.pi, dt)  # type: ignore
         elif type(turn_toward) is tuple and len(turn_toward) == 2:
@@ -354,14 +354,15 @@ class Robot(entity.Entity):
                     and not math.isnan(x) and not math.isnan(y)):
                 self.turn_toward(Vector2(x, y), dt)
             else:
-                self.__warn("ControlOutput.turn_toward tuple values must be "
-                            f"valid numbers; got ({x}, {y}); defaulting to "
+                self.__warn("ControllerAction.turn_toward tuple values must "
+                            f"be valid numbers; got ({x}, {y}); defaulting to "
                             "None")
         elif turn_toward is not None:
-            self.__warn("ControlOutput.turn_toward should be a valid number "
-                        f"or 2-tuple; got {turn_toward}; defaulting to None")
+            self.__warn("ControllerAction.turn_toward should be a valid "
+                        f"number or 2-tuple; got {turn_toward}; defaulting "
+                        "to None")
 
-        move_toward = output.move_toward
+        move_toward = action.move_toward
         if type(move_toward) is tuple and len(move_toward) == 2:
             x, y = move_toward
             if (is_number(x) and is_number(y)
@@ -370,17 +371,17 @@ class Robot(entity.Entity):
                 if path is not None:
                     self.move_toward(path[0], dt)
                 else:
-                    self.__warn(f"Control.move_toward position ({x}, {y}) is "
-                                "unreachable")
+                    self.__warn(f"ControllerAction.move_toward position ({x}, "
+                                f"{y}) is unreachable")
             else:
-                self.__warn("ControlOutput.move_toward tuple values must be "
-                            f"valid numbers; got ({x}, {y}); defaulting to "
+                self.__warn("ControllerAction.move_toward tuple values must "
+                            f"be valid numbers; got ({x}, {y}); defaulting to "
                             "None")
         elif move_toward is not None:
-            self.__warn("ControlOutput.move_toward should be a valid 2-tuple; "
-                        f"got {move_toward}; defaulting to None")
+            self.__warn("ControllerAction.move_toward should be a valid "
+                        f"2-tuple; got {move_toward}; defaulting to None")
 
-        aim_toward = output.aim_toward
+        aim_toward = action.aim_toward
         if is_number(aim_toward) and not math.isnan(aim_toward):  # type: ignore # noqa
             self.aim_toward(aim_toward % 2 * math.pi, dt)  # type: ignore
         elif type(aim_toward) is tuple and len(aim_toward) == 2:
@@ -389,45 +390,45 @@ class Robot(entity.Entity):
                     and not math.isnan(x) and not math.isnan(y)):
                 self.aim_toward(Vector2(x, y), dt)
             else:
-                self.__warn("ControlOutput.aim_toward tuple values must be "
+                self.__warn("ControllerAction.aim_toward tuple values must be "
                             f"valid numbers; got ({x}, {y}); defaulting to "
                             "None")
         elif aim_toward is not None:
-            self.__warn("ControlOutput.aim_toward should be a valid number or "
-                        f"2-tuple; got {aim_toward}; defaulting to None")
+            self.__warn("ControllerAction.aim_toward should be a valid number "
+                        f"or 2-tuple; got {aim_toward}; defaulting to None")
 
-        if type(output.shoot) is bool:
-            if output.shoot:
+        if type(action.shoot) is bool:
+            if action.shoot:
                 self.shoot()
         else:
-            self.__warn("ControlOutput.shoot should be a valid bool; got "
-                        f"{output.shoot}; defaulting to False")
+            self.__warn("ControllerAction.shoot should be a valid bool; got "
+                        f"{action.shoot}; defaulting to False")
 
-    def produce_input(self) -> ControlInput:
-        input = ControlInput()
+    def compute_state(self) -> ControllerState:
+        state = ControllerState()
 
-        input.position = (self.position.x, self.position.y)
-        input.rotation = self.rotation
-        input.turret_rotation = self.turret_rotation
+        state.position = (self.position.x, self.position.y)
+        state.rotation = self.rotation
+        state.turret_rotation = self.turret_rotation
 
         enemy = self.nearest_robot
         if enemy is not None:
-            input.enemy_position = (enemy.position.x, enemy.position.y)
-            input.enemy_rotation = enemy.rotation
-            input.enemy_turret_rotation = enemy.turret_rotation
+            state.enemy_position = (enemy.position.x, enemy.position.y)
+            state.enemy_rotation = enemy.rotation
+            state.enemy_turret_rotation = enemy.turret_rotation
 
-            input.can_see_enemy = self.can_see(enemy.position)
+            state.can_see_enemy = self.can_see(enemy.position)
         else:
-            input.can_see_enemy = False
+            state.can_see_enemy = False
 
         bullets = self.nearby_bullets
-        input.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]
+        state.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]
 
         coin = self.coin
         if coin is not None:
-            input.coin_position = (coin.x, coin.y)
+            state.coin_position = (coin.x, coin.y)
 
-        return input
+        return state
 
     def update(self, dt: float):
         if self.on_update is not None:

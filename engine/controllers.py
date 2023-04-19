@@ -1,6 +1,6 @@
 from random import random
 
-from engine.control import ControlInput, Controller, ControlOutput
+from engine.control import Controller, ControllerAction, ControllerState
 
 
 class SpinController(Controller):
@@ -11,15 +11,15 @@ class SpinController(Controller):
         self.turn_power = random() * 2 - 1
         self.turret_turn_power = random() * 2 - 1
 
-    def act(self, _) -> ControlOutput:
-        output = ControlOutput()
+    def act(self, _) -> ControllerAction:
+        action = ControllerAction()
 
-        output.shoot = True
-        output.move_power = self.move_power
-        output.turn_power = self.turn_power
-        output.turret_turn_power = self.turret_turn_power
+        action.shoot = True
+        action.move_power = self.move_power
+        action.turn_power = self.turn_power
+        action.turret_turn_power = self.turret_turn_power
 
-        return output
+        return action
 
 
 class AggressiveController(Controller):
@@ -27,15 +27,15 @@ class AggressiveController(Controller):
     def __init__(self):
         super().__init__("Aggressive", "#EE00EE", "#CC00CC")
 
-    def act(self, input: ControlInput) -> ControlOutput:
-        output = ControlOutput()
+    def act(self, state: ControllerState) -> ControllerAction:
+        action = ControllerAction()
 
-        output.move_toward = input.enemy_position
-        if input.can_see_enemy:
-            output.aim_toward = input.enemy_position
-            output.shoot = True
+        action.move_toward = state.enemy_position
+        if state.can_see_enemy:
+            action.aim_toward = state.enemy_position
+            action.shoot = True
 
-        return output
+        return action
 
 
 class GreedyController(Controller):
@@ -43,12 +43,12 @@ class GreedyController(Controller):
     def __init__(self):
         super().__init__("Greedy", "#00EE00", "#00CC00")
 
-    def act(self, input: ControlInput) -> ControlOutput:
-        output = ControlOutput()
+    def act(self, state: ControllerState) -> ControllerAction:
+        action = ControllerAction()
 
-        output.move_toward = input.coin_position
+        action.move_toward = state.coin_position
 
-        return output
+        return action
 
 
 class AggreedyController(Controller):
@@ -56,12 +56,12 @@ class AggreedyController(Controller):
     def __init__(self):
         super().__init__("Aggreedy", "#0000EE", "#0000CC")
 
-    def act(self, input: ControlInput) -> ControlOutput:
-        output = ControlOutput()
+    def act(self, state: ControllerState) -> ControllerAction:
+        action = ControllerAction()
 
-        output.move_toward = input.coin_position
-        if input.can_see_enemy:
-            output.aim_toward = input.enemy_position
-            output.shoot = True
+        action.move_toward = state.coin_position
+        if state.can_see_enemy:
+            action.aim_toward = state.enemy_position
+            action.shoot = True
 
-        return output
+        return action

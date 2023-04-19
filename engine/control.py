@@ -20,11 +20,11 @@ def angle_to(x1: float, y1: float, x2: float, y2: float) -> float:
     return math.atan2(dy, dx)
 
 
-class ControlInput:
+class ControllerState:
     """
     Object that resembles the current state of the robot. The values in this
     object can be used to determine how the robot should act in the upcoming
-    time step, which is written into the ControlOutput.
+    time step, which is written into the ControllerAction.
     """
     def __init__(self):
         self.position: tuple[float, float] = (0, 0)
@@ -107,7 +107,7 @@ class ControlInput:
         """
 
 
-class ControlOutput:
+class ControllerAction:
     """
     Object the represents the actions the robot will take in the upcoming time
     step. Write into the values of this object to dictate the robot's behavior.
@@ -199,7 +199,7 @@ class Controller:
     """
     def __init__(self, name: str, body_color: str, head_color: str):
         """
-        Initializes the controller with a Robot name, body color, and head
+        Initializes the controller with a robot name, body color, and head
         color for display purposes.
 
         Override this method and call `super().__init__()` with your desired
@@ -210,11 +210,11 @@ class Controller:
         self.body_color = body_color
         self.head_color = head_color
 
-    def act(self, input: ControlInput) -> ControlOutput:
+    def act(self, state: ControllerState) -> ControllerAction:
         """
-        Runs this Controller on a Robot's input to produce an output that
-        determines how the Robot will behave in this time step.
+        Runs this Controller on a robot's state to produce an action that
+        determines how the robot will behave in this time step.
 
         Override this with your own behavior!
         """
-        return ControlOutput()
+        return ControllerAction()

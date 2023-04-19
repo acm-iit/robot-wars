@@ -1,6 +1,7 @@
 from random import choice
 
-from engine import Arena, ControlInput, Controller, controllers, ControlOutput
+from engine import (Arena, Controller, controllers, ControllerAction,
+                    ControllerState)
 
 
 # List of available maps
@@ -33,8 +34,8 @@ class MyController(Controller):
     def __init__(self):
         super().__init__("MyRobot", "#EEEEEE", "#CCCCCC")
 
-    def act(self, input: ControlInput) -> ControlOutput:
-        return ControlOutput()
+    def act(self, state: ControllerState) -> ControllerAction:
+        return ControllerAction()
 
 
 if __name__ == "__main__":
