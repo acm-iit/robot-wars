@@ -40,6 +40,12 @@ class ControllerState:
         point of the arena.
         """
 
+        self.max_speed: float = 0
+        """
+        Maximum movement speed for the robot; i.e. when `move_power = 1` or
+        `-1`.
+        """
+
         self.rotation: float = 0
         """
         Rotation of the robot, in radians measured clockwise from the positive
@@ -48,12 +54,24 @@ class ControllerState:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
+        self.max_turn_speed: float = 0
+        """
+        Maximum turning speed for the robot; i.e. when `turn_power = 1` or
+        `-1`.
+        """
+
         self.turret_rotation: float = 0
         """
         Rotation of the robot's turret, in radians measured clockwise from the
         positive X-axis (right).
 
         (It is measured clockwise since the positive Y-axis is down!)
+        """
+
+        self.max_turret_turn_speed: float = 0
+        """
+        Maximum turning speed for the robot's turret; i.e. when
+        `turret_turn_power = 1` or `-1`.
         """
 
         self.enemy_position: tuple[float, float] = (0, 0)

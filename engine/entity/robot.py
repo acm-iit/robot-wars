@@ -416,9 +416,15 @@ class Robot(entity.Entity):
         state = ControllerState()
 
         state.time_delta = dt
+
         state.position = (self.position.x, self.position.y)
+        state.max_speed = self.__move_speed
+
         state.rotation = self.rotation
+        state.max_turn_speed = self.__turn_speed
+
         state.turret_rotation = self.turret_rotation
+        state.max_turret_turn_speed = self.__turret_turn_speed
 
         enemy = self.nearest_robot
         if enemy is not None:
