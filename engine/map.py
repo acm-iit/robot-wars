@@ -20,6 +20,7 @@ class WallJson(TypedDict):
 
 
 class MapJson(TypedDict):
+    is_shrinking: bool
     size: SizeJson
     walls: list[WallJson]
     spawns: list[PositionJson]
@@ -51,6 +52,7 @@ def is_wall(wall: Any) -> TypeGuard[WallJson]:
 def is_map(map: Any) -> TypeGuard[MapJson]:
     """Determines if a value is a Map JSON formatted dictionary."""
     return (type(map) is dict
+            and "is_shrinking" in map and type(map["is_shrinking"]) is bool
             and "size" in map and is_size(map["size"])
             and "walls" in map and type(map["walls"]) is list
             and all(is_wall(wall) for wall in map["walls"])

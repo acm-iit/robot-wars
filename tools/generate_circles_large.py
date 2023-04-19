@@ -118,6 +118,7 @@ if __name__ == "__main__":
     walls += create_circle(OUTER_RADIUS, left_right_up_down_predicate)
 
     map: MapJson = {
+        "is_shrinking": False,
         "size": {
             "width": WIDTH,
             "height": HEIGHT
