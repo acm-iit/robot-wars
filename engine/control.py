@@ -62,7 +62,7 @@ class ControlInput:
         `vy` are the velocity components.
         """
 
-        self.coin: tuple[float, float] = (0, 0)
+        self.coin_position: tuple[float, float] = (0, 0)
         """
         Position of the coin, as a tuple `(x, y)` measured from the top-left
         point of the arena.

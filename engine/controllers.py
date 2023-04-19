@@ -36,7 +36,7 @@ class GreedyController(Controller):
         super().__init__("Greedy", "#00EE00", "#00CC00")
 
     def act(self, input: ControlInput, output: ControlOutput):
-        output.move_to = input.coin
+        output.move_to = input.coin_position
 
 
 class AggreedyController(Controller):
@@ -45,7 +45,7 @@ class AggreedyController(Controller):
         super().__init__("Aggreedy", "#0000EE", "#0000CC")
 
     def act(self, input: ControlInput, output: ControlOutput):
-        output.move_to = input.coin
+        output.move_to = input.coin_position
         if input.can_see_enemy:
             output.aim_at_position(input.enemy_position)
             output.shoot = True

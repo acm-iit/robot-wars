@@ -359,7 +359,7 @@ class Robot(entity.Entity):
 
         coin = self.coin
         if coin is not None:
-            input.coin = (coin.x, coin.y)
+            input.coin_position = (coin.x, coin.y)
 
         return input
 
