@@ -2,16 +2,20 @@ from __future__ import annotations
 import json
 import math
 from random import choice, random, sample
+import traceback
 from typing import Optional
 
 import pygame
 
-from engine.entity import Coin, Entity, Robot, Wall
+from engine.control import Controller
+from engine.entity import Bullet, Coin, Entity, Robot, Wall
+from engine.entity.bullet import BULLET_SPEED
 from engine.entity.coin import COIN_RADIUS
 from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
+from engine.util import can_see
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -23,6 +27,11 @@ MAX_VIEWPORT_HEIGHT = 768
 GRASS_COLOR = "#006600"
 ROBOT_LIST_WIDTH = 256
 ROBOT_LIST_COLOR = "#444444"
+
+BULLET_COLLIDE_RADIUS = 16          # Radius for collisions w/ other bullets
+BULLET_COLLIDE_EFFECT_RADIUS = 24   # Radius for collision boom effect
+BULLET_COLLIDE_EFFECT_COLOR = "#FC9803"
+BULLET_COLLIDE_EFFECT_TIME = 0.3
 
 
 class Arena:
@@ -39,7 +48,10 @@ class Arena:
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
+        self.__segments: list[tuple[Vector2, Vector2, float]] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
+        self.__robots = list[tuple[Robot, Controller]]()
+        self.__bullet_collisions = list[tuple[Vector2, float]]()
 
         self.spawns: list[Vector2] = []
 
@@ -150,7 +162,14 @@ class Arena:
         self.__entities.remove(entity)
         entity.arena = None
 
-    def spawn_robots(self, robots: list[Robot]):
+    def add_robot(self, controller: Controller):
+        robot = Robot(controller.name)
+        robot.color = controller.body_color
+        robot.head_color = controller.head_color
+        self.__robots.append((robot, controller))
+        self.add_entity(robot)
+
+    def spawn_robots_old(self, robots: list[Robot]):
         """
         Spawns a list of robots into unique spawn locations. The number of
         robots must be lower than the number of arena spawns.
@@ -163,14 +182,30 @@ class Arena:
             self.add_entity(robot)
             robot.position = positions.pop()
 
+    def spawn_robots(self):
+        """
+        Spawns the Arena's robots into unique spawn locations. The number of
+        robots must be lower than the number of arena spawns.
+        """
+        robots = self.__robots
+        assert len(robots) <= len(self.spawns), "# of entities > # of spawns"
+
+        positions: list[Vector2] = sample(self.spawns, k=len(robots))
+
+        for robot, _ in robots:
+            robot.position = positions.pop()
+
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """Returns a filtered list of entities of a certain class."""
         return [entity
                 for entity in self.__entities
                 if type(entity) is typeVal]
 
-    def nearest_robot(self, robot: Robot) -> Optional[Vector2]:
-        """Returns the position of the Robot closest to another Robot."""
+    def nearest_robot(self, robot: Robot) -> Optional[Robot]:
+        """
+        Returns the position and rotation of the Robot closest to another
+        Robot.
+        """
         # Robot.on_update may call this, and the quadtree won't exist on the
         # first update, so just return None
         if self.__quadtree is None:
@@ -182,7 +217,34 @@ class Arena:
         )
         assert neighbor is None or type(neighbor) is Robot, "Shouldn't happen"
 
-        return neighbor.position if neighbor is not None else None
+        return neighbor if neighbor is not None else None
+
+    def nearby_bullets(self, robot: Robot) -> list[tuple[Vector2, Vector2]]:
+        """
+        Returns the positions and velocities of enemy Bullets within a radius
+        of a Robot.
+        """
+        if self.__quadtree is None:
+            return []
+
+        query_rect = Rect(robot.position - Vector2(256), Vector2(512))
+
+        entities = self.__quadtree.query(query_rect)
+        result = list[tuple[Vector2, Vector2]]()
+
+        for entity in entities:
+            if type(entity) is not Bullet or entity.origin == robot:
+                continue
+            if (entity.position - robot.position).magnitude() > 256:
+                continue
+            velocity = Vector2(BULLET_SPEED, 0).rotate_rad(entity.rotation)
+            result.append((entity.position, velocity))
+
+        return result
+
+    def can_see(self, robot: Robot, point: Vector2) -> bool:
+        """Determines if a Robot has line of sight with a point."""
+        return can_see(robot.position, point, self.__segments)
 
     def prepare_path_graph(self):
         """
@@ -193,6 +255,14 @@ class Arena:
         assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self)
         self.__available_nodes = self.__path_graph.get_available_nodes()
+
+        # Save wall segments
+        for wall in self.get_entities_of_type(Wall):
+            hitbox = wall.absolute_hitbox
+            for i in range(len(hitbox)):
+                vertex1 = hitbox[i]
+                vertex2 = hitbox[(i + 1) % len(hitbox)]
+                self.__segments.append((vertex1, vertex2, 0))
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
@@ -250,6 +320,19 @@ class Arena:
         self.add_entity(coin)
         self.__coin = coin
 
+    def __update_robots(self, dt: float):
+        for robot, controller in self.__robots:
+            if robot.arena is None:
+                continue
+            try:
+                state = robot.compute_state(dt)
+                action = controller.act(state)
+                robot.perform_action(action, dt)
+            except Exception:
+                print(f"[ERROR ({robot.name})]: Error occurred during robot "
+                      "execution; see below traceback")
+                print(traceback.format_exc())
+
     def __update_entities(self, dt: float):
         for entity in self.__entities:
             entity.update(dt)
@@ -274,6 +357,54 @@ class Arena:
         assert self.__quadtree is not None, "Quadtree should exist"
         for entity1, entity2 in self.__quadtree.find_all_intersections():
             entity1.handle_collision(entity2)
+
+    def __update_bullets(self, dt: float):
+        """Handles bullet collision negation."""
+        assert self.__quadtree is not None, "Quadtree should exist"
+
+        self.__bullet_collisions[:] = [(p, t - dt)
+                                       for p, t in self.__bullet_collisions]
+        self.__bullet_collisions[:] = [(p, t)
+                                       for p, t in self.__bullet_collisions
+                                       if t > 0]
+
+        bullets = self.get_entities_of_type(Bullet)
+
+        for bullet in bullets:
+            assert type(bullet) is Bullet, "Shouldn't happen"
+            if bullet.arena is None:
+                continue
+
+            query_rect = Rect(
+                bullet.position - Vector2(BULLET_COLLIDE_RADIUS),
+                Vector2(BULLET_COLLIDE_RADIUS * 2)
+            )
+            entities = self.__quadtree.query(query_rect)
+
+            collided = 1
+            position_sum = bullet.position
+
+            for entity in entities:
+                if type(entity) is not Bullet:
+                    continue
+
+                if entity.origin == bullet.origin:
+                    continue
+
+                dist = (entity.position - bullet.position).magnitude()
+                if dist > BULLET_COLLIDE_RADIUS:
+                    continue
+
+                entity.destroy()
+
+                collided += 1
+                position_sum += entity.position
+
+            if collided > 1:
+                collision_point = position_sum / collided
+                self.__bullet_collisions.append((collision_point,
+                                                 BULLET_COLLIDE_EFFECT_TIME))
+                bullet.destroy()
 
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
@@ -307,6 +438,19 @@ class Arena:
         for entity in self.__entities:
             entity.post_render(self.__surface)
 
+        # Draw bullet collisions
+        for point, time in self.__bullet_collisions:
+            alpha = (time / BULLET_COLLIDE_EFFECT_TIME) ** 2
+            size = BULLET_COLLIDE_EFFECT_RADIUS * 2 * (1 + (1 - alpha) * 0.5)
+            color = pygame.Color(BULLET_COLLIDE_EFFECT_COLOR)
+            color.a = int(alpha * 255)
+
+            boom = pygame.Surface(Vector2(size), flags=pygame.SRCALPHA)
+
+            pygame.draw.circle(boom, color, Vector2(size / 2), size / 2)
+
+            self.__surface.blit(boom, point - Vector2(size / 2))
+
         # Draw hitboxes
         if self.show_hitboxes:
             for entity in self.__entities:
@@ -323,11 +467,12 @@ class Arena:
             for robot in self.get_entities_of_type(Robot):
                 assert type(robot) is Robot, "Shouldn't happen"
 
-                point2 = self.nearest_robot(robot)
-                if point2 is None:
+                nearest = self.nearest_robot(robot)
+                if nearest is None:
                     continue
 
                 point1 = robot.position
+                point2 = nearest.position
 
                 middle = (point1 + point2) / 2
                 direction = (point2 - point1).normalize()
@@ -375,10 +520,12 @@ class Arena:
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         self.__update_coin()
+        self.__update_robots(dt)
         self.__update_entities(dt)
         self.__filter_entities()
         self.__construct_quadtree()
         self.__solve_collisions()
+        self.__update_bullets(dt)
         self.__filter_entities()
         self.__render_scene()
 
@@ -403,7 +550,8 @@ class Arena:
         font = pygame.font.SysFont("couriernew", 18)
 
         total_frames = 0
-        total_time = 0
+        total_frame_time = 0        # Actual elapsed time
+        total_sim_time = 0              # Simulated time
 
         while running:
             # Poll for events
@@ -416,18 +564,15 @@ class Arena:
             window.fill(ROBOT_LIST_COLOR)
 
             total_frames += 1
-            total_time += dt
+            total_frame_time += dt
+
+            # If simulation runs slower, keep time step at desired rate to
+            # prevent large time steps
+            time_step = min(dt, 1 / FRAME_RATE)
+            total_sim_time += time_step
 
             # Simulate a time step
-            # When dragging the window, the clock freezes and resumes once
-            # finished dragging. This can cause large values of `dt`, which can
-            # cause entities to move too far and avoid collisions, so we handle
-            # that case here by splitting it into smaller time steps.
-            remaining_dt = dt
-            while remaining_dt > 10 / FRAME_RATE:
-                self.update(10 / FRAME_RATE)
-                remaining_dt -= 10 / FRAME_RATE
-            self.update(remaining_dt)
+            self.update(time_step)
 
             # Scale arena surface contents to create viewport surface
             ratio = self.__size.x / viewport_size.x
@@ -462,11 +607,9 @@ class Arena:
             # Display results on window
             pygame.display.flip()
 
-            # Limits FPS to 60
-            # `dt`` is delta time in seconds since last frame, used for
-            # framerate-independent physics.
+            # Limit FPS
             dt = clock.tick(FRAME_RATE) / 1000
 
         pygame.quit()
 
-        print(f"Overall FPS: {total_frames / total_time}")
+        print(f"Overall FPS: {total_frames / total_frame_time}")

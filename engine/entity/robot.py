@@ -4,7 +4,9 @@ from typing import Callable, Optional
 
 import pygame
 
+from engine.control import ControllerAction, ControllerState
 import engine.entity as entity
+from engine.entity.bullet import BULLET_SPEED
 from engine.util import angle_difference
 
 Rect = pygame.Rect
@@ -49,6 +51,11 @@ ROBOT_RADIUS = math.sqrt(ROBOT_HITBOX_LENGTH * ROBOT_HITBOX_LENGTH
                          + ROBOT_HITBOX_WIDTH * ROBOT_HITBOX_WIDTH) / 2
 
 
+def is_number(val) -> bool:
+    """Shorthand for checking if a value is either an integer or a float."""
+    return type(val) is int or type(val) is float
+
+
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
     def __init__(self, name: str):
@@ -62,6 +69,7 @@ class Robot(entity.Entity):
         self.move_power = 0                         # Range: [-1, 1]
         self.turn_power = 0                         # Range: [-1, 1]
         self.turret_turn_power = 0                  # Range: [-1, 1]
+        self.__will_shoot = False
 
         self.color = ROBOT_COLOR                    # Color of robot body
         self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
@@ -70,12 +78,15 @@ class Robot(entity.Entity):
 
         self.coins = 0                              # Number of coins collected
 
+        # Velocity from last update call
+        self.last_velocity = Vector2()
+
         self.__move_speed = ROBOT_MOVE_SPEED
         self.__turn_speed = ROBOT_TURN_SPEED
         self.__turret_turn_speed = ROBOT_TURRET_TURN_SPEED
         self.__shot_cooldown = ROBOT_SHOT_COOLDOWN
 
-        self.__time_until_next_shot = 0             # Remaining cooldown
+        self.time_until_next_shot = 0               # Remaining cooldown
 
         self.__left_tread_alpha = 0                 # Range: [0, 1)
         self.__right_tread_alpha = 0                # Range: [0, 1)
@@ -112,17 +123,26 @@ class Robot(entity.Entity):
             self.destroy()
 
     @property
-    def nearest_robot(self) -> Optional[Vector2]:
+    def nearest_robot(self) -> Optional[Robot]:
         """Provides the position of the nearest Robot to this Robot."""
         if self.arena is None:
-            return
+            return None
         return self.arena.nearest_robot(self)
+
+    @property
+    def nearby_bullets(self) -> list[tuple[Vector2, Vector2]]:
+        """
+        Provides the positions and velocities of nearby Bullets to this Robot.
+        """
+        if self.arena is None:
+            return []
+        return self.arena.nearby_bullets(self)
 
     @property
     def coin(self) -> Optional[Vector2]:
         """Provides the position of the Coin in the Arena."""
         if self.arena is None:
-            return
+            return None
         return self.arena.coin
 
     # We separate the `X_power` members into properties with specialized
@@ -181,8 +201,9 @@ class Robot(entity.Entity):
 
         `dt` represents the time delta in seconds.
         """
-        displacement = self.__move_speed * self.move_power * dt
-        self.position += Vector2(displacement, 0).rotate_rad(self.rotation)
+        velocity = Vector2(self.__move_speed * self.move_power, 0)
+        velocity.rotate_ip_rad(self.rotation)
+        self.position += velocity * dt
 
         # Calculate tread segments/sec speed
         tread_speed = self.__move_speed / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
@@ -191,6 +212,8 @@ class Robot(entity.Entity):
         self.__right_tread_alpha += tread_speed * self.move_power * dt
         self.__left_tread_alpha %= 1
         self.__right_tread_alpha %= 1
+
+        self.last_velocity = velocity
 
     def __turn(self, dt: float):
         """
@@ -223,7 +246,7 @@ class Robot(entity.Entity):
         """Makes the robot shoot a bullet in the direction of its turret."""
         assert self.arena is not None, "Robot doesn't have corresponding Arena"
 
-        if self.__time_until_next_shot > 0:
+        if self.time_until_next_shot > 0:
             return
 
         offset = Vector2(TURRET_LENGTH, 0).rotate_rad(self.turret_rotation)
@@ -231,17 +254,17 @@ class Robot(entity.Entity):
         bullet = entity.Bullet(position, self.turret_rotation, self)
         self.arena.add_entity(bullet)
 
-        self.__time_until_next_shot = self.__shot_cooldown
+        self.time_until_next_shot = self.__shot_cooldown
 
-    def move_towards(self, point: Vector2, dt: float):
+    def move_toward(self, point: Vector2, dt: float):
         """
         Sets the move_power and turn_power such that the Robot will move
-        towards a specified point.
+        toward a specified point.
         """
         if dt == 0:
             return
 
-        self.turn_towards(point, dt)
+        self.turn_toward(point, dt)
 
         direction = point - self.position
         angle = math.atan2(direction.y, direction.x)
@@ -250,37 +273,35 @@ class Robot(entity.Entity):
         if abs(angle_diff) < math.pi / 16:
             self.move_power = direction.magnitude() / (self.__move_speed * dt)
 
-    def turn_towards(self, point: Vector2, dt: float):
+    def turn_toward(self, angle_or_point: float | Vector2, dt: float):
         """
-        Sets the turn_power such that the Robot will face towards a specified
-        point.
+        Sets the turn_power such that the Robot will face toward a specified
+        angle or point.
         """
-        if dt == 0:
-            return
+        if type(angle_or_point) is float:
+            if dt == 0:
+                return
 
-        direction = point - self.position
+            diff = angle_difference(self.rotation, angle_or_point)
+            self.turn_power = diff / (self.__turn_speed * dt)
+        elif type(angle_or_point) is Vector2:
+            direction = angle_or_point - self.position
+            self.turn_toward(math.atan2(direction.y, direction.x), dt)
 
-        current_angle = self.rotation
-        desired_angle = math.atan2(direction.y, direction.x)
-
-        difference = angle_difference(current_angle, desired_angle)
-        self.turn_power = difference / (self.__turn_speed * dt)
-
-    def aim_towards(self, point: Vector2, dt: float):
+    def aim_toward(self, angle_or_point: float | Vector2, dt: float):
         """
-        Sets the turret_turn_power such that the turret will aim towards a
-        specified point.
+        Sets the turret_turn_power such that the turret will aim toward a
+        specified angle or point.
         """
-        if dt == 0:
-            return
+        if type(angle_or_point) is float:
+            if dt == 0:
+                return
 
-        direction = point - self.position
-
-        current_angle = self.turret_rotation
-        desired_angle = math.atan2(direction.y, direction.x)
-
-        difference = angle_difference(current_angle, desired_angle)
-        self.turret_turn_power = difference / (self.__turret_turn_speed * dt)
+            diff = angle_difference(self.turret_rotation, angle_or_point)
+            self.turret_turn_power = diff / (self.__turret_turn_speed * dt)
+        elif type(angle_or_point) is Vector2:
+            direction = angle_or_point - self.position
+            self.aim_toward(math.atan2(direction.y, direction.x), dt)
 
     def pathfind(self, point: Vector2) -> Optional[list[Vector2]]:
         """
@@ -289,6 +310,144 @@ class Robot(entity.Entity):
         if self.arena is None:
             return
         return self.arena.pathfind(self, point)
+
+    def can_see(self, point: Vector2) -> bool:
+        """Determines if this Robot has line of sight with a point."""
+        if self.arena is None:
+            return False
+        return self.arena.can_see(self, point)
+
+    def __warn(self, message: str):
+        """
+        Helper function for printing a warning message attached with the
+        Robot's name to the console.
+        """
+        print(f"[WARN ({self.name})]: {message}")
+
+    def perform_action(self, action: ControllerAction, dt: float):
+        """
+        Sets the values of a ControllerAction to the Robot's values. Performs
+        validation on the ControllerAction values.
+        """
+        move_power = action.move_power
+        if is_number(move_power) and not math.isnan(move_power):
+            self.move_power = min(max(move_power, -1), 1)
+        else:
+            self.__warn("ControllerAction.move_power should be a valid "
+                        f"number; got {move_power}; defaulting to 0")
+            self.move_power = 0
+
+        turn_power = action.turn_power
+        if is_number(turn_power) and not math.isnan(turn_power):
+            self.turn_power = min(max(turn_power, -1), 1)
+        else:
+            self.__warn("ControllerAction.turn_power should be a valid "
+                        f"number; got {turn_power}; defaulting to 0")
+            self.turn_power = 0
+
+        turr_turn_power = action.turret_turn_power
+        if is_number(turr_turn_power) and not math.isnan(turr_turn_power):
+            self.turret_turn_power = min(max(turr_turn_power, -1), 1)
+        else:
+            self.__warn("ControllerAction.turret_turn_power should be a valid "
+                        f"number; got {turr_turn_power}; defaulting to 0")
+            self.turret_turn_power = 0
+
+        turn_toward = action.turn_toward
+        if is_number(turn_toward) and not math.isnan(turn_toward):  # type: ignore # noqa
+            self.turn_toward(turn_toward % 2 * math.pi, dt)  # type: ignore
+        elif type(turn_toward) is tuple and len(turn_toward) == 2:
+            x, y = turn_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                self.turn_toward(Vector2(x, y), dt)
+            else:
+                self.__warn("ControllerAction.turn_toward tuple values must "
+                            f"be valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
+        elif turn_toward is not None:
+            self.__warn("ControllerAction.turn_toward should be a valid "
+                        f"number or 2-tuple; got {turn_toward}; defaulting "
+                        "to None")
+
+        move_toward = action.move_toward
+        if type(move_toward) is tuple and len(move_toward) == 2:
+            x, y = move_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                path = self.pathfind(Vector2(x, y))
+                if path is not None:
+                    self.move_toward(path[0], dt)
+            else:
+                self.__warn("ControllerAction.move_toward tuple values must "
+                            f"be valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
+        elif move_toward is not None:
+            self.__warn("ControllerAction.move_toward should be a valid "
+                        f"2-tuple; got {move_toward}; defaulting to None")
+
+        aim_toward = action.aim_toward
+        if is_number(aim_toward) and not math.isnan(aim_toward):  # type: ignore # noqa
+            self.aim_toward(aim_toward % 2 * math.pi, dt)  # type: ignore
+        elif type(aim_toward) is tuple and len(aim_toward) == 2:
+            x, y = aim_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                self.aim_toward(Vector2(x, y), dt)
+            else:
+                self.__warn("ControllerAction.aim_toward tuple values must be "
+                            f"valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
+        elif aim_toward is not None:
+            self.__warn("ControllerAction.aim_toward should be a valid number "
+                        f"or 2-tuple; got {aim_toward}; defaulting to None")
+
+        if type(action.shoot) is bool:
+            self.__will_shoot = action.shoot
+        else:
+            self.__warn("ControllerAction.shoot should be a valid bool; got "
+                        f"{action.shoot}; defaulting to False")
+            self.__will_shoot = False
+
+    def compute_state(self, dt: float) -> ControllerState:
+        state = ControllerState()
+
+        state.time_delta = dt
+
+        state.position = (self.position.x, self.position.y)
+        state.max_speed = self.__move_speed
+
+        state.rotation = self.rotation
+        state.max_turn_speed = self.__turn_speed
+
+        state.turret_rotation = self.turret_rotation
+        state.max_turret_turn_speed = self.__turret_turn_speed
+
+        state.shot_cooldown = self.time_until_next_shot
+        state.shot_speed = BULLET_SPEED
+
+        enemy = self.nearest_robot
+        if enemy is not None:
+            state.enemy_position = (enemy.position.x, enemy.position.y)
+            state.enemy_velocity = (enemy.last_velocity.x,
+                                    enemy.last_velocity.y)
+            state.enemy_rotation = enemy.rotation
+            state.enemy_turret_rotation = enemy.turret_rotation
+
+            state.enemy_shot_cooldown = enemy.time_until_next_shot
+
+            state.can_see_enemy = self.can_see(enemy.position)
+        else:
+            state.can_see_enemy = False
+
+        bullets = self.nearby_bullets
+        state.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]
+
+        coin = self.coin
+        if coin is not None:
+            state.coin_position = (coin.x, coin.y)
+
+        return state
 
     def update(self, dt: float):
         if self.on_update is not None:
@@ -301,9 +460,11 @@ class Robot(entity.Entity):
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
+        if self.__will_shoot:
+            self.shoot()
 
         # Update shot cooldown
-        self.__time_until_next_shot = max(self.__time_until_next_shot - dt, 0)
+        self.time_until_next_shot = max(self.time_until_next_shot - dt, 0)
 
     def render(self, screen: pygame.Surface):
         # Pixel offsets of treads vertices relative to the center of the treads

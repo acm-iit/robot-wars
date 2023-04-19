@@ -32,7 +32,7 @@ class Wall(entity.Entity):
         """
         half_size = self.__size / 2
         half_size_reflect = Vector2(half_size.x, -half_size.y)
-        robot_size = Vector2(ROBOT_HITBOX_WIDTH + 2) / 2
+        robot_size = Vector2(ROBOT_HITBOX_WIDTH) / 2
         robot_size_reflect = Vector2(robot_size.x, -robot_size.y)
         expanded = [
             half_size + robot_size,
