@@ -600,7 +600,7 @@ class Arena:
             # Draw Robot scores
             for i, (robot, _) in enumerate(self.__robots):
                 window.blit(font.render(f"{robot.name}: {robot.coins} Coin(s)",
-                                        False, "#FFFFFF"),
+                                        True, "#FFFFFF"),
                             Vector2(0, i * 18))
 
             # Display results on window
