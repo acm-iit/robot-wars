@@ -51,6 +51,10 @@ if __name__ == "__main__":
     # Add your robot
     arena.add_robot(MyController())
 
+    # Uncomment the next line to add a human robot controlled by you, if you
+    # want!
+    # arena.add_robot(controllers.HumanController(arena))
+
     # Spawn the robots
     arena.spawn_robots()
 
