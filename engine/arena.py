@@ -2,6 +2,7 @@ from __future__ import annotations
 import json
 import math
 from random import choice, random, sample
+import traceback
 from typing import Optional
 
 import pygame
@@ -326,9 +327,11 @@ class Arena:
             output = ControlOutput(input)
             try:
                 controller.act(input, output)
+                robot.consume_output(output, dt)
             except Exception:
-                pass
-            robot.consume_output(output, dt)
+                print(f"[ERROR ({robot.name})]: Error occurred during robot "
+                      "execution; see below traceback")
+                print(traceback.format_exc())
 
     def __update_entities(self, dt: float):
         for entity in self.__entities:
