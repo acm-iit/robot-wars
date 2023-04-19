@@ -68,9 +68,8 @@ def seek_nearest_robot_controller(robot: Robot, dt: float):
     nearest = robot.nearest_robot
     if nearest is None:
         return
-    position, _ = nearest
-    if seek_point_pathfinding(robot, position, dt):
-        robot.aim_towards(position, dt)
+    if seek_point_pathfinding(robot, nearest.position, dt):
+        robot.aim_towards(nearest.position, dt)
         robot.shoot()
 
 
@@ -94,8 +93,7 @@ def seek_coin_shoot_controller(robot: Robot, dt: float):
     if nearest is None:
         return
 
-    position, _ = nearest
-    robot.aim_towards(position, dt)
+    robot.aim_towards(nearest.position, dt)
     robot.shoot()
 
 
