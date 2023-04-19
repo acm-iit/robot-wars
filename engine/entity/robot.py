@@ -68,6 +68,7 @@ class Robot(entity.Entity):
         self.move_power = 0                         # Range: [-1, 1]
         self.turn_power = 0                         # Range: [-1, 1]
         self.turret_turn_power = 0                  # Range: [-1, 1]
+        self.__will_shoot = False
 
         self.color = ROBOT_COLOR                    # Color of robot body
         self.head_color = ROBOT_HEAD_COLOR          # Color of robot head
@@ -398,11 +399,11 @@ class Robot(entity.Entity):
                         f"or 2-tuple; got {aim_toward}; defaulting to None")
 
         if type(action.shoot) is bool:
-            if action.shoot:
-                self.shoot()
+            self.__will_shoot = action.shoot
         else:
             self.__warn("ControllerAction.shoot should be a valid bool; got "
                         f"{action.shoot}; defaulting to False")
+            self.__will_shoot = False
 
     def compute_state(self) -> ControllerState:
         state = ControllerState()
@@ -441,6 +442,8 @@ class Robot(entity.Entity):
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
+        if self.__will_shoot:
+            self.shoot()
 
         # Update shot cooldown
         self.__time_until_next_shot = max(self.__time_until_next_shot - dt, 0)
