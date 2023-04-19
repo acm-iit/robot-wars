@@ -3,21 +3,20 @@ from random import choice
 from engine import Arena, ControlInput, Controller, controllers, ControlOutput
 
 
-# List of map filenames to pick from randomly if force_map is not set
+# List of available maps
 maps = [
-    # "engine/maps/basic.json",
+    "engine/maps/basic.json",
     "engine/maps/circles.json",
-    # "engine/maps/circles_large.json",
-    # "engine/maps/lock.json",
+    "engine/maps/circles_large.json",
+    "engine/maps/lock.json",
     "engine/maps/maze.json",
-    # "engine/maps/stress_test.json",
+    "engine/maps/stress_test.json",
 ]
 
 # If set, use this map instead of a random one above
-force_map = None
+map = maps[1]
 
-# List of enemy robot controllers to pick from randomly if force_controller is
-# not set
+# List of enemy robot controllers
 enemies = [
     controllers.SpinController,
     controllers.AggressiveController,
@@ -26,7 +25,7 @@ enemies = [
 ]
 
 # If set, use this enemy controller instead of a random one above
-force_enemy = None
+enemy = None
 
 
 # Implement your controller here!
@@ -39,15 +38,15 @@ class MyController(Controller):
 
 
 if __name__ == "__main__":
-    map = force_map if force_map is not None else choice(maps)
+    map = map if map is not None else choice(maps)
     arena = Arena.from_map_json(map)
 
     if arena is None:
         quit(1)
 
     # Add enemy robot
-    enemy = (force_enemy if force_enemy is not None else choice(enemies))()
-    arena.add_robot(enemy)
+    enemy = enemy if enemy is not None else choice(enemies)
+    arena.add_robot(enemy())
 
     # Add your robot
     arena.add_robot(MyController())
