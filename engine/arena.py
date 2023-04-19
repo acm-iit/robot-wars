@@ -28,8 +28,9 @@ GRASS_COLOR = "#006600"
 ROBOT_LIST_WIDTH = 256
 ROBOT_LIST_COLOR = "#444444"
 
-BULLET_COLLIDE_RADIUS = 24          # Radius for collisions w/ other bullets
-BULLET_COLLIDE_COLOR = "#FC9803"
+BULLET_COLLIDE_RADIUS = 16          # Radius for collisions w/ other bullets
+BULLET_COLLIDE_EFFECT_RADIUS = 24   # Radius for collision boom effect
+BULLET_COLLIDE_EFFECT_COLOR = "#FC9803"
 BULLET_COLLIDE_EFFECT_TIME = 0.3
 
 
@@ -440,8 +441,8 @@ class Arena:
         # Draw bullet collisions
         for point, time in self.__bullet_collisions:
             alpha = (time / BULLET_COLLIDE_EFFECT_TIME) ** 2
-            size = BULLET_COLLIDE_RADIUS * 2 * (1 + (1 - alpha) * 0.5)
-            color = pygame.Color(BULLET_COLLIDE_COLOR)
+            size = BULLET_COLLIDE_EFFECT_RADIUS * 2 * (1 + (1 - alpha) * 0.5)
+            color = pygame.Color(BULLET_COLLIDE_EFFECT_COLOR)
             color.a = int(alpha * 255)
 
             boom = pygame.Surface(Vector2(size), flags=pygame.SRCALPHA)
