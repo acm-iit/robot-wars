@@ -15,6 +15,8 @@ from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
+from engine.robotlist import (render_robot_list, WIDTH as ROBOT_LIST_WIDTH,
+                              COLOR as ROBOT_LIST_COLOR)
 from engine.util import can_see
 
 Rect = pygame.Rect
@@ -25,8 +27,6 @@ FRAME_RATE = 60
 MAX_VIEWPORT_WIDTH = 1024
 MAX_VIEWPORT_HEIGHT = 768
 GRASS_COLOR = "#006600"
-ROBOT_LIST_WIDTH = 256
-ROBOT_LIST_COLOR = "#444444"
 
 BULLET_COLLIDE_RADIUS = 16          # Radius for collisions w/ other bullets
 BULLET_COLLIDE_EFFECT_RADIUS = 24   # Radius for collision boom effect
@@ -598,11 +598,8 @@ class Arena:
             # Draw viewport onto screen
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
-            # Draw Robot scores
-            for i, (robot, _) in enumerate(self.__robots):
-                window.blit(font.render(f"{robot.name}: {robot.coins} Coin(s)",
-                                        True, "#FFFFFF"),
-                            Vector2(0, i * 18))
+            # Draw Robot list
+            render_robot_list(window, [robot for robot, _ in self.__robots])
 
             # Display results on window
             pygame.display.flip()
