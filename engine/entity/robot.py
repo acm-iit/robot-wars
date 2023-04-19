@@ -326,7 +326,7 @@ class Robot(entity.Entity):
             self.move_power = min(max(move_power, -1), 1)
         else:
             self.__warn("ControlOutput.move_power should be a valid number; "
-                        f"got {move_power}")
+                        f"got {move_power}; defaulting to 0")
             self.move_power = 0
 
         turn_power = output.turn_power
@@ -334,7 +334,7 @@ class Robot(entity.Entity):
             self.turn_power = min(max(turn_power, -1), 1)
         else:
             self.__warn("ControlOutput.turn_power should be a valid number; "
-                        f"got {turn_power}")
+                        f"got {turn_power}; defaulting to 0")
             self.turn_power = 0
 
         turr_turn_power = output.turret_turn_power
@@ -342,7 +342,7 @@ class Robot(entity.Entity):
             self.turret_turn_power = min(max(turr_turn_power, -1), 1)
         else:
             self.__warn("ControlOutput.turret_turn_power should be a valid "
-                        f"number; got {turr_turn_power}")
+                        f"number; got {turr_turn_power}; defaulting to 0")
             self.turret_turn_power = 0
 
         turn_toward = output.turn_toward
@@ -355,10 +355,11 @@ class Robot(entity.Entity):
                 self.turn_toward(Vector2(x, y), dt)
             else:
                 self.__warn("ControlOutput.turn_toward tuple values must be "
-                            f"valid numbers; got ({x}, {y})")
+                            f"valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
         elif turn_toward is not None:
             self.__warn("ControlOutput.turn_toward should be a valid number "
-                        f"or 2-tuple; got {turn_toward}")
+                        f"or 2-tuple; got {turn_toward}; defaulting to None")
 
         move_toward = output.move_toward
         if type(move_toward) is tuple and len(move_toward) == 2:
@@ -373,10 +374,11 @@ class Robot(entity.Entity):
                                 "unreachable")
             else:
                 self.__warn("ControlOutput.move_toward tuple values must be "
-                            f"valid numbers; got ({x}, {y})")
+                            f"valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
         elif move_toward is not None:
             self.__warn("ControlOutput.move_toward should be a valid 2-tuple; "
-                        f"got {move_toward}")
+                        f"got {move_toward}; defaulting to None")
 
         aim_toward = output.aim_toward
         if is_number(aim_toward) and not math.isnan(aim_toward):  # type: ignore # noqa
@@ -388,17 +390,18 @@ class Robot(entity.Entity):
                 self.aim_toward(Vector2(x, y), dt)
             else:
                 self.__warn("ControlOutput.aim_toward tuple values must be "
-                            f"valid numbers; got ({x}, {y})")
+                            f"valid numbers; got ({x}, {y}); defaulting to "
+                            "None")
         elif aim_toward is not None:
             self.__warn("ControlOutput.aim_toward should be a valid number or "
-                        f"2-tuple; got {aim_toward}")
+                        f"2-tuple; got {aim_toward}; defaulting to None")
 
         if type(output.shoot) is bool:
             if output.shoot:
                 self.shoot()
         else:
             self.__warn("ControlOutput.shoot should be a valid bool; got "
-                        + str(output.shoot))
+                        f"{output.shoot}; defaulting to False")
 
     def produce_input(self) -> ControlInput:
         input = ControlInput()
