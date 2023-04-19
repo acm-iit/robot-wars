@@ -324,7 +324,9 @@ class Arena:
             if robot.arena is None:
                 continue
             try:
-                robot.perform_action(controller.act(robot.compute_state()), dt)
+                state = robot.compute_state(dt)
+                action = controller.act(state)
+                robot.perform_action(action, dt)
             except Exception:
                 print(f"[ERROR ({robot.name})]: Error occurred during robot "
                       "execution; see below traceback")

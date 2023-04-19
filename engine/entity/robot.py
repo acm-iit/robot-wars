@@ -405,9 +405,10 @@ class Robot(entity.Entity):
                         f"{action.shoot}; defaulting to False")
             self.__will_shoot = False
 
-    def compute_state(self) -> ControllerState:
+    def compute_state(self, dt: float) -> ControllerState:
         state = ControllerState()
 
+        state.time_delta = dt
         state.position = (self.position.x, self.position.y)
         state.rotation = self.rotation
         state.turret_rotation = self.turret_rotation

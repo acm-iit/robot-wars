@@ -27,6 +27,12 @@ class ControllerState:
     time step, which is written into the ControllerAction.
     """
     def __init__(self):
+        self.time_delta: float = 0
+        """
+        Elapsed time that this time step will simulate. This is helpful for
+        precise physics calculations, like predicting robot or bullet paths!
+        """
+
         self.position: tuple[float, float] = (0, 0)
         """
         Position of the robot, as a tuple `(x, y)` measured from the top-left
