@@ -50,6 +50,11 @@ ROBOT_RADIUS = math.sqrt(ROBOT_HITBOX_LENGTH * ROBOT_HITBOX_LENGTH
                          + ROBOT_HITBOX_WIDTH * ROBOT_HITBOX_WIDTH) / 2
 
 
+def is_number(val) -> bool:
+    """Shorthand for checking if a value is either an integer or a float."""
+    return type(val) is int or type(val) is float
+
+
 class Robot(entity.Entity):
     """Robot entity that can move, turn, and shoot."""
     def __init__(self, name: str):
@@ -304,29 +309,96 @@ class Robot(entity.Entity):
             return False
         return self.arena.can_see(self, point)
 
+    def __warn(self, message: str):
+        """
+        Helper function for printing a warning message attached with the
+        Robot's name to the console.
+        """
+        print(f"[WARN ({self.name})]: {message}")
+
     def consume_output(self, output: ControlOutput, dt: float):
-        self.move_power = min(max(output.move_power, -1), 1)
-        self.turn_power = min(max(output.turn_power, -1), 1)
-        self.turret_turn_power = min(max(output.turret_turn_power, -1), 1)
+        """
+        Sets the values of a ControlOutput to the Robot's values. Performs
+        validation on the ControlOutput values.
+        """
+        move_power = output.move_power
+        if is_number(move_power) and not math.isnan(move_power):
+            self.move_power = min(max(move_power, -1), 1)
+        else:
+            self.__warn("ControlOutput.move_power should be a valid number; "
+                        f"got {move_power}")
+            self.move_power = 0
 
-        if type(output.turn_toward) is float:
-            self.turn_toward(output.turn_toward % 2 * math.pi, dt)
-        elif type(output.turn_toward) is tuple:
-            self.turn_toward(Vector2(*output.turn_toward), dt)
+        turn_power = output.turn_power
+        if is_number(turn_power) and not math.isnan(turn_power):
+            self.turn_power = min(max(turn_power, -1), 1)
+        else:
+            self.__warn("ControlOutput.turn_power should be a valid number; "
+                        f"got {turn_power}")
+            self.turn_power = 0
 
-        if output.move_toward is not None:
-            x, y = output.move_toward
-            path = self.pathfind(Vector2(x, y))
-            if path is not None:
-                self.move_toward(path[0], dt)
+        turr_turn_power = output.turret_turn_power
+        if is_number(turr_turn_power) and not math.isnan(turr_turn_power):
+            self.turret_turn_power = min(max(turr_turn_power, -1), 1)
+        else:
+            self.__warn("ControlOutput.turret_turn_power should be a valid "
+                        f"number; got {turr_turn_power}")
+            self.turret_turn_power = 0
 
-        if type(output.aim_toward) is float:
-            self.aim_toward(output.aim_toward % 2 * math.pi, dt)
-        elif type(output.aim_toward) is tuple:
-            self.aim_toward(Vector2(*output.aim_toward), dt)
+        turn_toward = output.turn_toward
+        if is_number(turn_toward) and not math.isnan(turn_toward):  # type: ignore # noqa
+            self.turn_toward(turn_toward % 2 * math.pi, dt)  # type: ignore
+        elif type(turn_toward) is tuple and len(turn_toward) == 2:
+            x, y = turn_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                self.turn_toward(Vector2(x, y), dt)
+            else:
+                self.__warn("ControlOutput.turn_toward tuple values must be "
+                            f"valid numbers; got ({x}, {y})")
+        elif turn_toward is not None:
+            self.__warn("ControlOutput.turn_toward should be a valid number "
+                        f"or 2-tuple; got {turn_toward}")
 
-        if output.shoot:
-            self.shoot()
+        move_toward = output.move_toward
+        if type(move_toward) is tuple and len(move_toward) == 2:
+            x, y = move_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                path = self.pathfind(Vector2(x, y))
+                if path is not None:
+                    self.move_toward(path[0], dt)
+                else:
+                    self.__warn(f"Control.move_toward position ({x}, {y}) is "
+                                "unreachable")
+            else:
+                self.__warn("ControlOutput.move_toward tuple values must be "
+                            f"valid numbers; got ({x}, {y})")
+        elif move_toward is not None:
+            self.__warn("ControlOutput.move_toward should be a valid 2-tuple; "
+                        f"got {move_toward}")
+
+        aim_toward = output.aim_toward
+        if is_number(aim_toward) and not math.isnan(aim_toward):  # type: ignore # noqa
+            self.aim_toward(aim_toward % 2 * math.pi, dt)  # type: ignore
+        elif type(aim_toward) is tuple and len(aim_toward) == 2:
+            x, y = aim_toward
+            if (is_number(x) and is_number(y)
+                    and not math.isnan(x) and not math.isnan(y)):
+                self.aim_toward(Vector2(x, y), dt)
+            else:
+                self.__warn("ControlOutput.aim_toward tuple values must be "
+                            f"valid numbers; got ({x}, {y})")
+        elif aim_toward is not None:
+            self.__warn("ControlOutput.aim_toward should be a valid number or "
+                        f"2-tuple; got {aim_toward}")
+
+        if type(output.shoot) is bool:
+            if output.shoot:
+                self.shoot()
+        else:
+            self.__warn("ControlOutput.shoot should be a valid bool; got "
+                        + str(output.shoot))
 
     def produce_input(self) -> ControlInput:
         input = ControlInput()
