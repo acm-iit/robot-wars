@@ -122,9 +122,14 @@ class Robot(entity.Entity):
 
         # Destroy the robot if it runs out of health
         if self.__health == 0:
-            if self.arena is not None:
-                self.death_time = self.arena.total_sim_time
             self.destroy()
+
+    # Override destroy to add death_time
+    def destroy(self):
+        self.__health = 0
+        if self.arena is not None:
+            self.death_time = self.arena.total_sim_time
+        super().destroy()
 
     @property
     def nearest_robot(self) -> Optional[Robot]:

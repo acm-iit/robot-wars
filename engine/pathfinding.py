@@ -259,13 +259,14 @@ class PathfindingGraph:
 
     def get_available_nodes(self) -> list[Vector2]:
         """Returns positions of all nodes with at least one neighbor."""
+        arena = self.__arena
         return [node.position
                 for node in self.__nodes
                 if len(node.neighbors) > 0
-                if node.position.x > 0
-                if node.position.x < self.__arena.size.x
-                if node.position.y > 0
-                if node.position.y < self.__arena.size.y]
+                if node.position.x > arena.origin.x
+                if node.position.x < arena.origin.x + arena.size.x
+                if node.position.y > arena.origin.y
+                if node.position.y < arena.origin.y + arena.size.y]
 
     def render(self, surface: pygame.Surface):
         """Draws the PathfindingGraph onto a surface."""
