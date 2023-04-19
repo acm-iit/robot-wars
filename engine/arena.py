@@ -24,8 +24,8 @@ Vector2 = pygame.Vector2
 
 WALL_THICKNESS = 100
 FRAME_RATE = 60
-MAX_VIEWPORT_WIDTH = 1024
-MAX_VIEWPORT_HEIGHT = 768
+MAX_VIEWPORT_WIDTH = 896
+MAX_VIEWPORT_HEIGHT = 896
 GRASS_COLOR = "#006600"
 
 BULLET_COLLIDE_RADIUS = 16          # Radius for collisions w/ other bullets
@@ -578,7 +578,7 @@ class Arena:
             # Scale arena surface contents to create viewport surface
             ratio = self.__size.x / viewport_size.x
             viewport = None
-            if ratio > 2:
+            if ratio > 3:
                 # Use faster, normal scale if the ratio is too large
                 viewport = pygame.transform.scale(self.__surface,
                                                   viewport_size)
