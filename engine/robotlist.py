@@ -87,15 +87,17 @@ def render_robot_list(surface: Surface, robots: list[Robot]):
                                 y + NAME_HEIGHT / 2 - name.get_height() / 2)
         surface.blit(name, name_position)
 
-        robot_surface = Surface(Vector2(ROBOT_RADIUS * 2),
-                                flags=pygame.SRCALPHA)
-        robot.render_at_position(robot_surface, Vector2(ROBOT_RADIUS))
-        ratio = ENTRY_HEIGHT / (2 * ROBOT_RADIUS)
-        robot_surface = pygame.transform.smoothscale_by(robot_surface, ratio)
         robot_position = Vector2(3 * PADDING + name_max_width, y)
-        surface.blit(robot_surface, robot_position)
 
-        if robot.health <= 0:
+        if robot.health > 0:
+            robot_surface = Surface(Vector2(ROBOT_RADIUS * 2),
+                                    flags=pygame.SRCALPHA)
+            robot.render_at_position(robot_surface, Vector2(ROBOT_RADIUS))
+            ratio = ENTRY_HEIGHT / (2 * ROBOT_RADIUS)
+            robot_surface = pygame.transform.smoothscale_by(robot_surface,
+                                                            ratio)
+            surface.blit(robot_surface, robot_position)
+        else:
             x_size = ENTRY_HEIGHT - PADDING
             center = robot_position + Vector2(ENTRY_HEIGHT) / 2
             top_left = center - Vector2(x_size) / 2
