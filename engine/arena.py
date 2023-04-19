@@ -598,8 +598,7 @@ class Arena:
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
             # Draw Robot scores
-            for i, robot in enumerate(self.get_entities_of_type(Robot)):
-                assert type(robot) is Robot, "Shouldn't happen"
+            for i, (robot, _) in enumerate(self.__robots):
                 window.blit(font.render(f"{robot.name}: {robot.coins} Coin(s)",
                                         False, "#FFFFFF"),
                             Vector2(0, i * 18))
