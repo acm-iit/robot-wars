@@ -77,6 +77,9 @@ class Robot(entity.Entity):
 
         self.coins = 0                              # Number of coins collected
 
+        # Velocity from last update call
+        self.last_velocity = Vector2()
+
         self.__move_speed = ROBOT_MOVE_SPEED
         self.__turn_speed = ROBOT_TURN_SPEED
         self.__turret_turn_speed = ROBOT_TURRET_TURN_SPEED
@@ -197,8 +200,9 @@ class Robot(entity.Entity):
 
         `dt` represents the time delta in seconds.
         """
-        displacement = self.__move_speed * self.move_power * dt
-        self.position += Vector2(displacement, 0).rotate_rad(self.rotation)
+        velocity = Vector2(self.__move_speed * self.move_power, 0)
+        velocity.rotate_ip_rad(self.rotation)
+        self.position += velocity * dt
 
         # Calculate tread segments/sec speed
         tread_speed = self.__move_speed / (TREAD_LENGTH / NUM_TREAD_SEGMENTS)
@@ -207,6 +211,8 @@ class Robot(entity.Entity):
         self.__right_tread_alpha += tread_speed * self.move_power * dt
         self.__left_tread_alpha %= 1
         self.__right_tread_alpha %= 1
+
+        self.last_velocity = velocity
 
     def __turn(self, dt: float):
         """
@@ -416,6 +422,8 @@ class Robot(entity.Entity):
         enemy = self.nearest_robot
         if enemy is not None:
             state.enemy_position = (enemy.position.x, enemy.position.y)
+            state.enemy_velocity = (enemy.last_velocity.x,
+                                    enemy.last_velocity.y)
             state.enemy_rotation = enemy.rotation
             state.enemy_turret_rotation = enemy.turret_rotation
 

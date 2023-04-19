@@ -65,6 +65,17 @@ class ControllerState:
         position of the nearest enemy robot.
         """
 
+        self.enemy_velocity: tuple[float, float] = (0, 0)
+        """
+        Velocity of the enemy robot from the previous time step, as a tuple
+        `(vx, vy)` measured from the top-left point of the arena.
+
+        In the case of multiple enemy robots (i.e. battle royale), this is the
+        velocity of the nearest enemy robot.
+
+        Along with `time_delta`, this is useful for predicting enemy paths!
+        """
+
         self.enemy_rotation: float = 0
         """
         Rotation of the enemy robot, in radians measured clockwise from the
