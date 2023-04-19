@@ -48,7 +48,7 @@ class Arena:
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
-        self.__segments: list[tuple[Vector2, Vector2]] = []
+        self.__segments: list[tuple[Vector2, Vector2, float]] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
         self.__robots = list[tuple[Robot, Controller]]()
         self.__bullet_collisions = list[tuple[Vector2, float]]()
@@ -262,7 +262,7 @@ class Arena:
             for i in range(len(hitbox)):
                 vertex1 = hitbox[i]
                 vertex2 = hitbox[(i + 1) % len(hitbox)]
-                self.__segments.append((vertex1, vertex2))
+                self.__segments.append((vertex1, vertex2, 0))
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:

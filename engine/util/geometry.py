@@ -85,9 +85,12 @@ def is_point_in_polygon(point: Vector2, polygon: list[Vector2]):
         dot = diff.dot(normal)
         dot_sign = 0 if dot == 0 else -1 if dot < 0 else 1
 
+        if dot_sign == 0:
+            return False
+
         if sign == 0:
             sign = dot_sign
-        elif dot_sign != 0 and dot_sign != sign:
+        elif dot_sign != sign:
             return False
 
     return True
@@ -121,13 +124,14 @@ def line_segment_intersection(a1: Vector2, a2: Vector2,
 
 
 def check_segment_intersection(a1: Vector2, a2: Vector2,
-                               b1: Vector2, b2: Vector2):
+                               b1: Vector2, b2: Vector2,
+                               tolerance: float):
     """Checks if two line segments intersect."""
     result = line_segment_intersection(a1, a2, b1, b2)
     if result is None:
         return False
     t_num, u_num, denom = result
-    lower = denom * 1e-4
+    lower = denom * tolerance
     upper = denom - lower
     if denom < 0 and (t_num > lower or t_num < upper
                       or u_num > lower or u_num < upper):
@@ -139,23 +143,24 @@ def check_segment_intersection(a1: Vector2, a2: Vector2,
 
 
 def raycast(origin: Vector2, endpoint: Vector2,
-            segments: list[tuple[Vector2, Vector2]]):
+            segments: list[tuple[Vector2, Vector2, float]]):
     """Determines if a ray intersects one or more segments."""
     if origin == endpoint:
         return None
 
-    for point1, point2 in segments:
+    for point1, point2, tolerance in segments:
         if point1 == origin or point2 == origin:
             # Skip over segments where either endpoint is the origin
             continue
 
-        if check_segment_intersection(origin, endpoint, point1, point2):
+        if check_segment_intersection(origin, endpoint, point1, point2,
+                                      tolerance):
             return True
 
     return False
 
 
 def can_see(point1: Vector2, point2: Vector2,
-            segments: list[tuple[Vector2, Vector2]]):
+            segments: list[tuple[Vector2, Vector2, float]]):
     """Determines if point1 and point2 can see each other."""
     return not raycast(point1, point2, segments)

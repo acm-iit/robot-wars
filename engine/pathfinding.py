@@ -145,7 +145,8 @@ class PathfindingGraph:
     def __create_graph(self, walls: list[Wall]):
         hitboxes = list[list[Vector2]]()
         node_set = set[tuple[float, float]]()
-        segments = list[tuple[Vector2, Vector2]]()
+        # The third value for each segment represents tolerance for raycasts
+        segments = list[tuple[Vector2, Vector2, float]]()
 
         # Record all nodes, including ones that may be in other hitboxes
         for wall in walls:
@@ -174,12 +175,20 @@ class PathfindingGraph:
 
         node_set.difference_update(remove_set)
 
-        # Record line segments
+        # Record line segments of pathfinding hitboxes
         for hitbox in hitboxes:
             for i in range(len(hitbox)):
                 vertex1 = hitbox[i]
                 vertex2 = hitbox[(i + 1) % len(hitbox)]
-                segments.append((vertex1, vertex2))
+                segments.append((vertex1, vertex2, 1e-4))
+
+        # Record normal collision hitbox segments as well
+        for wall in walls:
+            hitbox = wall.absolute_hitbox
+            for i in range(len(hitbox)):
+                vertex1 = hitbox[i]
+                vertex2 = hitbox[(i + 1) % len(hitbox)]
+                segments.append((vertex1, vertex2, 0))
 
         nodes = [Node(Vector2(x, y)) for x, y in node_set]
 
