@@ -324,7 +324,7 @@ class Arena:
             if robot.arena is None:
                 continue
             input = robot.produce_input()
-            output = ControlOutput(input)
+            output = ControlOutput()
             try:
                 controller.act(input, output)
                 robot.consume_output(output, dt)

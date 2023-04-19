@@ -112,9 +112,7 @@ class ControlOutput:
     Object the represents the actions the robot will take in the upcoming time
     step. Write into the values of this object to dictate the robot's behavior.
     """
-    def __init__(self, input: ControlInput):
-        self.__input = input
-
+    def __init__(self):
         self.move_power: float = 0
         """
         Current velocity of the robot, represented as a fraction of maximum
