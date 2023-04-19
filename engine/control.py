@@ -42,7 +42,7 @@ class ControlInput:
         (It is measured clockwise since the positive Y-axis is down!)
         """
 
-        self.can_see_robot: bool = False
+        self.can_see_enemy: bool = False
         """
         Determines if the robot can see the enemy robot, as a boolean where
         `True` implies it can do so.

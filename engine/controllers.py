@@ -25,7 +25,7 @@ class AggressiveController(Controller):
 
     def act(self, input: ControlInput, output: ControlOutput):
         output.move_to = input.enemy_position
-        if input.can_see_robot:
+        if input.can_see_enemy:
             output.aim_at_position(input.enemy_position)
             output.shoot = True
 
@@ -46,6 +46,6 @@ class AggreedyController(Controller):
 
     def act(self, input: ControlInput, output: ControlOutput):
         output.move_to = input.coin
-        if input.can_see_robot:
+        if input.can_see_enemy:
             output.aim_at_position(input.enemy_position)
             output.shoot = True

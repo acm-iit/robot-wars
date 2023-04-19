@@ -350,9 +350,9 @@ class Robot(entity.Entity):
             input.enemy_position = (position.x, position.y)
             input.enemy_rotation = rotation
 
-            input.can_see_robot = self.can_see(position)
+            input.can_see_enemy = self.can_see(position)
         else:
-            input.can_see_robot = False
+            input.can_see_enemy = False
 
         bullets = self.nearby_bullets
         input.bullets = [(p.x, p.y, v.x, v.y) for p, v in bullets]
