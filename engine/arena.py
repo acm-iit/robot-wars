@@ -548,7 +548,7 @@ class Arena:
         dt = 0
 
         # Font to render debug text
-        font = pygame.font.SysFont("couriernew", 18)
+        font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
 
         total_frames = 0
         total_frame_time = 0        # Actual elapsed time
