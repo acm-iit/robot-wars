@@ -29,8 +29,9 @@ class ControllerState:
     def __init__(self):
         self.time_delta: float = 0
         """
-        Elapsed time that this time step will simulate. This is helpful for
-        precise physics calculations, like predicting robot or bullet paths!
+        Elapsed time that this time step will simulate, in seconds. This is
+        helpful for precise physics calculations, like predicting robot or
+        bullet paths!
         """
 
         self.position: tuple[float, float] = (0, 0)
@@ -110,6 +111,15 @@ class ControllerState:
         """
         Position of the coin, as a tuple `(x, y)` measured from the top-left
         point of the arena.
+        """
+
+        self.shot_cooldown: float = 0
+        """
+        Time left until the robot can shoot a bullet. Every time a robot shoots
+        a bullet, it cannot shoot again for `1` second.
+
+        If the value is `0`, then setting `ControllerAction.shoot = True` will
+        successfully shoot a bullet.
         """
 
 

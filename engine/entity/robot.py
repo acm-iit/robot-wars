@@ -430,6 +430,8 @@ class Robot(entity.Entity):
         if coin is not None:
             state.coin_position = (coin.x, coin.y)
 
+        state.shot_cooldown = self.__time_until_next_shot
+
         return state
 
     def update(self, dt: float):
