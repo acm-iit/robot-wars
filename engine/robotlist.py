@@ -47,7 +47,7 @@ def format_time(time: float) -> str:
 
 
 def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
-                      time_left: float):
+                      time_limit: float, sim_time: float):
     """
     Renders list of Robots on the left side of the window, along with other
     information.
@@ -107,13 +107,13 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
     y += title.get_height()
 
     # Show remaining time (if timed)
-    if math.isfinite(time_left):
+    if math.isfinite(time_limit):
         # Title-to-time padding (P)
         y += PADDING
 
         # Time (NH)
-        formatted = format_time(time_left)
-        time = name_font.render(f"Simulated Time Left: {formatted}", True,
+        time_left = format_time(time_limit - sim_time)
+        time = name_font.render(f"Simulated Time Left: {time_left}", True,
                                 "#FFFFFF")
         time_position = Vector2(WIDTH / 2 - time.get_width() / 2, y)
         surface.blit(time, time_position)
@@ -196,6 +196,23 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
         pygame.draw.rect(surface, HEALTH_COLOR,
                          Rect(health_position,
                               Vector2(green_width, HEALTH_BAR_HEIGHT)))
+
+        # Display death time if dead
+        if robot.health <= 0:
+            time_left = format_time(time_limit - robot.death_time)
+            death = stats_font.render(f"Died at {time_left}", True,
+                                      "#FFFFFF")
+            death_position = Vector2(PADDING * 2 + red_width / 2
+                                     - death.get_width() / 2,
+                                     y + STATS_HEIGHT / 2
+                                     - death.get_height() / 2)
+
+            # Render text background
+            bg_rect = Rect(death_position - Vector2(PADDING),
+                           Vector2(death.get_size()) + Vector2(PADDING * 2))
+            pygame.draw.rect(surface, COLOR, bg_rect)
+
+            surface.blit(death, death_position)
 
         # Coin icon
         coin_position = Vector2(3 * PADDING + red_width, y)

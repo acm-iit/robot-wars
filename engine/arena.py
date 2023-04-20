@@ -697,7 +697,7 @@ class Arena:
 
             # Draw Robot list
             ranked = [(r, p) for r, _, p in self.__rank_robots()]
-            render_robot_list(window, ranked, time_limit - self.total_sim_time)
+            render_robot_list(window, ranked, time_limit, self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()
