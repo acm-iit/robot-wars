@@ -86,6 +86,8 @@ def render_robot_list(surface: Surface, robots: list[Robot],
     # TH [                                TITLE                               ]
     # P  [                                                                    ]
     # NH [                                TIME                                ]
+    # P  [                                                                    ]
+    # NH [                             ROBOTS LEFT                            ]
     # 4P [                                                                    ]
     #    v-------------------- [   ROBOT ENTRY LAYOUT   ] --------------------v
     # NH [ 2P |                   NAME                  | P |   RENDER   | 2P ]
@@ -122,11 +124,24 @@ def render_robot_list(surface: Surface, robots: list[Robot],
         surface.blit(time, time_position)
         y += time.get_height()
 
-    # Title/time-to-leaderboard padding (4P)
-    y += PADDING * 4
+    # Title/time-to-robots-left padding (P)
+    y += PADDING
 
     # Sort robots by health and coins
     robots = sorted(robots, key=robot_stats, reverse=True)
+
+    # Robots left (NH)
+    num_robots = 0
+    while num_robots < len(robots) and robots[num_robots].health > 0:
+        num_robots += 1
+    robots_left = name_font.render(f"Tanks Left: {num_robots}", True,
+                                   "#FFFFFF")
+    robots_left_position = Vector2(WIDTH / 2 - robots_left.get_width() / 2, y)
+    surface.blit(robots_left, robots_left_position)
+    y += robots_left.get_height()
+
+    # Robots-left-to-leaderboard padding (4P)
+    y += PADDING * 4
 
     # Robot entries
     place = 1
