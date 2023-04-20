@@ -450,11 +450,14 @@ def tournament(controller_classes: list[type[Controller]],
         render_bracket(bracket, third_place_matchup, display_round,
                        third_place_matchup)
 
-        winner = one_vs_one(third_place_matchup.controller1,
-                            third_place_matchup.controller2,
-                            show_fps)
+        controller1 = third_place_matchup.controller1
+        controller2 = third_place_matchup.controller2
+
+        winner = one_vs_one(controller1, controller2, show_fps)
         if winner is None:
             graceful_exit()
             return
+
+        third_place_matchup.winner = 1 if winner == controller1 else 2
 
     render_bracket(bracket, third_place_matchup=third_place_matchup)
