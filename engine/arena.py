@@ -579,7 +579,7 @@ class Arena:
         self.__filter_entities()
         self.__render_scene()
 
-    def run(self):
+    def run(self, time_limit: float = math.inf):
         """Runs simulation of the Arena."""
         has_path_graph = self.__path_graph is not None
         assert has_path_graph, ("Must call Arena.prepare_path_graph after "
@@ -603,7 +603,7 @@ class Arena:
         total_frame_time = 0        # Actual elapsed time
         self.total_sim_time = 0     # Simulated time
 
-        while running:
+        while running and self.total_sim_time < time_limit:
             # Poll for events
             # pygame.QUIT event means the user clicked X to close the window
             for event in pygame.event.get():
