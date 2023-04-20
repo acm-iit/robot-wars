@@ -1,31 +1,5 @@
-from random import choice
-
-from engine import (Arena, Controller, controllers, ControllerAction,
+from engine import (battle_royale, Controller, controllers, ControllerAction,
                     ControllerState)
-
-# List of available maps
-maps = [
-    "engine/maps/basic.json",
-    "engine/maps/circles.json",
-    "engine/maps/circles_large.json",
-    "engine/maps/lock.json",
-    "engine/maps/maze.json",
-    "engine/maps/stress_test.json",
-]
-
-# If set, use this map instead of a random one above
-map = maps[1]
-
-# List of enemy robot controllers
-enemies = [
-    controllers.SpinController,
-    controllers.AggressiveController,
-    controllers.GreedyController,
-    controllers.AggreedyController
-]
-
-# If set, use this enemy controller only instead of randomly chosen ones
-enemy = None
 
 
 # Implement your controller here!
@@ -40,29 +14,14 @@ class MyController(Controller):
 
 
 if __name__ == "__main__":
-    map = map if map is not None else choice(maps)
-    arena = Arena.from_map_json(map)
+    # List of tank controllers to use in the simulation
+    enemies = [
+        controllers.HumanController,
+        controllers.SpinController,
+        controllers.AggressiveController,
+        controllers.GreedyController,
+        controllers.AggreedyController
+    ]
 
-    if arena is None:
-        quit(1)
-
-    # Uncomment the below to show FPS
-    # arena.show_fps = True
-
-    # Add enemy robot(s)
-    for i in range(1):
-        chosen_enemy = enemy if enemy is not None else choice(enemies)
-        arena.add_robot(chosen_enemy())
-
-    # Add your robot
-    arena.add_robot(MyController())
-
-    # Uncomment the next line to add a human robot controlled by you, if you
-    # want!
-    # arena.add_robot(controllers.HumanController(arena))
-
-    # Spawn the robots
-    arena.spawn_robots()
-
-    # Run the simulation
-    arena.run()
+    # Run a battle royale simulation (set show_fps=True to show FPS if needed)
+    battle_royale(enemies, show_fps=False)
