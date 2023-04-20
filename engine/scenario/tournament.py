@@ -1,4 +1,5 @@
 import math
+import sys
 from typing import cast, Literal
 
 import pygame
@@ -31,13 +32,26 @@ NEXT_MATCH_TEXT_COLOR = "#000000"
 
 
 class Matchup:
-    def __init__(self, next_index: int):
+    def __init__(self, next_index: int,
+                 controller1: type[Controller] | None = None,
+                 controller2: type[Controller] | None = None,
+                 seed1: int = 0, seed2: int = 0,
+                 winner: Literal[1, 2] | None = None):
         self.next_index = next_index
-        self.controller1: type[Controller] | None = None
-        self.controller2: type[Controller] | None = None
-        self.seed1 = 0
-        self.seed2 = 0
-        self.winner: Literal[1, 2] | None = None
+        self.controller1 = controller1
+        self.controller2 = controller2
+        self.seed1 = seed1
+        self.seed2 = seed2
+        self.winner = winner
+
+    def __repr__(self) -> str:
+        # Easily print out Matchup initialization code for easy state saving
+        name1 = ("None" if self.controller1 is None
+                 else self.controller1.__name__)
+        name2 = ("None" if self.controller2 is None
+                 else self.controller2.__name__)
+        return (f"Matchup({self.next_index}, {name1}, {name2}, {self.seed1}, "
+                f"{self.seed2}, {self.winner})")
 
 
 def blank_bracket(num_rounds: int):
@@ -103,6 +117,14 @@ def construct_bracket(seeding: list[type[Controller]]):
                 next_matchup.seed2 = matchup.seed1
 
     return bracket
+
+
+def graceful_exit(bracket: list[list[Matchup]] | None = None):
+    if bracket is not None:
+        print("In case you want to pick up where you left off, here's the "
+              "state of the bracket:")
+        print(bracket)
+    sys.exit(0)
 
 
 def render_matchup(surface: pygame.Surface, matchup: Matchup,
@@ -212,6 +234,9 @@ def render_bracket(bracket: list[list[Matchup]],
     if not pygame.get_init():
         pygame.init()
 
+    # Font for third place and continue text
+    font = pygame.font.SysFont(pygame.font.get_default_font(), TEXT_HEIGHT)
+
     num_rounds = len(bracket) - current_round
 
     # Figure out side of bracket surface (may be scaled down to fit window)
@@ -220,7 +245,8 @@ def render_bracket(bracket: list[list[Matchup]],
     height_in_rounds = (len(bracket[current_round + 1])
                         if current_round < len(bracket) - 1
                         else len(bracket[current_round]))
-    height = 2 * MARGIN + (3 * TEXT_HEIGHT) * height_in_rounds - TEXT_HEIGHT
+    height = (2 * MARGIN + (3 * TEXT_HEIGHT) * height_in_rounds
+              + TEXT_HEIGHT * 5)
     box_size = Vector2(width, height)
 
     surface = pygame.Surface(box_size)
@@ -282,11 +308,33 @@ def render_bracket(bracket: list[list[Matchup]],
             if i != num_rounds - 1:
                 # Move y-cursor to next matchup
                 y += spacing * 2 + TEXT_HEIGHT
-            elif third_place_matchup is not None:
+            else:
+                # Render finals matchup label
+                final_text = font.render("Grand Finals", True, TEXT_COLOR)
+                final_x = x + TEXT_WIDTH / 2 - final_text.get_width() / 2
+                final_y = y + TEXT_HEIGHT / 2 - final_text.get_height() / 2
+                surface.blit(final_text, (final_x, final_y))
+
+                if third_place_matchup is None:
+                    continue
+
                 # Move y-cursor to third place matchup
-                y += TEXT_HEIGHT
-                render_matchup(surface, third_place_matchup, x, y,
-                               third_place_matchup == next_matchup, False)
+                y += 2 * TEXT_HEIGHT
+                y += render_matchup(surface, third_place_matchup, x, y,
+                                    third_place_matchup == next_matchup, False)
+
+                # Render third place matchup label
+                third_text = font.render("Bronze Match", True, TEXT_COLOR)
+                third_x = x + TEXT_WIDTH / 2 - third_text.get_width() / 2
+                third_y = y + TEXT_HEIGHT / 2 - third_text.get_height() / 2
+                surface.blit(third_text, (third_x, third_y))
+
+    # Render continue text
+    cont_text = font.render("Press Escape to continue...", True, TEXT_COLOR)
+    cont_text_x = width / 2 - cont_text.get_width() / 2
+    cont_text_y = (height - MARGIN - TEXT_HEIGHT / 2
+                   - cont_text.get_height() / 2)
+    surface.blit(cont_text, (cont_text_x, cont_text_y))
 
     # Figure out window size that fits in max dimensions
     window_rect = Rect((0, 0), MAX_BRACKET_WINDOW_SIZE)
@@ -306,9 +354,10 @@ def render_bracket(bracket: list[list[Matchup]],
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                should_quit = True
-                break
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                print("Aborting")
+                pygame.quit()
+                graceful_exit(bracket)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 should_quit = True
                 break
 
@@ -335,6 +384,13 @@ def tournament(controller_classes: list[type[Controller]],
 
     seeding = battle_royale(controller_classes, show_fps)
 
+    if seeding is None:
+        graceful_exit()
+
+        # For some reason, pylance doesn't detect that graceful_exit stops
+        # the program, so I return here to prevent typecheck errors.
+        return
+
     bracket = construct_bracket(seeding)
 
     third_place_matchup = None
@@ -353,8 +409,13 @@ def tournament(controller_classes: list[type[Controller]],
             display_round = min(i, max(len(bracket) - 4, 0))
             render_bracket(bracket, matchup, display_round,
                            third_place_matchup)
+
             winner = one_vs_one(controller1, controller2,
                                 show_fps)
+            if winner is None:
+                graceful_exit(bracket)
+                return
+
             winner_seed = (matchup.seed1 if winner == controller1
                            else matchup.seed2)
             matchup.winner = 1 if winner == controller1 else 2
@@ -388,8 +449,12 @@ def tournament(controller_classes: list[type[Controller]],
         display_round = max(len(bracket) - 4, 0)
         render_bracket(bracket, third_place_matchup, display_round,
                        third_place_matchup)
-        one_vs_one(third_place_matchup.controller1,
-                   third_place_matchup.controller2,
-                   show_fps)
+
+        winner = one_vs_one(third_place_matchup.controller1,
+                            third_place_matchup.controller2,
+                            show_fps)
+        if winner is None:
+            graceful_exit()
+            return
 
     render_bracket(bracket, third_place_matchup=third_place_matchup)
