@@ -713,9 +713,58 @@ class Arena:
             # Limit FPS
             dt = clock.tick(FRAME_RATE) / 1000
 
+        results = self.__rank_robots()
+
+        winner_font = pygame.font.SysFont(pygame.font.get_default_font(), 64)
+        continue_font = pygame.font.SysFont(pygame.font.get_default_font(), 48)
+
+        # Game over screen
+        while True:
+            # Check for pygame.QUIT event
+            should_quit = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    # Returning None indicates ending the whole simulation
+                    print("Aborting")
+                    pygame.quit()
+                    return None
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        should_quit = True
+                        break
+            if should_quit:
+                break
+
+            # Clear window
+            window.fill(ROBOT_LIST_COLOR)
+
+            # Draw winning robot
+            if len(results) > 0:
+                winner, *_ = results[0]
+                winner.rotation += dt * math.pi
+                winner.turret_rotation -= dt * math.pi
+                winner.render_at_position(window, Vector2(window_size.x / 2,
+                                                          window_size.y / 3))
+
+                winner_text = winner_font.render(f"{winner.name} wins!", True,
+                                                 "#FFFFFF")
+                winner_x = window_size.x / 2 - winner_text.get_width() / 2
+                winner_y = window_size.y / 3 + 256
+                window.blit(winner_text, (winner_x, winner_y))
+
+            continue_text = continue_font.render("Press Escape to continue...",
+                                                 True, "#FFFFFF")
+            continue_x = window_size.x / 2 - continue_text.get_width() / 2
+            continue_y = window_size.y / 3 + 320
+            window.blit(continue_text, (continue_x, continue_y))
+
+            pygame.display.flip()
+
+            dt = clock.tick(FRAME_RATE) / 1000
+
         pygame.quit()
 
         if self.show_fps:
             print(f"Overall FPS: {total_frames / total_frame_time}")
 
-        return self.__rank_robots()
+        return results
