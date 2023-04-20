@@ -1,5 +1,5 @@
 from engine import (battle_royale, Controller, controllers, ControllerAction,
-                    ControllerState)
+                    ControllerState, one_vs_one)
 
 
 # Implement your controller here!
@@ -25,3 +25,6 @@ if __name__ == "__main__":
 
     # Run a battle royale simulation (set show_fps=True to show FPS if needed)
     battle_royale(enemies, show_fps=False)
+
+    # Run a 1 vs. 1 simulation between 2 robots
+    one_vs_one(controllers.HumanController, controllers.AggreedyController)

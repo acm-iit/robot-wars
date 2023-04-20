@@ -4,16 +4,15 @@ from engine.arena import Arena
 from engine.control import Controller
 from engine.controllers import HumanController
 
-MAP_FILENAME = "engine/maps/stress_test.json"
-DURATION = 180
+MAP_FILENAME = "engine/maps/circles.json"
+DURATION = 60
 
 
-def battle_royale(controller_classes: list[type[Controller]],
-                  show_fps: bool = False):
+def one_vs_one(controller1: type[Controller], controller2: type[Controller],
+               show_fps: bool = False):
     """
-    Runs a list of controller classes in a battle royale environment. The map
-    is a vast, square map with the walls slowly closing in towards the center,
-    similar to a zone in a battle royale game.
+    Runs two controller classes in a one versus one environment. The map is a
+    medium square map with two sets of concentric circular walls.
 
     Optional parameter `show_fps` can be set to show FPS in the top left.
     """
@@ -22,6 +21,8 @@ def battle_royale(controller_classes: list[type[Controller]],
         sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
+
+    controller_classes = [controller1, controller2]
 
     for controller_class in controller_classes:
         # Initialize controller
@@ -44,4 +45,4 @@ def battle_royale(controller_classes: list[type[Controller]],
         print(f"{place}. {controller.name}")
         controller_results.append(type(controller))
 
-    return controller_results
+    return controller_results[0]
