@@ -647,7 +647,8 @@ class Arena:
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
             # Draw Robot list
-            render_robot_list(window, [robot for robot, _ in self.__robots])
+            render_robot_list(window, [robot for robot, _ in self.__robots],
+                              time_limit - self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()
