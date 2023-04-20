@@ -23,9 +23,6 @@ ENTRY_HEIGHT = STATS_HEIGHT + PADDING + NAME_HEIGHT
 
 HEALTH_BAR_HEIGHT = 4
 
-name_font: pygame.font.Font | None = None
-stats_font: pygame.font.Font | None = None
-title_font: pygame.font.Font | None = None
 coin: Coin | None = None
 
 
@@ -52,22 +49,19 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
     Renders list of Robots on the left side of the window, along with other
     information.
     """
-    global coin, name_font, stats_font, title_font
+    global coin
 
     # Initialize Coin used for rendering an icon (yes this is hacky)
     if coin is None:
         coin = Coin(Vector2(COIN_RADIUS))
 
     # Initialize fonts
-    if name_font is None:
-        name_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                        NAME_HEIGHT)
-    if stats_font is None:
-        stats_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                         STATS_HEIGHT + 8)
-    if title_font is None:
-        title_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                         TITLE_HEIGHT)
+    name_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                    NAME_HEIGHT)
+    stats_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                     STATS_HEIGHT + 8)
+    title_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                     TITLE_HEIGHT)
 
     # Render the coin icon
     coin.update(1 / 60)
