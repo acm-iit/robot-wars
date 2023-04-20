@@ -564,6 +564,34 @@ class Arena:
                     pygame.draw.circle(self.__surface, "#00FFFF",
                                        node.position, 8)
 
+    def __rank_robots(self) -> list[tuple[Robot, Controller, int]]:
+        """Ranks the robots in the Arena."""
+        def robot_stats(robot: Robot):
+            """
+            Computes an ordered triple of stats to rank Robots with. Ranks
+            firstly by their its of death (infinite if it is alive), then by
+            number of coins, then by their remaining health (matters only if
+            it's alive).
+            """
+            return (robot.death_time, robot.coins, robot.health)
+
+        sorted_robots = sorted(self.__robots, key=lambda t: robot_stats(t[0]),
+                               reverse=True)
+
+        # Calculate placements, with ties considered
+        ranked_robots = list[tuple[Robot, Controller, int]]()
+
+        place = 1
+        for i, (robot, controller) in enumerate(sorted_robots):
+            if i > 0:
+                previous = sorted_robots[i - 1][0]
+                if robot_stats(previous) != robot_stats(robot):
+                    place += 1
+
+            ranked_robots.append((robot, controller, place))
+
+        return ranked_robots
+
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         self.total_sim_time += dt
@@ -647,8 +675,8 @@ class Arena:
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
             # Draw Robot list
-            render_robot_list(window, [robot for robot, _ in self.__robots],
-                              time_limit - self.total_sim_time)
+            ranked = [(r, p) for r, _, p in self.__rank_robots()]
+            render_robot_list(window, ranked, time_limit - self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()
@@ -659,3 +687,5 @@ class Arena:
         pygame.quit()
 
         print(f"Overall FPS: {total_frames / total_frame_time}")
+
+        return self.__rank_robots()

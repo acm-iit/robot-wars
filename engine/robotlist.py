@@ -46,12 +46,7 @@ def format_time(time: float) -> str:
     return f"{minutes}:{seconds}"
 
 
-def robot_stats(robot: Robot):
-    """Computes an ordered triple of stats to rank Robots with."""
-    return (robot.death_time, robot.coins, robot.health)
-
-
-def render_robot_list(surface: Surface, robots: list[Robot],
+def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
                       time_left: float):
     """
     Renders list of Robots on the left side of the window, along with other
@@ -127,12 +122,9 @@ def render_robot_list(surface: Surface, robots: list[Robot],
     # Title/time-to-robots-left padding (P)
     y += PADDING
 
-    # Sort robots by health and coins
-    robots = sorted(robots, key=robot_stats, reverse=True)
-
     # Robots left (NH)
     num_robots = 0
-    while num_robots < len(robots) and robots[num_robots].health > 0:
+    while num_robots < len(robots) and robots[num_robots][0].health > 0:
         num_robots += 1
     robots_left = name_font.render(f"Tanks Left: {num_robots}", True,
                                    "#FFFFFF")
@@ -144,11 +136,7 @@ def render_robot_list(surface: Surface, robots: list[Robot],
     y += PADDING * 4
 
     # Robot entries
-    place = 1
-    for i, robot in enumerate(robots):
-        if i > 0 and robot_stats(robots[i - 1]) != robot_stats(robots[i]):
-            place += 1
-
+    for robot, place in robots:
         # Name (NH)
 
         # Name label max width (WIDTH - 2P - P - EH - 2P)
