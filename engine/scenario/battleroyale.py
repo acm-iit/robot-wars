@@ -1,3 +1,5 @@
+import sys
+
 from engine.arena import Arena
 from engine.control import Controller
 from engine.controllers import HumanController
@@ -17,8 +19,7 @@ def battle_royale(controller_classes: list[type[Controller]],
     """
     arena = Arena.from_map_json(MAP_FILENAME)
     if arena is None:
-        print("Invalid map; exiting")
-        exit(1)
+        sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
 
