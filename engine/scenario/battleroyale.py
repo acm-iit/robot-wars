@@ -37,6 +37,9 @@ def battle_royale(controller_classes: list[type[Controller]],
     arena.spawn_robots()
 
     results = arena.run(DURATION)
+    if results is None:
+        return None
+
     print("RESULTS:")
 
     controller_results = list[type[Controller]]()

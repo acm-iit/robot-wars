@@ -38,6 +38,9 @@ def one_vs_one(controller1: type[Controller], controller2: type[Controller],
     arena.spawn_robots()
 
     results = arena.run(DURATION)
+    if results is None:
+        return None
+
     print("RESULTS:")
 
     controller_results = list[type[Controller]]()

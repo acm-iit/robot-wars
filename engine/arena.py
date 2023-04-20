@@ -654,8 +654,15 @@ class Arena:
             should_quit = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    should_quit = True
-                    break
+                    # Returning None indicates ending the whole simulation
+                    print("Aborting")
+                    pygame.quit()
+                    return None
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        print("Skipping")
+                        should_quit = True
+                        break
             if should_quit:
                 break
 
@@ -708,6 +715,7 @@ class Arena:
 
         pygame.quit()
 
-        print(f"Overall FPS: {total_frames / total_frame_time}")
+        if self.show_fps:
+            print(f"Overall FPS: {total_frames / total_frame_time}")
 
         return self.__rank_robots()
