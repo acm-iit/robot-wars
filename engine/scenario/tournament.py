@@ -5,6 +5,7 @@ from typing import cast, Literal
 import pygame
 
 from engine.control import Controller
+from engine.entity.robot import Robot, ROBOT_RADIUS
 from engine.scenario import battle_royale, one_vs_one
 
 Rect = pygame.Rect
@@ -127,6 +128,19 @@ def graceful_exit(bracket: list[list[Matchup]] | None = None):
     sys.exit(0)
 
 
+def render_robot_preview(controller: type[Controller]):
+    robot = Robot("Dummy")
+    robot.color = controller.body_color
+    robot.head_color = controller.head_color
+
+    surface = pygame.Surface(Vector2(ROBOT_RADIUS * 2), flags=pygame.SRCALPHA)
+    robot.render_at_position(surface, Vector2(ROBOT_RADIUS))
+
+    del robot
+
+    return surface
+
+
 def render_matchup(surface: pygame.Surface, matchup: Matchup,
                    x: float, y: float, is_next_matchup: bool,
                    is_first_round: bool):
@@ -176,8 +190,8 @@ def render_matchup(surface: pygame.Surface, matchup: Matchup,
     # Names w/ BYE or TBD for None values, depending on round
     # Show "BYE" in first round; "TBD" otherwise
     blank = "BYE" if is_first_round else "TBD"
-    name1 = controller1.__name__ if controller1 is not None else blank
-    name2 = controller2.__name__ if controller2 is not None else blank
+    name1 = controller1.name if controller1 is not None else blank
+    name2 = controller2.name if controller2 is not None else blank
 
     # Seed text labels
     seed1_text = font.render(seed1, True, TEXT_COLOR)
@@ -196,11 +210,11 @@ def render_matchup(surface: pygame.Surface, matchup: Matchup,
         seed2_text = pygame.transform.smoothscale_by(seed2_text, ratio)
 
     # Scale name labels to fit
-    if name1_text.get_width() > TEXT_WIDTH - TEXT_HEIGHT:
-        ratio = (TEXT_WIDTH - TEXT_HEIGHT) / name1_text.get_width()
+    if name1_text.get_width() > TEXT_WIDTH - 2 * TEXT_HEIGHT - 4:
+        ratio = (TEXT_WIDTH - 2 * TEXT_HEIGHT - 4) / name1_text.get_width()
         name1_text = pygame.transform.smoothscale_by(name1_text, ratio)
-    if name2_text.get_width() > TEXT_WIDTH - TEXT_HEIGHT:
-        ratio = (TEXT_WIDTH - TEXT_HEIGHT) / name2_text.get_width()
+    if name2_text.get_width() > TEXT_WIDTH - 2 * TEXT_HEIGHT - 4:
+        ratio = (TEXT_WIDTH - 2 * TEXT_HEIGHT - 4) / name2_text.get_width()
         name2_text = pygame.transform.smoothscale_by(name2_text, ratio)
 
     # Figure out seed label coordinates
@@ -210,9 +224,9 @@ def render_matchup(surface: pygame.Surface, matchup: Matchup,
     seed2_y = y + 3 * TEXT_HEIGHT / 2 - seed2_text.get_height() / 2
 
     # Figure out name label coordinates
-    name1_x = x + TEXT_HEIGHT
+    name1_x = x + TEXT_HEIGHT + 4
     name1_y = y + TEXT_HEIGHT / 2 - name1_text.get_height() / 2
-    name2_x = x + TEXT_HEIGHT
+    name2_x = x + TEXT_HEIGHT + 4
     name2_y = y + 3 * TEXT_HEIGHT / 2 - name2_text.get_height() / 2
 
     # Draw seed labels onto surface
@@ -222,6 +236,16 @@ def render_matchup(surface: pygame.Surface, matchup: Matchup,
     # Draw name labels onto surface
     surface.blit(name1_text, Vector2(name1_x, name1_y))
     surface.blit(name2_text, Vector2(name2_x, name2_y))
+
+    # Draw robot previews
+    if controller1 is not None:
+        preview = render_robot_preview(controller1)
+        scaled = pygame.transform.smoothscale(preview, Vector2(TEXT_HEIGHT))
+        surface.blit(scaled, (x + TEXT_WIDTH - TEXT_HEIGHT, y))
+    if controller2 is not None:
+        preview = render_robot_preview(controller2)
+        scaled = pygame.transform.smoothscale(preview, Vector2(TEXT_HEIGHT))
+        surface.blit(scaled, (x + TEXT_WIDTH - TEXT_HEIGHT, y + TEXT_HEIGHT))
 
     # Move y-cursor below this matchup
     return TEXT_HEIGHT * 2
