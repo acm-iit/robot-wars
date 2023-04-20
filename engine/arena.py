@@ -632,8 +632,9 @@ class Arena:
                                 "generating walls and before spawning other "
                                 "entities!")
 
-        # pygame setup
-        pygame.init()
+        # Initialize pygame, if not yet initialized
+        if not pygame.get_init():
+            pygame.init()
 
         window_size = self.window_size
         viewport_size = self.viewport_size
