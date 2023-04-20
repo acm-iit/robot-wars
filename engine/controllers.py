@@ -9,7 +9,10 @@ from engine.control import Controller, ControllerAction, ControllerState
 class HumanController(Controller):
     """Controller that reads user input to move the robot."""
     def __init__(self, arena: Arena):
-        super().__init__("Human", "#222222", "#111111")
+        self.name = "Human"
+        self.body_color = "#222222"
+        self.head_color = "#111111"
+
         self.arena = arena
 
     def act(self, state: ControllerState) -> ControllerAction:
@@ -39,7 +42,10 @@ class HumanController(Controller):
 class SpinController(Controller):
     """Randomly spinning robot controller."""
     def __init__(self):
-        super().__init__("Spin", "#EE0000", "#CC0000")
+        self.name = "Spin"
+        self.body_color = "#EE0000"
+        self.head_color = "#CC0000"
+
         self.move_power = random() * 2 - 1
         self.turn_power = random() * 2 - 1
         self.turret_turn_power = random() * 2 - 1
@@ -58,7 +64,9 @@ class SpinController(Controller):
 class AggressiveController(Controller):
     """Controller that seeks and kills the nearest robot."""
     def __init__(self):
-        super().__init__("Aggressive", "#EE00EE", "#CC00CC")
+        self.name = "Aggressive"
+        self.body_color = "#EE00EE"
+        self.head_color = "#CC00CC"
 
     def act(self, state: ControllerState) -> ControllerAction:
         action = ControllerAction()
@@ -74,7 +82,9 @@ class AggressiveController(Controller):
 class GreedyController(Controller):
     """Controller for seeking the coin."""
     def __init__(self):
-        super().__init__("Greedy", "#00EE00", "#00CC00")
+        self.name = "Greedy"
+        self.body_color = "#00EE00"
+        self.head_color = "#00CC00"
 
     def act(self, state: ControllerState) -> ControllerAction:
         action = ControllerAction()
@@ -87,7 +97,9 @@ class GreedyController(Controller):
 class AggreedyController(Controller):
     """Controller for seeking the coin while shooting at the nearest robot."""
     def __init__(self):
-        super().__init__("Aggreedy", "#0000EE", "#0000CC")
+        self.name = "Aggreedy"
+        self.body_color = "#0000EE"
+        self.head_color = "#0000CC"
 
     def act(self, state: ControllerState) -> ControllerAction:
         action = ControllerAction()

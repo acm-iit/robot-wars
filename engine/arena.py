@@ -564,6 +564,48 @@ class Arena:
                     pygame.draw.circle(self.__surface, "#00FFFF",
                                        node.position, 8)
 
+    def __rank_robots(self) -> list[tuple[Robot, Controller, int]]:
+        """Ranks the robots in the Arena."""
+        def robot_stats(robot: Robot):
+            """
+            Computes an ordered triple of stats to rank Robots with. Ranks
+            firstly by their its of death (infinite if it is alive), then by
+            number of coins, then by their remaining health (matters only if
+            it's alive).
+            """
+            return (robot.death_time, robot.coins, robot.health)
+
+        sorted_robots = sorted(self.__robots, key=lambda t: robot_stats(t[0]),
+                               reverse=True)
+
+        # Calculate placements, with ties considered
+        ranked_robots = list[tuple[Robot, Controller, int]]()
+
+        place = 1
+        for i, (robot, controller) in enumerate(sorted_robots):
+            if i > 0:
+                previous = sorted_robots[i - 1][0]
+                if robot_stats(previous) != robot_stats(robot):
+                    place += 1
+
+            ranked_robots.append((robot, controller, place))
+
+        return ranked_robots
+
+    def __should_still_run(self, time_limit: float) -> bool:
+        """Determines if the Arena simulation should keep running."""
+        # Check for time limit
+        if self.total_sim_time >= time_limit:
+            return False
+
+        # Check if there are at least 2 living robots
+        ranked = self.__rank_robots()
+        robot_count = 0
+        while robot_count < len(ranked) and ranked[robot_count][0].health > 0:
+            robot_count += 1
+
+        return robot_count >= 2
+
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         self.total_sim_time += dt
@@ -579,8 +621,12 @@ class Arena:
         self.__filter_entities()
         self.__render_scene()
 
-    def run(self):
-        """Runs simulation of the Arena."""
+    def run(self, time_limit: float = math.inf):
+        """
+        Runs simulation of the Arena, returning the leaderboard once finished.
+
+        An optional time limit argument may be provided.
+        """
         has_path_graph = self.__path_graph is not None
         assert has_path_graph, ("Must call Arena.prepare_path_graph after "
                                 "generating walls and before spawning other "
@@ -593,7 +639,6 @@ class Arena:
         viewport_size = self.viewport_size
         window = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
-        running = True
         dt = 0
 
         # Font to render debug text
@@ -603,16 +648,20 @@ class Arena:
         total_frame_time = 0        # Actual elapsed time
         self.total_sim_time = 0     # Simulated time
 
-        while running:
-            # Poll for events
-            # pygame.QUIT event means the user clicked X to close the window
+        while self.__should_still_run(time_limit):
+            # Check for pygame.QUIT event
+            should_quit = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    should_quit = True
+                    break
+            if should_quit:
+                break
 
             # Clear window
             window.fill(ROBOT_LIST_COLOR)
 
+            # Increment frames and frame time for calculating FPS at the end
             total_frames += 1
             total_frame_time += dt
 
@@ -647,7 +696,8 @@ class Arena:
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
 
             # Draw Robot list
-            render_robot_list(window, [robot for robot, _ in self.__robots])
+            ranked = [(r, p) for r, _, p in self.__rank_robots()]
+            render_robot_list(window, ranked, time_limit, self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()
@@ -658,3 +708,5 @@ class Arena:
         pygame.quit()
 
         print(f"Overall FPS: {total_frames / total_frame_time}")
+
+        return self.__rank_robots()

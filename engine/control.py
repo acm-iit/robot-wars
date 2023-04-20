@@ -256,21 +256,40 @@ class ControllerAction:
 
 class Controller:
     """
-    Class which resembles your robot! Override the methods in this class to
+    Abstract robot controller class.
+
+    Do not modify this class; instead create a subclass of this class to
+    represent your robot. Override the below methods in your subclass to
     implement the behavior of your robot.
     """
-    def __init__(self, name: str, body_color: str, head_color: str):
+    def __init__(self):
         """
-        Initializes the controller with a robot name, body color, and head
-        color for display purposes.
+        Initializes the controller.
 
-        Override this method and call `super().__init__()` with your desired
+        Override this method and set the below attributes with your desired
         name and color values, and add any extra persistent state that you may
         need for your robot.
         """
-        self.name = name
-        self.body_color = body_color
-        self.head_color = head_color
+        self.name = "Robot"
+        """
+        Name used to distinguish this robot between others in the leaderboard.
+
+        Change this value to name your robot.
+        """
+
+        self.body_color = "#EEEEEE"
+        """
+        Hexadecimal RGB color of the robot's body (the rectangle chassis).
+
+        Change this value to personalize your robot.
+        """
+
+        self.head_color = "#CCCCCC"
+        """
+        Hexadecimal RGB color of the robot's head (the circle in the middle).
+
+        Change this value to personalize your robot.
+        """
 
     def act(self, state: ControllerState) -> ControllerAction:
         """
