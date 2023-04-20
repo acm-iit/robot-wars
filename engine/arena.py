@@ -592,6 +592,20 @@ class Arena:
 
         return ranked_robots
 
+    def __should_still_run(self, time_limit: float) -> bool:
+        """Determines if the Arena simulation should keep running."""
+        # Check for time limit
+        if self.total_sim_time >= time_limit:
+            return False
+
+        # Check if there are at least 2 living robots
+        ranked = self.__rank_robots()
+        robot_count = 0
+        while robot_count < len(ranked) and ranked[robot_count][0].health > 0:
+            robot_count += 1
+
+        return robot_count >= 2
+
     def update(self, dt: float):
         """Updates the state of the arena after time delta `dt`, in seconds."""
         self.total_sim_time += dt
@@ -608,7 +622,11 @@ class Arena:
         self.__render_scene()
 
     def run(self, time_limit: float = math.inf):
-        """Runs simulation of the Arena."""
+        """
+        Runs simulation of the Arena, returning the leaderboard once finished.
+
+        An optional time limit argument may be provided.
+        """
         has_path_graph = self.__path_graph is not None
         assert has_path_graph, ("Must call Arena.prepare_path_graph after "
                                 "generating walls and before spawning other "
@@ -621,7 +639,6 @@ class Arena:
         viewport_size = self.viewport_size
         window = pygame.display.set_mode(window_size)
         clock = pygame.time.Clock()
-        running = True
         dt = 0
 
         # Font to render debug text
@@ -631,16 +648,20 @@ class Arena:
         total_frame_time = 0        # Actual elapsed time
         self.total_sim_time = 0     # Simulated time
 
-        while running and self.total_sim_time < time_limit:
-            # Poll for events
-            # pygame.QUIT event means the user clicked X to close the window
+        while self.__should_still_run(time_limit):
+            # Check for pygame.QUIT event
+            should_quit = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    should_quit = True
+                    break
+            if should_quit:
+                break
 
             # Clear window
             window.fill(ROBOT_LIST_COLOR)
 
+            # Increment frames and frame time for calculating FPS at the end
             total_frames += 1
             total_frame_time += dt
 
