@@ -13,3 +13,4 @@ from engine.entity import Robot as Robot
 from engine.entity import Wall as Wall
 from engine.entity.robot import ROBOT_RADIUS as ROBOT_RADIUS
 from engine.scenario import battle_royale as battle_royale
+from engine.scenario import one_vs_one as one_vs_one
