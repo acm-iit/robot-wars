@@ -31,7 +31,9 @@ enemy = None
 # Implement your controller here!
 class MyController(Controller):
     def __init__(self):
-        super().__init__("MyRobot", "#EEEEEE", "#CCCCCC")
+        self.name = "MyRobot"
+        self.body_color = "#EEEEEE"
+        self.head_color = "#CCCCCC"
 
     def act(self, state: ControllerState) -> ControllerAction:
         return ControllerAction()
