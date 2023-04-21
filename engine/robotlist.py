@@ -44,25 +44,14 @@ def format_time(time: float) -> str:
 
 
 def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
-                      time_limit: float, sim_time: float):
+                      time_limit: float, sim_time: float, coin: Coin,
+                      name_font: pygame.font.Font,
+                      stats_font: pygame.font.Font,
+                      title_font: pygame.font.Font):
     """
     Renders list of Robots on the left side of the window, along with other
     information.
     """
-    global coin
-
-    # Initialize Coin used for rendering an icon (yes this is hacky)
-    if coin is None:
-        coin = Coin(Vector2(COIN_RADIUS))
-
-    # Initialize fonts
-    name_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                    NAME_HEIGHT)
-    stats_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                     STATS_HEIGHT + 8)
-    title_font = pygame.font.SysFont(pygame.font.get_default_font(),
-                                     TITLE_HEIGHT)
-
     # Render the coin icon
     coin.update(1 / 60)
     coin_icon = Surface(Vector2(COIN_RADIUS * 2), flags=pygame.SRCALPHA)
@@ -223,3 +212,20 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
 
         # Entry-to-entry padding (P)
         y += PADDING
+
+
+class RobotList:
+    def __init__(self):
+        self.name_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                             NAME_HEIGHT)
+        self.stats_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                              STATS_HEIGHT + 8)
+        self.title_font = pygame.font.SysFont(pygame.font.get_default_font(),
+                                              TITLE_HEIGHT)
+
+        self.coin = Coin(Vector2(COIN_RADIUS))
+
+    def render(self, surface: Surface, robots: list[tuple[Robot, int]],
+               time_limit: float, sim_time: float):
+        render_robot_list(surface, robots, time_limit, sim_time, self.coin,
+                          self.name_font, self.stats_font, self.title_font)

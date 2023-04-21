@@ -15,7 +15,7 @@ from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
-from engine.robotlist import (render_robot_list, WIDTH as ROBOT_LIST_WIDTH,
+from engine.robotlist import (RobotList, WIDTH as ROBOT_LIST_WIDTH,
                               COLOR as ROBOT_LIST_COLOR)
 from engine.util import can_see_walls
 
@@ -618,6 +618,7 @@ class Arena:
         if not pygame.get_init():
             pygame.init()
 
+        robot_list = RobotList()
         window_size = self.window_size
         viewport_size = self.viewport_size
         window = pygame.display.set_mode(window_size)
@@ -687,7 +688,7 @@ class Arena:
 
             # Draw Robot list
             ranked = [(r, p) for r, _, p in self.__rank_robots()]
-            render_robot_list(window, ranked, time_limit, self.total_sim_time)
+            robot_list.render(window, ranked, time_limit, self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()
