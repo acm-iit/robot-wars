@@ -136,7 +136,6 @@ if __name__ == "__main__":
     walls = create_walls(graph)
 
     map: MapJson = {
-        "is_shrinking": False,
         "size": {
             "width": WIDTH,
             "height": WIDTH

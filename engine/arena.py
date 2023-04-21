@@ -57,7 +57,7 @@ class Arena:
 
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
-        self.is_shrinking = False       # Whether to close walls in over time
+        self.shrink_rate = 0            # Rate at which Arena shrinks (0 = no)
 
         # Whether to use pathfinding over direct paths
         self.use_pathfinding = True
@@ -124,8 +124,6 @@ class Arena:
             arena_size = Vector2(arena_data["size"]["width"],
                                  arena_data["size"]["height"])
             arena = Arena(arena_size)
-
-            arena.is_shrinking = arena_data["is_shrinking"]
 
             for wall_data in arena_data["walls"]:
                 wall_position = Vector2(wall_data["position"]["x"],
@@ -316,16 +314,22 @@ class Arena:
         """
         # Subtract width of robot list panel
         point -= Vector2(ROBOT_LIST_WIDTH, 0)
-        ratio = self.__original_size.x / self.viewport_size.x
-        return point * ratio
+        ratio = self.__size.x / self.viewport_size.x
+        offset = point * ratio
+
+        if self.shrink_rate <= 0:
+            return offset
+
+        diff = self.__original_size - self.__size
+        return diff / 2 + offset
 
     def __update_shrinking(self):
         """Handles the shrinking of the Arena over time."""
-        if not self.is_shrinking:
+        if self.shrink_rate <= 0:
             return
 
         og_size = self.__original_size
-        shrink = self.total_sim_time * 16
+        shrink = self.total_sim_time * self.shrink_rate
         shrink = min(shrink, min(og_size.x, og_size.y) / 2 - 256)
 
         self.origin = Vector2(shrink)
@@ -663,24 +667,28 @@ class Arena:
             total_frames += 1
             total_frame_time += dt
 
-            # If simulation runs slower, keep time step at desired rate to
+            # If simulation runs slower, keep time step at .25x desired rate to
             # prevent large time steps
-            time_step = min(dt, 1 / FRAME_RATE)
+            time_step = min(dt, 4 / FRAME_RATE)
 
             # Simulate a time step
             self.update(time_step)
 
+            surface = self.__surface
+            # Crop surface if shrinking
+            if self.shrink_rate > 0:
+                diff = self.__original_size - self.__size
+                surface = surface.subsurface(Rect(diff / 2, self.__size))
+
             # Scale arena surface contents to create viewport surface
-            ratio = self.__original_size.x / viewport_size.x
+            ratio = surface.get_width() / viewport_size.x
             viewport = None
-            if ratio > 3:
+            if ratio > 2:
                 # Use faster, normal scale if the ratio is too large
-                viewport = pygame.transform.scale(self.__surface,
-                                                  viewport_size)
+                viewport = pygame.transform.scale(surface, viewport_size)
             else:
                 # Use slower, smooth scale if the ratio isn't too large
-                viewport = pygame.transform.smoothscale(self.__surface,
-                                                        viewport_size)
+                viewport = pygame.transform.smoothscale(surface, viewport_size)
 
             # Draw framerate onto the viewport
             if self.show_fps and dt > 0:
@@ -731,8 +739,9 @@ class Arena:
             # Draw winning robot
             if len(results) > 0:
                 winner, *_ = results[0]
-                winner.rotation += dt * math.pi
-                winner.turret_rotation -= dt * math.pi
+                winner.turn_power = 1
+                winner.turret_turn_power = -1
+                winner.update(dt)
                 winner.render_at_position(window, Vector2(window_size.x / 2,
                                                           window_size.y / 3))
 
