@@ -34,6 +34,12 @@ class ControllerState:
         bullet paths!
         """
 
+        self.health: float = 0
+        """
+        Health of the tank, as a fraction of its maximum health. A value of `1`
+        implies full health, while a value of `0` implies no health.
+        """
+
         self.position: tuple[float, float] = (0, 0)
         """
         Position of the robot, as a tuple `(x, y)` measured from the top-left
@@ -87,6 +93,12 @@ class ControllerState:
         """
         Scalar speed of the robot's bullets when it shoots. Useful for
         predicting own bullet paths.
+        """
+
+        self.enemy_health: float = 0
+        """
+        Health of the enemy tank, as a fraction of its maximum health. A value
+        of `1` implies full health, while a value of `0` implies no health.
         """
 
         self.enemy_position: tuple[float, float] = (0, 0)
