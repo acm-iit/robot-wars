@@ -9,7 +9,7 @@ DURATION = 180
 
 
 def battle_royale(controller_classes: list[type[Controller]],
-                  show_fps: bool = False):
+                  show_fps=False, show_mouse_coordinates=False):
     """
     Runs a list of controller classes in a battle royale environment. The map
     is a vast, square map with the walls slowly closing in towards the center,
@@ -22,6 +22,7 @@ def battle_royale(controller_classes: list[type[Controller]],
         sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
+    arena.show_mouse_coordinates = show_mouse_coordinates
     arena.shrink_rate = 64
     arena.use_pathfinding = False
 

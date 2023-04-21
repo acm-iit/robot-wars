@@ -9,7 +9,7 @@ DURATION = 60
 
 
 def one_vs_one(controller1: type[Controller], controller2: type[Controller],
-               show_fps: bool = False):
+               show_fps=False, show_mouse_coordinates=False):
     """
     Runs two controller classes in a one versus one environment. The map is a
     medium square map with two sets of concentric circular walls.
@@ -21,6 +21,7 @@ def one_vs_one(controller1: type[Controller], controller2: type[Controller],
         sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
+    arena.show_mouse_coordinates = show_mouse_coordinates
 
     controller_classes = [controller1, controller2]
 

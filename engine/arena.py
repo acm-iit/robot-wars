@@ -64,6 +64,7 @@ class Arena:
 
         # Debug settings
         self.show_hitboxes = False
+        self.show_mouse_coordinates = False
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
@@ -699,6 +700,14 @@ class Arena:
                                 "#000000"),
                     Vector2(),
                 )
+
+            # Draw coordinate hover
+            if self.show_mouse_coordinates and pygame.mouse.get_focused():
+                coords = self.window_to_arena(Vector2(pygame.mouse.get_pos()))
+                x, y = int(coords.x), int(coords.y)
+                text = font.render(f"({x}, {y})", False, "#FF0000", "#000000")
+                text_x = viewport.get_width() - text.get_width()
+                viewport.blit(text, (text_x, 0))
 
             # Draw viewport onto screen
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))
