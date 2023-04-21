@@ -59,6 +59,9 @@ class Arena:
         self.total_sim_time = 0         # Total simulation time (not elapsed)
         self.is_shrinking = False       # Whether to close walls in over time
 
+        # Whether to use pathfinding over direct paths
+        self.use_pathfinding = True
+
         # Debug settings
         self.show_hitboxes = False
         self.show_fps = False
@@ -282,6 +285,10 @@ class Arena:
         """
         Finds a path between the robot and a provided point, if there is one.
         """
+        # Early exit if not using pathfinding
+        if not self.use_pathfinding:
+            return [point]
+
         assert self.__path_graph is not None, "Path graph should exist"
         path = self.__path_graph.pathfind(robot.position, robot.rotation,
                                           point)
