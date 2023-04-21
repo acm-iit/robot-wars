@@ -667,9 +667,9 @@ class Arena:
             total_frames += 1
             total_frame_time += dt
 
-            # If simulation runs slower, keep time step at desired rate to
+            # If simulation runs slower, keep time step at .25x desired rate to
             # prevent large time steps
-            time_step = min(dt, 1 / FRAME_RATE)
+            time_step = min(dt, 4 / FRAME_RATE)
 
             # Simulate a time step
             self.update(time_step)
