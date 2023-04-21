@@ -35,7 +35,7 @@ def battle_royale(controller_classes: list[type[Controller]],
     arena.show_fps = show_fps
     arena.show_mouse_coordinates = show_mouse_coordinates
     arena.shrink_zoom = not lock_camera
-    arena.shrink_rate = 64
+    arena.shrink_rate = 32
     arena.use_pathfinding = False
 
     for controller_class in controller_classes:
