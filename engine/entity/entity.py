@@ -23,6 +23,9 @@ class Entity:
         self.arena: Optional[arena.Arena] = None        # Containing Arena
         self.collision_filter: set[Entity] = set()      # No-collide set
 
+        # Cached absolute hitbox, w/ position and rotation
+        self.__cached_ah: tuple[list[Vector2], Vector2, float] | None = None
+
     # Separate vector attributes into getter/setter to force copy on assign.
     # Otherwise, one could assign a position to an entity and then update that
     # entity's position via the original vector value!
@@ -54,8 +57,18 @@ class Entity:
     @property
     def absolute_hitbox(self) -> list[Vector2]:
         """Absolute positions of entity hitbox vertices, in order."""
-        return [vertex.rotate_rad(self.rotation) + self.position
-                for vertex in self.hitbox]
+        # Return cached hitbox if it exists and is in the same place
+        if self.__cached_ah is not None:
+            old_hitbox, old_position, old_rotation = self.__cached_ah
+            if old_position == self.position and old_rotation == self.rotation:
+                return old_hitbox
+
+        hitbox = [vertex.rotate_rad(self.rotation) + self.position
+                  for vertex in self.hitbox]
+
+        self.__cached_ah = (hitbox, self.position, self.rotation)
+
+        return hitbox
 
     @property
     def rect(self) -> Rect:

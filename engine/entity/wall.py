@@ -17,24 +17,20 @@ class Wall(entity.Entity):
         self.rotation = rotation
         self.__size = size
 
-    @property
-    def hitbox(self) -> list[Vector2]:
+        # Compute hitboxes immediately since they are static
         half_size = self.__size / 2
-        return [
+        half_size_reflect = Vector2(half_size.x, -half_size.y)
+
+        self.__hitbox = [
             half_size,
             Vector2(half_size.x, -half_size.y),
             -half_size,
             Vector2(-half_size.x, half_size.y)
         ]
 
-    @property
-    def pathfinding_hitbox(self) -> list[Vector2]:
-        """
-        Hitbox of the Wall expanded by the Robot agent radius, in absolute
-        coordinates.
-        """
-        half_size = self.__size / 2
-        half_size_reflect = Vector2(half_size.x, -half_size.y)
+        self.__absolute_hitbox = [vertex.rotate_rad(self.rotation)
+                                  + self.position for vertex in self.__hitbox]
+
         robot_size = Vector2(ROBOT_HITBOX_WIDTH) / 2
         robot_size_reflect = Vector2(robot_size.x, -robot_size.y)
         expanded = [
@@ -43,8 +39,18 @@ class Wall(entity.Entity):
             -half_size - robot_size,
             -half_size_reflect - robot_size_reflect
         ]
-        return [vertex.rotate_rad(self.rotation) + self.position
-                for vertex in expanded]
+        self.pathfinding_hitbox = [vertex.rotate_rad(self.rotation)
+                                   + self.position for vertex in expanded]
+
+    @property
+    def hitbox(self) -> list[Vector2]:
+        # Return pre-computed hitbox
+        return self.__hitbox
+
+    @property
+    def absolute_hitbox(self) -> list[Vector2]:
+        # Return pre-computed absolute hitbox
+        return self.__absolute_hitbox
 
     @property
     def pathfinding_rect(self) -> Rect:
