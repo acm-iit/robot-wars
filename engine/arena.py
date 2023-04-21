@@ -696,7 +696,7 @@ class Arena:
             # Draw framerate onto the viewport
             if self.show_fps and dt > 0:
                 viewport.blit(
-                    font.render(f"FPS: {int(1 / dt)}", False, "#FF0000",
+                    font.render(f"FPS: {int(1 / dt)}", True, "#FF0000",
                                 "#000000"),
                     Vector2(),
                 )
@@ -705,7 +705,7 @@ class Arena:
             if self.show_mouse_coordinates and pygame.mouse.get_focused():
                 coords = self.window_to_arena(Vector2(pygame.mouse.get_pos()))
                 x, y = int(coords.x), int(coords.y)
-                text = font.render(f"({x}, {y})", False, "#FF0000", "#000000")
+                text = font.render(f"({x}, {y})", True, "#FF0000", "#000000")
                 text_x = viewport.get_width() - text.get_width()
                 viewport.blit(text, (text_x, 0))
 
