@@ -56,7 +56,7 @@ Position of the tank, as a tuple `(x, y)` measured from the top-left point of th
 max_speed: float
 ```
 
-Maximum movement speed for the tank; i.e. when `move_power = 1` or `-1`.
+Maximum movement speed for the tank; i.e. when [`move_power = 1`](./ControllerAction.md#move_power) or `-1`.
 
 ### `rotation`
 
@@ -74,7 +74,7 @@ Rotation of the tank, in radians measured clockwise from the positive X-axis (ri
 max_turn_speed: float
 ```
 
-Maximum turning speed for the tank; i.e. when `turn_power = 1` or `-1`.
+Maximum turning speed for the tank; i.e. when [`turn_power = 1`](./ControllerAction.md#turn_power) or `-1`.
 
 ### `turret_rotation`
 
@@ -92,7 +92,7 @@ Rotation of the tank's turret, in radians measured clockwise from the positive X
 max_turret_turn_speed: float
 ```
 
-Maximum turning speed for the tank's turret; i.e. when `turret_turn_power = 1` or `-1`.
+Maximum turning speed for the tank's turret; i.e. when [`turret_turn_power = 1`](./ControllerAction.md#turret_turn_power) or `-1`.
 
 ### `shot_cooldown`
 
@@ -102,7 +102,7 @@ shot_cooldown: float
 
 Time left until the tank can shoot a bullet. Every time a tank shoots a bullet, it cannot shoot again for `1` second.
 
-If the value is `0`, then setting `ControllerAction.shoot = True` will successfully shoot a bullet.
+If the value is `0`, then setting [`ControllerAction.shoot = True`](./ControllerAction.md#shoot) will successfully shoot a bullet.
 
 ### `shot_speed`
 
@@ -152,7 +152,7 @@ Velocity of the enemy tank from the previous time step, as a tuple `(vx, vy)` me
 
 In the case of multiple enemy tanks (i.e. battle royale), this is the velocity of the nearest enemy tank.
 
-Along with `time_delta`, this is useful for predicting enemy paths!
+Along with [`time_delta`](#time_delta), this is useful for predicting enemy paths!
 
 ### `enemy_rotation`
 
