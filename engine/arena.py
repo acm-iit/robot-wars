@@ -314,8 +314,14 @@ class Arena:
         """
         # Subtract width of robot list panel
         point -= Vector2(ROBOT_LIST_WIDTH, 0)
-        ratio = self.__original_size.x / self.viewport_size.x
-        return point * ratio
+        ratio = self.__size.x / self.viewport_size.x
+        offset = point * ratio
+
+        if self.shrink_rate <= 0:
+            return offset
+
+        diff = self.__original_size - self.__size
+        return diff / 2 + offset
 
     def __update_shrinking(self):
         """Handles the shrinking of the Arena over time."""
