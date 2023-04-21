@@ -87,7 +87,6 @@ if __name__ == "__main__":
                                hole_predicate_factory(hole_index))
 
     map: MapJson = {
-        "is_shrinking": False,
         "size": {
             "width": WIDTH,
             "height": HEIGHT

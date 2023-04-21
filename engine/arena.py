@@ -125,8 +125,6 @@ class Arena:
                                  arena_data["size"]["height"])
             arena = Arena(arena_size)
 
-            arena.is_shrinking = arena_data["is_shrinking"]
-
             for wall_data in arena_data["walls"]:
                 wall_position = Vector2(wall_data["position"]["x"],
                                         wall_data["position"]["y"])

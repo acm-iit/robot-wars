@@ -31,7 +31,6 @@ if __name__ == "__main__":
     ]
 
     map: MapJson = {
-        "is_shrinking": True,
         "size": {
             "width": WIDTH,
             "height": HEIGHT
