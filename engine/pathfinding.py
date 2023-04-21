@@ -2,15 +2,16 @@ from __future__ import annotations
 from collections import defaultdict
 import heapq
 import math
-from typing import Optional
+from typing import cast, Optional
 
 import pygame
 
-import engine
+import engine.arena as arena
 from engine.entity import Wall
 from engine.entity.robot import ROBOT_MOVE_SPEED, ROBOT_TURN_SPEED
-from engine.util import (angle_difference, can_see, check_polygon_collision,
-                         is_point_in_polygon)
+from engine.quadtree import Quadtree
+from engine.util import (angle_difference, can_see_walls,
+                         check_polygon_collision, is_point_in_polygon)
 
 Vector2 = pygame.Vector2
 
@@ -135,18 +136,22 @@ class PathfindingGraph:
     """
     Graph of pathfinding nodes used to aid Robots to navigate around Walls.
     """
-    def __init__(self, arena: engine.Arena):
+    def __init__(self, arena: arena.Arena):
         self.__arena = arena
-        entities = arena.entities
-        assert all(type(entity) is Wall for entity in entities)
+        walls = cast(list[Wall], arena.get_entities_of_type(Wall))
 
-        self.__create_graph(entities)  # type: ignore
+        self.__construct_quadtree(walls)
+        self.__create_graph(walls)
+
+    def __construct_quadtree(self, walls: list[Wall]):
+        """Constructs a pathfinding Quadtree with a list of walls."""
+        self.__quadtree = Quadtree.from_objects(walls,
+                                                lambda e: e.pathfinding_rect,
+                                                lambda e: e.position)
 
     def __create_graph(self, walls: list[Wall]):
         hitboxes = list[list[Vector2]]()
         node_set = set[tuple[float, float]]()
-        # The third value for each segment represents tolerance for raycasts
-        segments = list[tuple[Vector2, Vector2, float]]()
 
         # Record all nodes, including ones that may be in other hitboxes
         for wall in walls:
@@ -175,21 +180,6 @@ class PathfindingGraph:
 
         node_set.difference_update(remove_set)
 
-        # Record line segments of pathfinding hitboxes
-        for hitbox in hitboxes:
-            for i in range(len(hitbox)):
-                vertex1 = hitbox[i]
-                vertex2 = hitbox[(i + 1) % len(hitbox)]
-                segments.append((vertex1, vertex2, 1e-4))
-
-        # Record normal collision hitbox segments as well
-        for wall in walls:
-            hitbox = wall.absolute_hitbox
-            for i in range(len(hitbox)):
-                vertex1 = hitbox[i]
-                vertex2 = hitbox[(i + 1) % len(hitbox)]
-                segments.append((vertex1, vertex2, 0))
-
         nodes = [Node(Vector2(x, y)) for x, y in node_set]
 
         # Set node position epsilon to a generous amount to account for
@@ -202,12 +192,12 @@ class PathfindingGraph:
             node1 = nodes[i]
             for j in range(i + 1, len(nodes)):
                 node2 = nodes[j]
-                if can_see(node1.position, node2.position, segments):
+                if can_see_walls(node1.position, node2.position,
+                                 self.__quadtree):
                     node1.neighbors.append(node2)
                     node2.neighbors.append(node1)
 
         self.__nodes = nodes
-        self.__segments = segments
 
     def get_visible_nodes(self, point: Vector2, rotation: Optional[float]):
         """Returns a list of up to 8 visible nodes, sorted by closeness."""
@@ -224,7 +214,7 @@ class PathfindingGraph:
 
         while (len(result) == 0 or i < 8) and i < len(sorted_nodes):
             node = sorted_nodes[i]
-            if can_see(point, node.position, self.__segments):
+            if can_see_walls(point, node.position, self.__quadtree):
                 result.append(node)
             i += 1
 
@@ -234,7 +224,7 @@ class PathfindingGraph:
                  ) -> Optional[list[Vector2]]:
         """Finds a path between start and end in the PathfindingGraph."""
         # Handle case where a straight line works
-        if can_see(start, end, self.__segments):
+        if can_see_walls(start, end, self.__quadtree):
             return [start, end]
 
         # Create temporary start and end nodes.

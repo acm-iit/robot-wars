@@ -5,7 +5,7 @@ from typing import Optional
 import pygame
 
 import engine.arena as arena
-from engine.util import check_polygon_collision, get_minimum_translation_vector
+import engine.util as util
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -117,10 +117,10 @@ class Entity:
         self_hitbox = self.absolute_hitbox
         other_hitbox = other.absolute_hitbox
 
-        is_colliding = check_polygon_collision(self_hitbox, other_hitbox)
+        is_colliding = util.check_polygon_collision(self_hitbox, other_hitbox)
         if is_colliding:
-            translation = get_minimum_translation_vector(self_hitbox,
-                                                         other_hitbox)
+            translation = util.get_minimum_translation_vector(self_hitbox,
+                                                              other_hitbox)
             return True, translation
         else:
             return False, Vector2()

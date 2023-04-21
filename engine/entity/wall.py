@@ -1,8 +1,11 @@
+import math
+
 import pygame
 
 import engine.entity as entity
 from engine.entity.robot import ROBOT_HITBOX_WIDTH
 
+Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 
@@ -42,6 +45,21 @@ class Wall(entity.Entity):
         ]
         return [vertex.rotate_rad(self.rotation) + self.position
                 for vertex in expanded]
+
+    @property
+    def pathfinding_rect(self) -> Rect:
+        """Axis-aligned bounding rectangle of the wall's pathfinding hitbox."""
+        min_x, min_y = math.inf, math.inf
+        max_x, max_y = -math.inf, -math.inf
+
+        for point in self.pathfinding_hitbox:
+            min_x = min(min_x, point.x)
+            min_y = min(min_y, point.y)
+            max_x = max(max_x, point.x)
+            max_y = max(max_y, point.y)
+
+        return Rect(Vector2(min_x, min_y),
+                    Vector2(max_x - min_x, max_y - min_y))
 
     @property
     def is_static(self) -> bool:
