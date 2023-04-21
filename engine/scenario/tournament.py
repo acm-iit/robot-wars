@@ -403,7 +403,17 @@ def tournament(controller_classes: list[type[Controller]],
     final winner is determined. It also runs a third place matchup if there are
     at least four controllers.
 
-    Optional parameter `show_fps` can be set to show FPS in the top left.
+    Optional parameter `show_fps` can be set to `True` to show FPS in the top
+    left.
+
+    Optional parameter `show_mouse_coordinates` can be set to `True` to show
+    the user mouse coordinates (in game space) in the top-left; this can be
+    useful for figuring out certain coordinates in the map that you want your
+    tank to be aware of.
+
+    Optional parameter `lock_camera` can be set to `True` to keep the camera
+    from zooming in on the playable area. This can be used in conjunction with
+    `show_mouse_coordinates` to make it easier to find coordinates.
     """
     assert len(controller_classes) > 1, "Multiple controllers required"
 
