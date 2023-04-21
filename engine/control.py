@@ -40,6 +40,11 @@ class ControllerState:
         implies full health, while a value of `0` implies no health.
         """
 
+        self.coins: int = 0
+        """
+        Number of coins the tank has collected.
+        """
+
         self.position: tuple[float, float] = (0, 0)
         """
         Position of the robot, as a tuple `(x, y)` measured from the top-left
@@ -99,6 +104,11 @@ class ControllerState:
         """
         Health of the enemy tank, as a fraction of its maximum health. A value
         of `1` implies full health, while a value of `0` implies no health.
+        """
+
+        self.enemy_coins: int = 0
+        """
+        Number of coins the enemy tank has collected.
         """
 
         self.enemy_position: tuple[float, float] = (0, 0)
