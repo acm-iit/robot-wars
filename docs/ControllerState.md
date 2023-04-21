@@ -56,7 +56,7 @@ Position of the tank, as a tuple `(x, y)` measured from the top-left point of th
 max_speed: float
 ```
 
-Maximum movement speed for the tank; i.e. when [`move_power = 1`](./ControllerAction.md#move_power) or `-1`.
+Maximum movement speed for the tank; i.e. when [`ControllerAction.move_power = 1`](./ControllerAction.md#move_power) or `-1`.
 
 ### `rotation`
 
@@ -74,7 +74,7 @@ Rotation of the tank, in radians measured clockwise from the positive X-axis (ri
 max_turn_speed: float
 ```
 
-Maximum turning speed for the tank; i.e. when [`turn_power = 1`](./ControllerAction.md#turn_power) or `-1`.
+Maximum turning speed for the tank; i.e. when [`ControllerAction.turn_power = 1`](./ControllerAction.md#turn_power) or `-1`.
 
 ### `turret_rotation`
 
@@ -92,7 +92,7 @@ Rotation of the tank's turret, in radians measured clockwise from the positive X
 max_turret_turn_speed: float
 ```
 
-Maximum turning speed for the tank's turret; i.e. when [`turret_turn_power = 1`](./ControllerAction.md#turret_turn_power) or `-1`.
+Maximum turning speed for the tank's turret; i.e. when [`ControllerAction.turret_turn_power = 1`](./ControllerAction.md#turret_turn_power) or `-1`.
 
 ### `shot_cooldown`
 
