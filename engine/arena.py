@@ -57,7 +57,7 @@ class Arena:
 
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
-        self.is_shrinking = False       # Whether to close walls in over time
+        self.shrink_rate = 0            # Rate at which Arena shrinks (0 = no)
 
         # Whether to use pathfinding over direct paths
         self.use_pathfinding = True
@@ -319,11 +319,11 @@ class Arena:
 
     def __update_shrinking(self):
         """Handles the shrinking of the Arena over time."""
-        if not self.is_shrinking:
+        if self.shrink_rate <= 0:
             return
 
         og_size = self.__original_size
-        shrink = self.total_sim_time * 16
+        shrink = self.total_sim_time * self.shrink_rate
         shrink = min(shrink, min(og_size.x, og_size.y) / 2 - 256)
 
         self.origin = Vector2(shrink)

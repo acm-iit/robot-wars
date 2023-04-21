@@ -22,7 +22,7 @@ def battle_royale(controller_classes: list[type[Controller]],
         sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
-    arena.is_shrinking = True
+    arena.shrink_rate = 64
     arena.use_pathfinding = False
 
     for controller_class in controller_classes:
