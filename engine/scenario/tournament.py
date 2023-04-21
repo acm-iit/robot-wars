@@ -394,7 +394,8 @@ def render_bracket(bracket: list[list[Matchup]],
 
 
 def tournament(controller_classes: list[type[Controller]],
-               show_fps=False, show_mouse_coordinates=False):
+               show_fps=False, show_mouse_coordinates=False,
+               lock_camera=False):
     """
     Runs a list of controller classes in a tournament. To determine seeding,
     it runs a battle royale scenario with all of the controllers. It then
@@ -407,7 +408,7 @@ def tournament(controller_classes: list[type[Controller]],
     assert len(controller_classes) > 1, "Multiple controllers required"
 
     seeding = battle_royale(controller_classes, show_fps,
-                            show_mouse_coordinates)
+                            show_mouse_coordinates, lock_camera)
 
     if seeding is None:
         graceful_exit()

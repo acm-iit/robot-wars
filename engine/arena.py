@@ -58,6 +58,7 @@ class Arena:
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
         self.shrink_rate = 0            # Rate at which Arena shrinks (0 = no)
+        self.shrink_zoom = True         # Determines if the camera shrinks
 
         # Whether to use pathfinding over direct paths
         self.use_pathfinding = True
@@ -679,7 +680,7 @@ class Arena:
 
             surface = self.__surface
             # Crop surface if shrinking
-            if self.shrink_rate > 0:
+            if self.shrink_rate > 0 and self.shrink_zoom:
                 diff = self.__original_size - self.__size
                 surface = surface.subsurface(Rect(diff / 2, self.__size))
 
