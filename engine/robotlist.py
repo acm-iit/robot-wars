@@ -120,6 +120,10 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
 
     # Robot entries
     for robot, place in robots:
+        # Quit early if it won't be visible
+        if y >= surface.get_height():
+            break
+
         # Name (NH)
 
         # Name label max width (WIDTH - 2P - P - EH - 2P)
