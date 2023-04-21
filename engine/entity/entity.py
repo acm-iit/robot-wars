@@ -25,6 +25,7 @@ class Entity:
 
         # Cached absolute hitbox, w/ position and rotation
         self.__cached_ah: tuple[list[Vector2], Vector2, float] | None = None
+        self.__cached_rect: tuple[Rect, Vector2, float] | None = None
 
     # Separate vector attributes into getter/setter to force copy on assign.
     # Otherwise, one could assign a position to an entity and then update that
@@ -73,6 +74,12 @@ class Entity:
     @property
     def rect(self) -> Rect:
         """Axis-aligned bounding rectangle of the entity."""
+        # Return cached rect if it exists and is in the same place
+        if self.__cached_rect is not None:
+            old_rect, old_position, old_rotation = self.__cached_rect
+            if old_position == self.position and old_rotation == self.rotation:
+                return old_rect
+
         min_x, min_y = math.inf, math.inf
         max_x, max_y = -math.inf, -math.inf
 
@@ -82,8 +89,12 @@ class Entity:
             max_x = max(max_x, point.x)
             max_y = max(max_y, point.y)
 
-        return Rect(Vector2(min_x, min_y),
+        rect = Rect(Vector2(min_x, min_y),
                     Vector2(max_x - min_x, max_y - min_y))
+
+        self.__cached_rect = (rect, self.position, self.rotation)
+
+        return rect
 
     @property
     def is_static(self) -> bool:
