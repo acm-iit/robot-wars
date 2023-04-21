@@ -62,8 +62,6 @@ class Robot(entity.Entity):
         super().__init__()
         self.name = name
 
-        self.on_update: Optional[Callback] = None   # Callback on each `update`
-
         self.health = MAX_HEALTH                    # Robot health
 
         self.move_power = 0                         # Range: [-1, 1]
@@ -459,9 +457,6 @@ class Robot(entity.Entity):
         return state
 
     def update(self, dt: float):
-        if self.on_update is not None:
-            self.on_update(self, dt)
-
         self.__move(dt)
         self.__turn(dt)
         self.__turn_turret(dt)
