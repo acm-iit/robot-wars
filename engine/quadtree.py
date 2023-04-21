@@ -29,21 +29,23 @@ def get_child_rect(rect: Rect, i: int) -> Rect:
 
     `i` must be one of `0`, `1`, `2`, or `3`.
     """
-    child_size = Vector2(rect.size) / 2
-    top_left = Vector2(rect.topleft)
+    x = rect.left
+    y = rect.top
+    w = rect.width / 2
+    h = rect.height / 2
 
     if i == 0:
         # Northwest
-        return Rect(top_left, child_size)
+        return Rect(x, y, w, h)
     elif i == 1:
         # Northeast
-        return Rect(top_left + Vector2(child_size.x, 0), child_size)
+        return Rect(x + w, y, w, h)
     elif i == 2:
         # Southwest
-        return Rect(top_left + Vector2(0, child_size.y), child_size)
+        return Rect(x, y + h, w, h)
     elif i == 3:
         # Southeast
-        return Rect(top_left + child_size, child_size)
+        return Rect(x + w, y + h, w, h)
     else:
         assert False, "i must be 0, 1, 2, or 3"
 
