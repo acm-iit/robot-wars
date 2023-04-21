@@ -668,17 +668,21 @@ class Arena:
             # Simulate a time step
             self.update(time_step)
 
+            surface = self.__surface
+            # Crop surface if shrinking
+            if self.shrink_rate > 0:
+                diff = self.__original_size - self.__size
+                surface = surface.subsurface(Rect(diff / 2, self.__size))
+
             # Scale arena surface contents to create viewport surface
-            ratio = self.__original_size.x / viewport_size.x
+            ratio = surface.get_width() / viewport_size.x
             viewport = None
             if ratio > 3:
                 # Use faster, normal scale if the ratio is too large
-                viewport = pygame.transform.scale(self.__surface,
-                                                  viewport_size)
+                viewport = pygame.transform.scale(surface, viewport_size)
             else:
                 # Use slower, smooth scale if the ratio isn't too large
-                viewport = pygame.transform.smoothscale(self.__surface,
-                                                        viewport_size)
+                viewport = pygame.transform.smoothscale(surface, viewport_size)
 
             # Draw framerate onto the viewport
             if self.show_fps and dt > 0:
