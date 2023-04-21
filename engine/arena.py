@@ -58,12 +58,14 @@ class Arena:
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
         self.shrink_rate = 0            # Rate at which Arena shrinks (0 = no)
+        self.shrink_zoom = True         # Determines if the camera shrinks
 
         # Whether to use pathfinding over direct paths
         self.use_pathfinding = True
 
         # Debug settings
         self.show_hitboxes = False
+        self.show_mouse_coordinates = False
         self.show_fps = False
         self.show_quadtree = False
         self.show_nearest_robot = False
@@ -316,11 +318,14 @@ class Arena:
         """
         # Subtract width of robot list panel
         point -= Vector2(ROBOT_LIST_WIDTH, 0)
+
+        # Handle case w/o shrink or zoom
+        if self.shrink_rate <= 0 or not self.shrink_zoom:
+            ratio = self.__original_size.x / self.viewport_size.x
+            return point * ratio
+
         ratio = self.__size.x / self.viewport_size.x
         offset = point * ratio
-
-        if self.shrink_rate <= 0:
-            return offset
 
         diff = self.__original_size - self.__size
         return diff / 2 + offset
@@ -678,7 +683,7 @@ class Arena:
 
             surface = self.__surface
             # Crop surface if shrinking
-            if self.shrink_rate > 0:
+            if self.shrink_rate > 0 and self.shrink_zoom:
                 diff = self.__original_size - self.__size
                 surface = surface.subsurface(Rect(diff / 2, self.__size))
 
@@ -695,10 +700,18 @@ class Arena:
             # Draw framerate onto the viewport
             if self.show_fps and dt > 0:
                 viewport.blit(
-                    font.render(f"FPS: {int(1 / dt)}", False, "#FF0000",
+                    font.render(f"FPS: {int(1 / dt)}", True, "#FF0000",
                                 "#000000"),
                     Vector2(),
                 )
+
+            # Draw coordinate hover
+            if self.show_mouse_coordinates and pygame.mouse.get_focused():
+                coords = self.window_to_arena(Vector2(pygame.mouse.get_pos()))
+                x, y = int(coords.x), int(coords.y)
+                text = font.render(f"({x}, {y})", True, "#FF0000", "#000000")
+                text_x = viewport.get_width() - text.get_width()
+                viewport.blit(text, (text_x, 0))
 
             # Draw viewport onto screen
             window.blit(viewport, Vector2(ROBOT_LIST_WIDTH, 0))

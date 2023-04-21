@@ -9,18 +9,25 @@ DURATION = 60
 
 
 def one_vs_one(controller1: type[Controller], controller2: type[Controller],
-               show_fps: bool = False):
+               show_fps=False, show_mouse_coordinates=False):
     """
     Runs two controller classes in a one versus one environment. The map is a
     medium square map with two sets of concentric circular walls.
 
-    Optional parameter `show_fps` can be set to show FPS in the top left.
+    Optional parameter `show_fps` can be set to `True` to show FPS in the top
+    left.
+
+    Optional parameter `show_mouse_coordinates` can be set to `True` to show
+    the user mouse coordinates (in game space) in the top-left; this can be
+    useful for figuring out certain coordinates in the map that you want your
+    tank to be aware of.
     """
     arena = Arena.from_map_json(MAP_FILENAME)
     if arena is None:
         sys.exit("Invalid map; exiting")
 
     arena.show_fps = show_fps
+    arena.show_mouse_coordinates = show_mouse_coordinates
 
     controller_classes = [controller1, controller2]
 
