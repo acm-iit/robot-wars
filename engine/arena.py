@@ -683,7 +683,7 @@ class Arena:
             # Scale arena surface contents to create viewport surface
             ratio = surface.get_width() / viewport_size.x
             viewport = None
-            if ratio > 3:
+            if ratio > 2:
                 # Use faster, normal scale if the ratio is too large
                 viewport = pygame.transform.scale(surface, viewport_size)
             else:
