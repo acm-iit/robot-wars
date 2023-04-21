@@ -3,7 +3,7 @@ import json
 import math
 from random import choice, random, sample
 import traceback
-from typing import Optional
+from typing import cast, Optional
 
 import pygame
 
@@ -15,9 +15,9 @@ from engine.entity.robot import ROBOT_HITBOX_WIDTH
 from engine.map import is_map
 from engine.pathfinding import PathfindingGraph
 from engine.quadtree import Quadtree
-from engine.robotlist import (render_robot_list, WIDTH as ROBOT_LIST_WIDTH,
+from engine.robotlist import (RobotList, WIDTH as ROBOT_LIST_WIDTH,
                               COLOR as ROBOT_LIST_COLOR)
-from engine.util import can_see
+from engine.util import can_see_walls
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -46,11 +46,11 @@ class Arena:
         self.__size = size
         self.origin = Vector2()         # Top-left corner of Arena space
         self.__surface = pygame.Surface(size)
-        self.__quadtree: Optional[Quadtree] = None
+        self.__quadtree: Optional[Quadtree[Entity]] = None
+        self.__wall_quadtree: Optional[Quadtree[Wall]] = None
         self.__path_graph: Optional[PathfindingGraph] = None
         self.__paths = list[list[Vector2]]()
         self.__available_nodes: list[Vector2] = []
-        self.__segments: list[tuple[Vector2, Vector2, float]] = []
         self.__coin: Coin = Coin(Vector2())  # Dummy dead coin
         self.__robots = list[tuple[Robot, Controller]]()
         self.__bullet_collisions = list[tuple[Vector2, float]]()
@@ -58,6 +58,9 @@ class Arena:
         self.spawns: list[Vector2] = []
         self.total_sim_time = 0         # Total simulation time (not elapsed)
         self.is_shrinking = False       # Whether to close walls in over time
+
+        # Whether to use pathfinding over direct paths
+        self.use_pathfinding = True
 
         # Debug settings
         self.show_hitboxes = False
@@ -264,31 +267,28 @@ class Arena:
 
     def can_see(self, robot: Robot, point: Vector2) -> bool:
         """Determines if a Robot has line of sight with a point."""
-        return can_see(robot.position, point, self.__segments)
+        if self.__wall_quadtree is None:
+            return False
+        return can_see_walls(robot.position, point, self.__wall_quadtree,
+                             use_pathfinding_hitbox=False)
 
     def prepare_path_graph(self):
         """
         Prepares the PathfindingGraph for this Arena, based on the Walls it
         currently haves.
         """
-        self.__construct_quadtree()
-        assert self.__quadtree is not None
         self.__path_graph = PathfindingGraph(self)
         self.__available_nodes = self.__path_graph.get_available_nodes()
-
-        # Save wall segments
-        for wall in self.get_entities_of_type(Wall):
-            hitbox = wall.absolute_hitbox
-            for i in range(len(hitbox)):
-                vertex1 = hitbox[i]
-                vertex2 = hitbox[(i + 1) % len(hitbox)]
-                self.__segments.append((vertex1, vertex2, 0))
 
     def pathfind(self, robot: Robot, point: Vector2
                  ) -> Optional[list[Vector2]]:
         """
         Finds a path between the robot and a provided point, if there is one.
         """
+        # Early exit if not using pathfinding
+        if not self.use_pathfinding:
+            return [point]
+
         assert self.__path_graph is not None, "Path graph should exist"
         path = self.__path_graph.pathfind(robot.position, robot.rotation,
                                           point)
@@ -455,24 +455,13 @@ class Arena:
 
     def __construct_quadtree(self):
         """Constructs a Quadtree with the entities in the arena."""
-        # Calculate Quadtree bounds
-        min_x, min_y = math.inf, math.inf
-        max_x, max_y = -math.inf, -math.inf
+        self.__quadtree = Quadtree.from_objects(self.__entities,
+                                                lambda e: e.rect,
+                                                lambda e: e.position)
 
-        for entity in self.__entities:
-            rect = entity.rect
-            min_x = min(min_x, rect.left)
-            min_y = min(min_y, rect.top)
-            max_x = max(max_x, rect.right)
-            max_y = max(max_y, rect.bottom)
-
-        quadtree_top_left = Vector2(min_x, min_y)
-        quadtree_size = Vector2(max_x - min_x, max_y - min_y)
-
-        # Construct Quadtree
-        self.__quadtree = Quadtree(Rect(quadtree_top_left, quadtree_size))
-        for entity in self.__entities:
-            self.__quadtree.add(entity)
+        walls = cast(list[Wall], self.get_entities_of_type(Wall))
+        self.__wall_quadtree = Quadtree.from_objects(walls, lambda w: w.rect,
+                                                     lambda w: w.position)
 
     def __render_scene(self):
         """Renders the Arena onto self.__surface."""
@@ -636,6 +625,7 @@ class Arena:
         if not pygame.get_init():
             pygame.init()
 
+        robot_list = RobotList()
         window_size = self.window_size
         viewport_size = self.viewport_size
         window = pygame.display.set_mode(window_size)
@@ -705,7 +695,7 @@ class Arena:
 
             # Draw Robot list
             ranked = [(r, p) for r, _, p in self.__rank_robots()]
-            render_robot_list(window, ranked, time_limit, self.total_sim_time)
+            robot_list.render(window, ranked, time_limit, self.total_sim_time)
 
             # Display results on window
             pygame.display.flip()

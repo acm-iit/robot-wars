@@ -4,10 +4,10 @@ from typing import Callable, Optional
 
 import pygame
 
-from engine.control import ControllerAction, ControllerState
+import engine.control as control
 import engine.entity as entity
 from engine.entity.bullet import BULLET_SPEED
-from engine.util import angle_difference
+import engine.util as util
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -277,7 +277,7 @@ class Robot(entity.Entity):
 
         direction = point - self.position
         angle = math.atan2(direction.y, direction.x)
-        angle_diff = angle_difference(self.rotation, angle)
+        angle_diff = util.angle_difference(self.rotation, angle)
 
         if abs(angle_diff) < math.pi / 16:
             self.move_power = direction.magnitude() / (self.__move_speed * dt)
@@ -291,7 +291,7 @@ class Robot(entity.Entity):
             if dt == 0:
                 return
 
-            diff = angle_difference(self.rotation, angle_or_point)
+            diff = util.angle_difference(self.rotation, angle_or_point)
             self.turn_power = diff / (self.__turn_speed * dt)
         elif type(angle_or_point) is Vector2:
             direction = angle_or_point - self.position
@@ -306,7 +306,7 @@ class Robot(entity.Entity):
             if dt == 0:
                 return
 
-            diff = angle_difference(self.turret_rotation, angle_or_point)
+            diff = util.angle_difference(self.turret_rotation, angle_or_point)
             self.turret_turn_power = diff / (self.__turret_turn_speed * dt)
         elif type(angle_or_point) is Vector2:
             direction = angle_or_point - self.position
@@ -333,7 +333,7 @@ class Robot(entity.Entity):
         """
         print(f"[WARN ({self.name})]: {message}")
 
-    def perform_action(self, action: ControllerAction, dt: float):
+    def perform_action(self, action: control.ControllerAction, dt: float):
         """
         Sets the values of a ControllerAction to the Robot's values. Performs
         validation on the ControllerAction values.
@@ -418,8 +418,8 @@ class Robot(entity.Entity):
                         f"{action.shoot}; defaulting to False")
             self.__will_shoot = False
 
-    def compute_state(self, dt: float) -> ControllerState:
-        state = ControllerState()
+    def compute_state(self, dt: float) -> control.ControllerState:
+        state = control.ControllerState()
 
         state.time_delta = dt
 

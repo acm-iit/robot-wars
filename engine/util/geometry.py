@@ -3,6 +3,10 @@ from typing import Optional
 
 import pygame
 
+from engine.entity import Wall
+from engine.quadtree import Quadtree
+
+Rect = pygame.Rect
 Vector2 = pygame.Vector2
 
 
@@ -164,3 +168,35 @@ def can_see(point1: Vector2, point2: Vector2,
             segments: list[tuple[Vector2, Vector2, float]]):
     """Determines if point1 and point2 can see each other."""
     return not raycast(point1, point2, segments)
+
+
+def can_see_walls(point1: Vector2, point2: Vector2, quadtree: Quadtree[Wall],
+                  use_pathfinding_hitbox=True):
+    """
+    Specialized version of `can_see` that determines which segments to check
+    using a Quadtree of walls.
+    """
+    rect = Rect(point1, point2 - point1)
+    rect.normalize()
+    rect.left -= 1
+    rect.top -= 1
+    rect.width += 2
+    rect.height += 2
+
+    walls = quadtree.query(rect)
+
+    segments = list[tuple[Vector2, Vector2, float]]()
+
+    for wall in walls:
+        hitbox = wall.absolute_hitbox
+        segments += ((hitbox[i], hitbox[(i + 1) % len(hitbox)], 0)
+                     for i in range(len(hitbox)))
+
+        if not use_pathfinding_hitbox:
+            continue
+
+        hitbox = wall.pathfinding_hitbox
+        segments += ((hitbox[i], hitbox[(i + 1) % len(hitbox)], 1e-4)
+                     for i in range(len(hitbox)))
+
+    return can_see(point1, point2, segments)
