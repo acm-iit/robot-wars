@@ -203,7 +203,7 @@ class Arena:
             self.add_entity(robot)
             robot.position = positions.pop()
 
-    def spawn_robots(self):
+    def spawn_robots(self) -> list[Robot]:
         """
         Spawns the Arena's robots into unique spawn locations. The number of
         robots must be lower than the number of arena spawns.
@@ -215,6 +215,8 @@ class Arena:
 
         for robot, _ in robots:
             robot.position = positions.pop()
+
+        return [robot for robot, _ in robots]
 
     def get_entities_of_type(self, typeVal: type) -> list[Entity]:
         """Returns a filtered list of entities of a certain class."""

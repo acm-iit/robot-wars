@@ -78,6 +78,8 @@ class Robot(entity.Entity):
 
         self.death_time = math.inf                  # Time of death
 
+        self.is_battle_royale = False
+
         # Velocity from last update call
         self.last_velocity = Vector2()
 
@@ -420,6 +422,8 @@ class Robot(entity.Entity):
         state = control.ControllerState()
 
         state.time_delta = dt
+
+        state.is_battle_royale = self.is_battle_royale
 
         state.health = self.health / MAX_HEALTH
         state.coins = self.coins

@@ -34,6 +34,18 @@ class ControllerState:
         bullet paths!
         """
 
+        self.is_battle_royale: bool = False
+        """
+        Signifies whether the tank is playing in a Battle Royale; i.e. the
+        first round to determine seeding in the tournament.
+
+        A value of `False` indicates that the tank is facing a singular enemy
+        in a one versus one environment.
+
+        This is useful if you want to program different strategies between
+        Battle Royale and one versus one.
+        """
+
         self.health: float = 0
         """
         Health of the tank, as a fraction of its maximum health. A value of `1`
