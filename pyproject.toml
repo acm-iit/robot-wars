@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tank_wars_iit"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
   { name="Association for Computing Machinery at the Illinois Institute of Technology", email="acm@iit.edu" },
   { name="Tommy Vadakumchery", email="t.vadakumchery1@gmail.com" },
