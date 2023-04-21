@@ -201,19 +201,21 @@ class PathfindingGraph:
 
     def get_visible_nodes(self, point: Vector2, rotation: Optional[float]):
         """Returns a list of up to 8 visible nodes, sorted by closeness."""
-        def sort_key(node: Node):
+        def cost(node: Node):
             if rotation is not None:
                 return evaluate_cost(point, rotation, node.position)
             else:
                 return (point - node.position).magnitude_squared()
 
-        sorted_nodes = sorted(self.__nodes, key=sort_key)
+        node_costs = [(cost(node), node) for node in self.__nodes]
+
+        sorted_nodes = sorted(node_costs)
 
         result = list[Node]()
         i = 0
 
         while (len(result) == 0 or i < 8) and i < len(sorted_nodes):
-            node = sorted_nodes[i]
+            _, node = sorted_nodes[i]
             if can_see_walls(point, node.position, self.__quadtree):
                 result.append(node)
             i += 1
