@@ -2,9 +2,11 @@ import math
 
 import pygame
 
-from engine.entity.coin import Coin, COIN_RADIUS
-from engine.entity.robot import (HEALTH_COLOR, HEALTH_DEFICIT_COLOR,
-                                 MAX_HEALTH, Robot, ROBOT_RADIUS)
+from tank_wars_iit._engine.entity.coin import Coin, COIN_RADIUS
+from tank_wars_iit._engine.entity.robot import (HEALTH_COLOR,
+                                                HEALTH_DEFICIT_COLOR,
+                                                MAX_HEALTH, Robot,
+                                                ROBOT_RADIUS)
 
 Rect = pygame.Rect
 Surface = pygame.Surface

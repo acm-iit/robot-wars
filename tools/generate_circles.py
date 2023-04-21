@@ -11,9 +11,9 @@ from typing import Callable
 
 sys.path.append(".")
 
-from engine.map import MapJson, WallJson    # noqa: E402
+from tank_wars_iit._engine.map import MapJson, WallJson  # noqa
 
-FILENAME = "engine/maps/circles.json"
+FILENAME = "src/tank_wars_iit/_engine/maps/circles.json"
 
 NUM_CIRCLE_SEGMENTS = 32
 WALL_THICKNESS = 32

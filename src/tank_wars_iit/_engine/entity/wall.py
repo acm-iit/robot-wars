@@ -2,8 +2,8 @@ import math
 
 import pygame
 
-import engine.entity as entity
-from engine.entity.robot import ROBOT_HITBOX_WIDTH
+import tank_wars_iit._engine.entity as entity
+from tank_wars_iit._engine.entity.robot import ROBOT_HITBOX_WIDTH
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2

@@ -2,7 +2,7 @@ import math
 
 import pygame
 
-import engine.entity as entity
+import tank_wars_iit._engine.entity as entity
 
 Surface = pygame.Surface
 Vector2 = pygame.Vector2

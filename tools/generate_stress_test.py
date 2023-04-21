@@ -9,9 +9,9 @@ import sys
 
 sys.path.append(".")
 
-from engine.map import MapJson, PositionJson    # noqa: E402
+from tank_wars_iit._engine.map import MapJson, PositionJson  # noqa
 
-FILENAME = "engine/maps/stress_test.json"
+FILENAME = "src/tank_wars_iit/_engine/maps/stress_test.json"
 
 WIDTH = 8192
 HEIGHT = 8192

@@ -6,12 +6,14 @@ from typing import cast, Optional
 
 import pygame
 
-import engine.arena as arena
-from engine.entity import Wall
-from engine.entity.robot import ROBOT_MOVE_SPEED, ROBOT_TURN_SPEED
-from engine.quadtree import Quadtree
-from engine.util import (angle_difference, can_see_walls,
-                         check_polygon_collision, is_point_in_polygon)
+import tank_wars_iit._engine.arena as arena
+from tank_wars_iit._engine.entity import Wall
+from tank_wars_iit._engine.entity.robot import (ROBOT_MOVE_SPEED,
+                                                ROBOT_TURN_SPEED)
+from tank_wars_iit._engine.quadtree import Quadtree
+from tank_wars_iit._engine.util import (angle_difference, can_see_walls,
+                                        check_polygon_collision,
+                                        is_point_in_polygon)
 
 Vector2 = pygame.Vector2
 

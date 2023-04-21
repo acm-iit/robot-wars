@@ -2,8 +2,9 @@ from random import random
 
 import pygame
 
-from engine.arena import Arena
-from engine.control import Controller, ControllerAction, ControllerState
+from tank_wars_iit._engine.arena import Arena
+from tank_wars_iit._engine.control import (Controller, ControllerAction,
+                                           ControllerState)
 
 
 class HumanController(Controller):

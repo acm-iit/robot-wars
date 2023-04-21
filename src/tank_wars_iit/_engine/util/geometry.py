@@ -3,8 +3,8 @@ from typing import Optional
 
 import pygame
 
-from engine.entity import Wall
-from engine.quadtree import Quadtree
+import tank_wars_iit._engine.entity as entity
+from tank_wars_iit._engine.quadtree import Quadtree
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -170,7 +170,8 @@ def can_see(point1: Vector2, point2: Vector2,
     return not raycast(point1, point2, segments)
 
 
-def can_see_walls(point1: Vector2, point2: Vector2, quadtree: Quadtree[Wall],
+def can_see_walls(point1: Vector2, point2: Vector2,
+                  quadtree: Quadtree["entity.Wall"],
                   use_pathfinding_hitbox=True):
     """
     Specialized version of `can_see` that determines which segments to check

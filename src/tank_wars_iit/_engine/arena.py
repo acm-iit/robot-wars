@@ -1,4 +1,5 @@
 from __future__ import annotations
+from importlib.resources import files
 import json
 import math
 from random import choice, random, sample
@@ -7,17 +8,18 @@ from typing import cast, Optional
 
 import pygame
 
-from engine.control import Controller
-from engine.entity import Bullet, Coin, Entity, Robot, Wall
-from engine.entity.bullet import BULLET_SPEED
-from engine.entity.coin import COIN_RADIUS
-from engine.entity.robot import ROBOT_HITBOX_WIDTH
-from engine.map import is_map
-from engine.pathfinding import PathfindingGraph
-from engine.quadtree import Quadtree
-from engine.robotlist import (RobotList, WIDTH as ROBOT_LIST_WIDTH,
-                              COLOR as ROBOT_LIST_COLOR)
-from engine.util import can_see_walls
+from tank_wars_iit._engine.control import Controller
+from tank_wars_iit._engine.entity import Bullet, Coin, Entity, Robot, Wall
+from tank_wars_iit._engine.entity.bullet import BULLET_SPEED
+from tank_wars_iit._engine.entity.coin import COIN_RADIUS
+from tank_wars_iit._engine.entity.robot import ROBOT_HITBOX_WIDTH
+from tank_wars_iit._engine.map import is_map
+from tank_wars_iit._engine.pathfinding import PathfindingGraph
+from tank_wars_iit._engine.quadtree import Quadtree
+from tank_wars_iit._engine.robotlist import (RobotList,
+                                             WIDTH as ROBOT_LIST_WIDTH,
+                                             COLOR as ROBOT_LIST_COLOR)
+from tank_wars_iit._engine.util import can_see_walls
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
@@ -119,7 +121,8 @@ class Arena:
     @staticmethod
     def from_map_json(filename: str) -> Optional[Arena]:
         """Constructs an Arena from a map config JSON file."""
-        with open(filename, "r") as file:
+        path = files("tank_wars_iit._engine.maps").joinpath(filename)
+        with path.open("r") as file:
             arena_data = json.load(file)
             assert is_map(arena_data), "Map JSON is malformed"
 

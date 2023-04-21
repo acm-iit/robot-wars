@@ -11,9 +11,9 @@ import sys
 
 sys.path.append(".")
 
-from engine.map import MapJson, WallJson    # noqa: E402
+from tank_wars_iit._engine.map import MapJson, WallJson  # noqa
 
-FILENAME = "engine/maps/maze.json"
+FILENAME = "src/tank_wars_iit/_engine/maps/maze.json"
 
 WALL_THICKNESS = 32
 
