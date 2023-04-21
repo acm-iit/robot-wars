@@ -115,11 +115,17 @@ class ControllerState:
         """
         Health of the enemy tank, as a fraction of its maximum health. A value
         of `1` implies full health, while a value of `0` implies no health.
+
+        In the case of multiple enemy tanks (i.e. battle royale), this is the
+        health of the nearest enemy tank.
         """
 
         self.enemy_coins: int = 0
         """
         Number of coins the enemy tank has collected.
+
+        In the case of multiple enemy tanks (i.e. battle royale), this is the
+        number of coins of the nearest enemy tank.
         """
 
         self.enemy_position: tuple[float, float] = (0, 0)
