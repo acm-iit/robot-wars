@@ -78,6 +78,8 @@ class Robot(entity.Entity):
 
         self.death_time = math.inf                  # Time of death
 
+        self.is_battle_royale = False
+
         # Velocity from last update call
         self.last_velocity = Vector2()
 
@@ -421,6 +423,11 @@ class Robot(entity.Entity):
 
         state.time_delta = dt
 
+        state.is_battle_royale = self.is_battle_royale
+
+        state.health = self.health / MAX_HEALTH
+        state.coins = self.coins
+
         state.position = (self.position.x, self.position.y)
         state.max_speed = self.__move_speed
 
@@ -435,6 +442,8 @@ class Robot(entity.Entity):
 
         enemy = self.nearest_robot
         if enemy is not None:
+            state.enemy_health = enemy.health / MAX_HEALTH
+            state.enemy_coins = enemy.coins
             state.enemy_position = (enemy.position.x, enemy.position.y)
             state.enemy_velocity = (enemy.last_velocity.x,
                                     enemy.last_velocity.y)
