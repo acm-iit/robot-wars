@@ -13,8 +13,8 @@ from engine.map import MapJson, PositionJson    # noqa: E402
 
 FILENAME = "engine/maps/stress_test.json"
 
-WIDTH = 2048
-HEIGHT = 2048
+WIDTH = 8192
+HEIGHT = 8192
 
 SPAWNS_PER_DIMENSION = 8
 
