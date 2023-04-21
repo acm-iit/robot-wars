@@ -1,12 +1,16 @@
 # `examples`
 
-A module containing several examples of `Controller`s that you can use as a baseline or as competition to assess your `Controller` against.
+```python
+import tank_wars_iit.examples
+```
+
+A module containing several examples of [`Controller`](./Controller.md)s that you can use as a baseline or as competition to assess your [`Controller`](./Controller.md) against.
 
 Note that these examples are quite primitive and easy to implement; we hope you guys leverage the full potential of [`ControllerState`](./ControllerState.md) and [`ControllerAction`](./ControllerAction.md) to create intelligent tanks!
 
 ## `HumanController`
 
-This `Controller` reads user input from the keyboard and mouse to move a tank.
+This [`Controller`](./Controller.md) reads user input from the keyboard and mouse to move a tank.
 
 ### Controls
 
@@ -19,7 +23,7 @@ This `Controller` reads user input from the keyboard and mouse to move a tank.
 
 ## `SpinController`
 
-This `Controller` simply moves, turns, and turns its turret randomly while constantly shooting.
+This [`Controller`](./Controller.md) simply moves, turns, and turns its turret randomly while constantly shooting.
 
 To determine the powers at which it moves, turns, and turns its turret, it overrides `Controller.__init__` to determine the [`move_power`](./ControllerAction.md#move_power), [`turn_power`](./ControllerAction.md#turn_power), and [`turret_turn_power`](./ControllerAction.md#turret_turn_power) it will [`act`](./Controller.md#act) with at each time step.
 
@@ -52,7 +56,7 @@ class SpinController(Controller):
 
 ## `AggressiveController`
 
-This `Controller` chases down the nearest tank and shoots at it.
+This [`Controller`](./Controller.md) chases down the nearest tank and shoots at it.
 
 It simply sets [`action.move_toward`](./ControllerAction.md#move_toward) to [`state.enemy_position`](./ControllerState.md#enemy_position) to move towards the nearest tank.
 
@@ -80,7 +84,7 @@ class AggressiveController(Controller):
 
 ## `GreedyController`
 
-This `Controller` simply tries to collect as many coins as possible.
+This [`Controller`](./Controller.md) simply tries to collect as many coins as possible.
 
 At each time step, it sets [`action.move_toward`](./ControllerAction.md#move_toward) to [`state.coin_position`](./ControllerState.md#coin_position) to move towards the coin.
 
@@ -103,7 +107,7 @@ class GreedyController(Controller):
 
 ## `AggreedyController`
 
-This `Controller` is a combination of both `AggressiveController` and `GreedyController`; it moves towards the coin while shooting at any enemy it has line of sight with.
+This [`Controller`](./Controller.md) is a combination of both `AggressiveController` and `GreedyController`; it moves towards the coin while shooting at any enemy it has line of sight with.
 
 ### Code
 

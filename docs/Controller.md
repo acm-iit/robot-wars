@@ -1,5 +1,9 @@
 # `Controller`
 
+```python
+from tank_wars_iit import Controller
+```
+
 Abstract tank controller class.
 
 Do not modify this class; instead extend this class into a subclass with a unique classname to represent your tank.

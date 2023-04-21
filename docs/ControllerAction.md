@@ -1,5 +1,9 @@
 # `ControllerAction`
 
+```python
+from tank_wars_iit import ControllerAction
+```
+
 Contains numerous values representing the immediate action of a tank at a certain time step.
 
 This object is returned from [`Controller.act`](./Controller.md#act) before every physics step to help the `Controller` determine how to behave.

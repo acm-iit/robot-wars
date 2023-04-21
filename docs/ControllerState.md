@@ -1,5 +1,9 @@
 # `ControllerState`
 
+```python
+from tank_wars_iit import ControllerState
+```
+
 Contains numerous values representing the state of a tank and its surroundings.
 
 This object is fed into [`Controller.act`](./Controller.md#act) before every physics step to help the `Controller` determine how to behave.
