@@ -460,10 +460,6 @@ class Robot(entity.Entity):
 
     def update(self, dt: float):
         if self.on_update is not None:
-            # Reset power values, since on_update will set them
-            self.move_power = 0
-            self.turn_power = 0
-            self.turret_turn_power = 0
             self.on_update(self, dt)
 
         self.__move(dt)
@@ -471,6 +467,12 @@ class Robot(entity.Entity):
         self.__turn_turret(dt)
         if self.__will_shoot:
             self.shoot()
+
+        # Reset behavior values
+        self.move_power = 0
+        self.turn_power = 0
+        self.turret_turn_power = 0
+        self.__will_shoot = False
 
         # Update shot cooldown
         self.time_until_next_shot = max(self.time_until_next_shot - dt, 0)

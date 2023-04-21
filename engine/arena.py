@@ -729,8 +729,9 @@ class Arena:
             # Draw winning robot
             if len(results) > 0:
                 winner, *_ = results[0]
-                winner.rotation += dt * math.pi
-                winner.turret_rotation -= dt * math.pi
+                winner.turn_power = 1
+                winner.turret_turn_power = -1
+                winner.update(dt)
                 winner.render_at_position(window, Vector2(window_size.x / 2,
                                                           window_size.y / 3))
 
