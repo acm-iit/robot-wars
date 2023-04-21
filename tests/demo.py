@@ -1,6 +1,6 @@
-from engine import Controller, controllers, ControllerAction, ControllerState
-from engine import battle_royale
-from engine import one_vs_one
+from tank_wars_iit import Controller, ControllerAction, ControllerState
+import tank_wars_iit.examples as examples
+import tank_wars_iit.scenario as scenario
 
 
 # Implement your controller here!
@@ -28,16 +28,19 @@ class MyController(Controller):
 if __name__ == "__main__":
     # List of tank controllers to use in the simulation
     enemies = [
-        controllers.HumanController,        # Human-controlled tank
-        controllers.SpinController,         # Randomly spinning tank
-        controllers.AggressiveController,   # Killer tank
-        controllers.GreedyController,       # Coin-loving tank
-        controllers.AggreedyController,     # Killer + coin-loving tank
-        MyController                        # Your tank
+        examples.HumanController,       # Human-controlled tank
+        examples.SpinController,        # Randomly spinning tank
+        examples.AggressiveController,  # Killer tank
+        examples.GreedyController,      # Coin-loving tank
+        examples.AggreedyController,    # Killer + coin-loving tank
+        MyController                    # Your tank
     ]
 
-    # Run a battle royale simulation (set show_fps=True to show FPS if needed)
-    battle_royale(enemies, show_fps=False)
+    # Run a battle royale simulation
+    scenario.battle_royale(enemies)
 
     # Run a 1 vs. 1 simulation between 2 tanks
-    one_vs_one(MyController, controllers.HumanController)
+    scenario.one_vs_one(MyController, examples.HumanController)
+
+    # Run a tournament
+    scenario.tournament(enemies)

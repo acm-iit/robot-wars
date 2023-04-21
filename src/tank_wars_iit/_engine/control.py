@@ -1,7 +1,5 @@
 import math
 
-from engine.util import angle_difference as angle_difference    # noqa
-
 
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     """

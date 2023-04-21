@@ -3,8 +3,8 @@ import math
 
 import pygame
 
-import engine.entity as entity
-from engine.util import draw_gradient_path
+import tank_wars_iit._engine.entity as entity
+from tank_wars_iit._engine.util import draw_gradient_path
 
 Vector2 = pygame.Vector2
 

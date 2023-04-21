@@ -4,9 +4,9 @@ from typing import cast, Literal
 
 import pygame
 
-from engine.control import Controller
-from engine.entity.robot import Robot, ROBOT_RADIUS
-from engine.scenario import battle_royale, one_vs_one
+from tank_wars_iit._engine.control import Controller
+from tank_wars_iit._engine.entity.robot import Robot, ROBOT_RADIUS
+from tank_wars_iit.scenario import battle_royale, one_vs_one
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2

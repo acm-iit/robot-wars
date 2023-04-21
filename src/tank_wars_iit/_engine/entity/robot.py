@@ -4,10 +4,10 @@ from typing import Callable, Optional
 
 import pygame
 
-import engine.control as control
-import engine.entity as entity
-from engine.entity.bullet import BULLET_SPEED
-import engine.util as util
+import tank_wars_iit._engine.control as control
+import tank_wars_iit._engine.entity as entity
+from tank_wars_iit._engine.entity.bullet import BULLET_SPEED
+import tank_wars_iit._engine.util as util
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tank_wars_iit"
+version = "1.0.2"
+authors = [
+  { name="Association for Computing Machinery at the Illinois Institute of Technology", email="acm@iit.edu" },
+  { name="Tommy Vadakumchery", email="t.vadakumchery1@gmail.com" },
+]
+description = "Tank Wars framework for Scarlet HackNiite"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pygame >= 2.3.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/acm-iit/robot-wars"
+"Bug Tracker" = "https://github.com/acm-iit/robot-wars/issues"

@@ -4,8 +4,8 @@ from typing import Optional
 
 import pygame
 
-import engine.arena as arena
-import engine.util as util
+import tank_wars_iit._engine.arena as arena
+import tank_wars_iit._engine.util as util
 
 Rect = pygame.Rect
 Vector2 = pygame.Vector2
