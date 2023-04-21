@@ -148,8 +148,13 @@ def render_robot_list(surface: Surface, robots: list[tuple[Robot, int]],
                                     flags=pygame.SRCALPHA)
             robot.render_at_position(robot_surface, Vector2(ROBOT_RADIUS))
             ratio = ENTRY_HEIGHT / (2 * ROBOT_RADIUS)
-            robot_surface = pygame.transform.smoothscale_by(robot_surface,
-                                                            ratio)
+            if len(robots) <= 2:
+                robot_surface = pygame.transform.smoothscale_by(robot_surface,
+                                                                ratio)
+            else:
+                # Use normal scale_by to save on performance
+                robot_surface = pygame.transform.scale_by(robot_surface,
+                                                          ratio)
             surface.blit(robot_surface, robot_position)
         else:
             # If dead, show a big red X
