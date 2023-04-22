@@ -136,5 +136,5 @@ This is just a basic summary of all the functionalities you can use to program y
 - [`ControllerState`](./ControllerState.md)
 - [`ControllerAction`](./ControllerAction.md)
 - [`tank_wars_iit.examples`](./examples.md)
-- [`tank_wars_iit.scenario`](./examples.md)
+- [`tank_wars_iit.scenario`](./scenarios.md)
 - [`tank_wars_iit.util`](./util.md)
